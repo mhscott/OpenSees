@@ -956,11 +956,16 @@ FEDEAS_LIBS = $(FE)/material/uniaxial/FedeasMaterial.o \
 	$(FE)/material/uniaxial/fedeas/FedeasBond2Material.o \
 	$(FE)/material/uniaxial/fedeas/FedeasConcr1Material.o \
 	$(FE)/material/uniaxial/fedeas/FedeasConcr2Material.o \
+	$(FE)/material/uniaxial/fedeas/Concr2.o \
 	$(FE)/material/uniaxial/fedeas/FedeasConcr3Material.o \
 	$(FE)/material/uniaxial/fedeas/FedeasHyster1Material.o \
+	$(FE)/material/uniaxial/fedeas/Hyster1.o \
 	$(FE)/material/uniaxial/fedeas/FedeasHyster2Material.o \
+	$(FE)/material/uniaxial/fedeas/Hyster2.o \
 	$(FE)/material/uniaxial/fedeas/FedeasSteel1Material.o \
-	$(FE)/material/uniaxial/fedeas/FedeasSteel2Material.o
+	$(FE)/material/uniaxial/fedeas/Steel1.o \
+	$(FE)/material/uniaxial/fedeas/FedeasSteel2Material.o \
+	$(FE)/material/uniaxial/fedeas/Steel2.o
 
 
 DRAIN_LIBS = $(FE)/material/uniaxial/DrainMaterial.o \

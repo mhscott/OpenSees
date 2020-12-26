@@ -4,12 +4,12 @@ OBJS       = FedeasHardeningMaterial.o Hard1.o \
 	FedeasBond1Material.o \
 	FedeasBond2Material.o \
 	FedeasConcr1Material.o \
-	FedeasConcr2Material.o \
+	FedeasConcr2Material.o Concr2.o \
 	FedeasConcr3Material.o \
-	FedeasHyster1Material.o \
-	FedeasHyster2Material.o \
-	FedeasSteel1Material.o \
-	FedeasSteel2Material.o \
+	FedeasHyster1Material.o Hyster1.o \
+	FedeasHyster2Material.o Hyster2.o \
+	FedeasSteel1Material.o Steel1.o \
+	FedeasSteel2Material.o Steel2.o \
 	PD1.o PlasticDamageMaterial.o \
 	TclFedeasMaterialCommand.o
 
