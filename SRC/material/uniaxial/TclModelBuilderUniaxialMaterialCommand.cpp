@@ -215,7 +215,7 @@ TclCommand_AxialSpHD(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
 
 
 UniaxialMaterial *
-TclModelBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
+TclModelBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv, Domain *theDomain);
 				  
 
 UniaxialMaterial *
@@ -2896,7 +2896,7 @@ TclModelBuilderUniaxialMaterialCommand (ClientData clientData, Tcl_Interp *inter
     }
     else {
       // Fedeas
-      theMaterial = TclModelBuilder_addFedeasMaterial(clientData, interp, argc, argv);
+      theMaterial = TclModelBuilder_addFedeasMaterial(clientData, interp, argc, argv, theDomain);
       
       // Drain
       if (theMaterial == 0)

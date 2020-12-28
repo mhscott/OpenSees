@@ -31,6 +31,63 @@
 
 #include <stdlib.h>
 #include <FedeasSteel2Material.h>
+#include <elementAPI.h>
+
+void* OPS_FedeasSteel2Material()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Steel02 tag? fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+
+  double data[10];
+  numdata = 3;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  int argc = OPS_GetNumRemainingInputArgs();
+  UniaxialMaterial *mat = 0;
+  if (argc > 2) {
+    numdata = 3;
+    if (OPS_GetDoubleInput(&numdata,&data[3]) < 0) {
+      opserr << "WARING: failed to read data\n";
+      return 0;
+    }
+    if (argc > 6) {
+      numdata = 4;
+      if (OPS_GetDoubleInput(&numdata,&data[6]) < 0) {
+	opserr << "WARING: failed to read data\n";
+	return 0;
+      }
+      mat = new FedeasSteel2Material(tag,data[0],data[1],data[2],
+				     data[3],data[4],data[5],
+				     data[6],data[7],data[8],data[9]);
+    } else {
+      mat = new FedeasSteel2Material(tag,data[0],data[1],data[2],
+				    data[3],data[4],data[5]);
+    }
+  } else {
+    mat = new FedeasSteel2Material(tag,data[0],data[1],data[2]);
+  }
+  
+  if (mat == 0) {
+    opserr << "WARNING: failed to create FedeasSteel2 material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 FedeasSteel2Material::FedeasSteel2Material(int tag,
 					 double fy, double E0, double b,

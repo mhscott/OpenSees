@@ -30,6 +30,40 @@
 // 1d material subroutine Concr_2.
 #include <stdlib.h>
 #include <FedeasConcr2Material.h>
+#include <elementAPI.h>
+
+void* OPS_FedeasConcr2Material()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? ratio? ft? Ets?" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+  
+  double data[7];
+  numdata = 7;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  UniaxialMaterial* mat = new FedeasConcr2Material(tag,data[0],data[1],data[2],data[3],
+						   data[4],data[5],data[6]);
+  if (mat == 0) {
+    opserr << "WARNING: failed to create FedeasConcr2 material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 FedeasConcr2Material::FedeasConcr2Material(int tag,
 					 double fc, double ec, double fu, double eu,

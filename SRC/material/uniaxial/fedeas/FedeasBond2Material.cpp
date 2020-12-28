@@ -31,6 +31,42 @@
 
 #include <stdlib.h>
 #include <FedeasBond2Material.h>
+#include <elementAPI.h>
+
+void* OPS_FedeasBond2Material()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Bond02 tag? u1p? q1p? u2p? u3p? q3p? u1n? q1n? u2n? u3n? q3n? s0? bb? alp? aln?" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+  
+  double data[14];
+  numdata = 14;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  UniaxialMaterial* mat = new FedeasBond2Material(tag,data[0],data[1],data[2],data[3],
+						  data[4],data[5],data[6],data[7],
+						  data[8],data[9],data[10],data[11],
+						  data[12],data[13]);
+  if (mat == 0) {
+    opserr << "WARNING: failed to create FedeasBond2 material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 FedeasBond2Material::FedeasBond2Material(int tag,
 	double u1p, double q1p, double u2p, double u3p, double q3p,

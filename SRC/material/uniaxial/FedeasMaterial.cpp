@@ -360,8 +360,8 @@ extern "C" int  STEEL_2(double *matpar, double *hstvP, double *hstv,
 #define concrete_2__	CONCRETE_2
 #define concrete_3__	CONCRETE_3
 #define hard_1__ 	HARD_1
-#define hyster_1__	HYSTER_1
-#define hyster_2__	HYSTER_2
+#define hyster_1_	HYSTER_1
+#define hyster_2_	HYSTER_2
 #define steel_1__	STEEL_1
 #define steel_2__	STEEL_2
 
@@ -391,11 +391,11 @@ extern "C" int hard_1__(double *matpar, double *hstvP, double *hstv,
 			double *strainP, double *stressP, double *dStrain,
 			double *tangent, double *stress, int *ist);
 
-extern "C" int hyster_1__(double *matpar, double *hstvP, double *hstv,
+extern "C" int hyster_1_(double *matpar, double *hstvP, double *hstv,
 			  double *strainP, double *stressP, double *dStrain,
 			  double *tangent, double *stress, int *ist);
 
-extern "C" int hyster_2__(double *matpar, double *hstvP, double *hstv,
+extern "C" int hyster_2_(double *matpar, double *hstvP, double *hstv,
 			  double *strainP, double *stressP, double *dStrain,
 			  double *tangent, double *stress, int *ist);
 
@@ -478,19 +478,21 @@ FedeasMaterial::invokeSubroutine(int ist)
         
   case MAT_TAG_FedeasHysteretic1:
 #ifdef _WIN32
-    hyster_1__(data, hstv, &hstv[numHstv], &epsilonP, &sigmaP, &dEpsilon, 
+    hyster_1_(data, hstv, &hstv[numHstv], &epsilonP, &sigmaP, &dEpsilon, 
 	       &sigma, &tangent, &ist);
 #else
-	opserr << "FedeasMaterial::invokeSubroutine -- Hysteretic1 subroutine not yet linked\n";
+    hyster_1_(data, hstv, &hstv[numHstv], &epsilonP, &sigmaP, &dEpsilon, 
+	       &sigma, &tangent, &ist);    
 #endif
     break;
     
   case MAT_TAG_FedeasHysteretic2:
 #ifdef _WIN32
-    hyster_2__(data, hstv, &hstv[numHstv], &epsilonP, &sigmaP, &dEpsilon, 
+    hyster_2_(data, hstv, &hstv[numHstv], &epsilonP, &sigmaP, &dEpsilon, 
 	       &sigma, &tangent, &ist);
 #else
-	opserr << "FedeasMaterial::invokeSubroutine -- Hysteretic2 subroutine not yet linked\n";
+    hyster_2_(data, hstv, &hstv[numHstv], &epsilonP, &sigmaP, &dEpsilon, 
+	       &sigma, &tangent, &ist);        
 #endif
     break;
     

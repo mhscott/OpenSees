@@ -31,6 +31,39 @@
 
 #include <stdlib.h>
 #include <FedeasHardeningMaterial.h>
+#include <elementAPI.h>
+
+void* OPS_FedeasHardeningMaterial()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Hardening01 tag? E? sigmaY? H_iso? H_kin?" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+  
+  double data[4];
+  numdata = 4;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  UniaxialMaterial* mat = new FedeasHardeningMaterial(tag,data[0],data[1],data[2],data[3]);
+  if (mat == 0) {
+    opserr << "WARNING: failed to create FedeasHardening material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 FedeasHardeningMaterial::FedeasHardeningMaterial(int tag,
 					 double E, double sigmaY, double Hiso, double Hkin):

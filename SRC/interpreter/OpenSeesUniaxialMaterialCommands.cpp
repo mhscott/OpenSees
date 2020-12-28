@@ -174,6 +174,17 @@ void* OPS_IMKBilin();
 void* OPS_IMKPinching();
 void* OPS_IMKPeakOriented();
 void* OPS_SLModel();
+void *OPS_FedeasHardeningMaterial(void);
+void *OPS_FedeasHyster1Material(void);
+void *OPS_FedeasHyster2Material(void);
+void *OPS_FedeasBond1Material(void);
+void *OPS_FedeasBond2Material(void);
+void *OPS_FedeasConcr1Material(void);
+void *OPS_FedeasConcr2Material(void);
+void *OPS_FedeasConcr3Material(void);
+void *OPS_FedeasSteel1Material(void);
+void *OPS_FedeasSteel2Material(void);
+void *OPS_PlasticDamageMaterial(void);
 
 void* OPS_ArctangentBackbone();
 void* OPS_BilinearBackbone();
@@ -340,7 +351,19 @@ namespace {
 	uniaxialMaterialsMap.insert(std::make_pair("IMKPinching", &OPS_IMKPinching));
 	uniaxialMaterialsMap.insert(std::make_pair("IMKPeakOriented", &OPS_IMKPeakOriented));
 	uniaxialMaterialsMap.insert(std::make_pair("SLModel", &OPS_SLModel));
-
+	uniaxialMaterialsMap.insert(std::make_pair("Hardening1", &OPS_FedeasHardeningMaterial));
+	uniaxialMaterialsMap.insert(std::make_pair("Bond1", &OPS_FedeasBond1Material));
+	uniaxialMaterialsMap.insert(std::make_pair("Bond2", &OPS_FedeasBond2Material));
+	uniaxialMaterialsMap.insert(std::make_pair("Concrete1", &OPS_FedeasConcr1Material));
+	uniaxialMaterialsMap.insert(std::make_pair("Concrete2", &OPS_FedeasConcr2Material));
+	uniaxialMaterialsMap.insert(std::make_pair("Concrete3", &OPS_FedeasConcr3Material));	
+	uniaxialMaterialsMap.insert(std::make_pair("Hysteretic1", &OPS_FedeasHyster1Material));
+	uniaxialMaterialsMap.insert(std::make_pair("Hysteretic2", &OPS_FedeasHyster2Material));
+	uniaxialMaterialsMap.insert(std::make_pair("Steel1", &OPS_FedeasSteel1Material));
+	//uniaxialMaterialsMap.insert(std::make_pair("Steel2", &OPS_FedeasSteel2Material));	
+	uniaxialMaterialsMap.insert(std::make_pair("PlasticDamage", &OPS_PlasticDamageMaterial));
+	uniaxialMaterialsMap.insert(std::make_pair("ConcretePlasticDamage", &OPS_PlasticDamageMaterial));	
+	
 	return 0;
     }
 

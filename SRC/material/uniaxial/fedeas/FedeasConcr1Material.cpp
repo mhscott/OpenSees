@@ -31,6 +31,39 @@
 
 #include <stdlib.h>
 #include <FedeasConcr1Material.h>
+#include <elementAPI.h>
+
+void* OPS_FedeasConcr1Material()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? epscu?" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+  
+  double data[4];
+  numdata = 4;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  UniaxialMaterial* mat = new FedeasConcr1Material(tag,data[0],data[1],data[2],data[3]);
+  if (mat == 0) {
+    opserr << "WARNING: failed to create FedeasConcr1 material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 FedeasConcr1Material::FedeasConcr1Material(int tag,
 					 double fc, double ec, double fu, double eu):

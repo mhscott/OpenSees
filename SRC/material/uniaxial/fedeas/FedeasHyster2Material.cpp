@@ -31,6 +31,42 @@
 
 #include <stdlib.h>
 #include <FedeasHyster2Material.h>
+#include <elementAPI.h>
+
+void* OPS_FedeasHyster2Material()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Hysteretic02 tag? s1p? e1p? s2p? e2p? s3p? e3p? s1n? e1n? s2n? e2n? s3n? e3n? px? py? d1? d2?" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+  
+  double data[16];
+  numdata = 16;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  UniaxialMaterial* mat = new FedeasHyster2Material(tag,data[0],data[1],data[2],data[3],
+						    data[4],data[5],data[6],data[7],
+						    data[8],data[9],data[10],data[11],
+						    data[12],data[13],data[14],data[15]);
+  if (mat == 0) {
+    opserr << "WARNING: failed to create FedeasHyster2 material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 FedeasHyster2Material::FedeasHyster2Material(int tag,
 		double mom1p, double rot1p, double mom2p, double rot2p,

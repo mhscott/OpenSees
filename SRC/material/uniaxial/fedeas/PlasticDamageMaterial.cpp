@@ -31,6 +31,41 @@
 
 #include <stdlib.h>
 #include <PlasticDamageMaterial.h>
+#include <elementAPI.h>
+
+void* OPS_PlasticDamageMaterial()
+{
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 5) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial ConcretePlasticDamage tag? $Ec $Gf $Gc $ft $fcy $fc $ktcr $relax" << endln;
+    return 0;
+  }
+  
+  int tag;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata,&tag) < 0) {
+    opserr << "WARNING: failed to read tag\n";
+    return 0;
+  }
+  
+  double data[8];
+  numdata = 8;
+  if (OPS_GetDoubleInput(&numdata,data) < 0) {
+    opserr << "WARING: failed to read data\n";
+    return 0;
+  }
+
+  UniaxialMaterial* mat = new PlasticDamageMaterial(tag,data[0],data[1],data[2],data[3],
+						    data[4],data[5],data[6], data[7]);
+  
+  if (mat == 0) {
+    opserr << "WARNING: failed to create PlasticDamage material\n";
+    return 0;
+  }
+
+  return mat;  
+}
 
 PlasticDamageMaterial::PlasticDamageMaterial(int tag, double E, double Ft, double Fc,
 					     double ft_max, double fcy, double fc_max, double kt_crit, double Relax):
