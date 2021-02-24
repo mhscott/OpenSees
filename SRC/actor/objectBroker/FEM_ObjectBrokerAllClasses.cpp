@@ -96,6 +96,7 @@
 #include "Bond_SP01.h"
 #include "SimpleFractureMaterial.h"
 #include "ConfinedConcrete01.h"
+#include <HystereticPoly.h>					// Salvatore Sessa 14-Jan-2021
 
 //PY springs: RWBoulanger and BJeremic
 #include "PY/PySimple1.h"
@@ -247,6 +248,9 @@
 #include "UWelements/BeamEndContact3D.h"
 #include "UWelements/BeamEndContact3Dp.h"
 #include "UWelements/QuadBeamEmbedContact.h"
+
+#include "PML/PML2D.h"
+#include "PML/PML3D.h"
 
 #include "UP-ucsd/Nine_Four_Node_QuadUP.h"
 #include "UP-ucsd/BrickUP.h"
@@ -736,6 +740,12 @@ FEM_ObjectBrokerAllClasses::getNewElement(int classTag)
       
     case ELE_TAG_SSPbrickUP:
       return new SSPbrickUP();
+
+	case ELE_TAG_PML2D:
+		return new PML2D();
+
+	case ELE_TAG_PML3D:
+		return new PML3D();
       
     case ELE_TAG_BeamContact2D:
       return new BeamContact2D();
@@ -1282,6 +1292,9 @@ FEM_ObjectBrokerAllClasses::getNewUniaxialMaterial(int classTag)
 
         case MAT_TAG_ConfinedConcrete01:
             return new ConfinedConcrete01();
+		    
+	case MAT_TAG_HystereticPoly:			// Salvatore Sessa
+	    return new HystereticPoly();
 
 
 	default:

@@ -208,6 +208,8 @@ void *OPS_TakedaUnloadingRule();
 void *OPS_EnergyUnloadingRule();
 void *OPS_KarsanUnloadingRule();
 
+void* OPS_HystereticPoly(); // Salvatore Sessa 14-01-2021 Mail: salvatore.sessa2@unina.it
+
 namespace {
 
     static UniaxialMaterial *theTestingUniaxialMaterial = 0;
@@ -363,7 +365,8 @@ namespace {
 	//uniaxialMaterialsMap.insert(std::make_pair("Steel2", &OPS_FedeasSteel2Material));	
 	uniaxialMaterialsMap.insert(std::make_pair("PlasticDamage", &OPS_PlasticDamageMaterial));
 	uniaxialMaterialsMap.insert(std::make_pair("ConcretePlasticDamage", &OPS_PlasticDamageMaterial));	
-	
+	uniaxialMaterialsMap.insert(std::make_pair("HystereticPoly", &OPS_HystereticPoly)); // Salvatore Sessa 14-Jan-2021 Mail: salvatore.sessa2@unina.it
+
 	return 0;
     }
 

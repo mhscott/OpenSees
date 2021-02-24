@@ -639,6 +639,10 @@ ELE_LIBS   =  $(FE)/element/Element.o \
 	$(FE)/element/UWelements/EmbeddedBeamInterfaceP.o \
 	$(FE)/element/UWelements/EmbeddedEPBeamInterface.o \
 	$(FE)/element/UWelements/Tcl_generateInterfacePoints.o \
+	$(FE)/element/PML/pml_3d.o \
+        $(FE)/element/PML/PML3D.o \
+        $(FE)/element/PML/pml_2d.o \
+        $(FE)/element/PML/PML2D.o \
 	$(FE)/element/RockingBC/RockingBC.o
 
 #	$(FE)/material/nD/Damage2p.o \
@@ -657,7 +661,11 @@ endif
 
 ifdef FILIP_FLAG
 	FILIP = $(FE)/element/filip/BeamColumn2DwLHNMYS.o \
+	$(FE)/element/filip/BeamColumn2DwLHNMYS_Damage.o \
 	$(FE)/element/filip/BeamColumn3DwLHNMYS.o \
+	$(FE)/element/filip/Damage4NM.o \
+	$(FE)/element/filip/BetaDist.o \
+	$(FE)/element/filip/betaFunctions.o \
 	$(FE)/element/filip/GPYS.o
 else
 	FILIP = 
@@ -665,11 +673,8 @@ endif
 
 
 ifdef PLAINCONCRETE_FLAG
-	PLAINCONCRETE = $(FE)/material/nD/PlainConcrete.o $(FE)/material/nD/forumat.o \
-       $(FE)/element/PML/PMLDynamicSymmDamp3D.o \
-       $(FE)/element/PML/PML3D.o \
-       $(FE)/element/PML/PMLDynamicSymmDamp2D.o \
-       $(FE)/element/PML/PML2D.o
+	PLAINCONCRETE = $(FE)/material/nD/PlainConcrete.o \
+	$(FE)/material/nD/forumat.o 
 else
 	PLAINCONCRETE = 
 endif
@@ -806,6 +811,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/TDConcreteMC10NL.o \
 	$(FE)/material/uniaxial/TDConcreteMC10NL.o \
 	$(FE)/material/uniaxial/DegradingPinchedBW.o \
+	$(FE)/material/uniaxial/HystereticPoly.o \
 	$(FE)/material/uniaxial/SLModel.o \
 	$(FE)/material/uniaxial/MaterialState.o \
 	$(FE)/material/uniaxial/backbone/HystereticBackbone.o \
@@ -858,6 +864,10 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/nD/matCMM/MaterialCMM.o \
 	$(FE)/material/nD/PlasticDamageConcrete3d.o \
 	$(FE)/material/nD/PlasticDamageConcretePlaneStress.o \
+       $(FE)/element/PML/pml_3d.o \
+       $(FE)/element/PML/PML3D.o \
+       $(FE)/element/PML/pml_2d.o \
+       $(FE)/element/PML/PML2D.o \
 	$(FE)/material/nD/eig3.o \
 	$(FE)/material/nD/CycLiqCP.o \
 	$(FE)/material/nD/CycLiqCP3D.o \
@@ -1147,6 +1157,7 @@ DOMAIN_LIBS =  $(FE)/domain/component/DomainComponent.o \
 	$(FE)/domain/component/MaterialStageParameter.o \
 	$(FE)/domain/component/MatParameter.o \
 	$(FE)/domain/domain/Domain.o \
+	$(FE)/domain/domain/DomainModalProperties.o \
 	$(FE)/domain/domain/single/SingleDomEleIter.o \
 	$(FE)/domain/domain/single/SingleDomNodIter.o \
 	$(FE)/domain/domain/single/SingleDomSP_Iter.o \
@@ -1235,6 +1246,7 @@ ANALYSIS_LIBS = $(FE)/analysis/analysis/Analysis.o \
 	$(FE)/analysis/analysis/StaticDomainDecompositionAnalysis.o \
 	$(FE)/analysis/analysis/TransientDomainDecompositionAnalysis.o \
 	$(FE)/analysis/analysis/SubstructuringAnalysis.o \
+	$(FE)/analysis/analysis/ResponseSpectrumAnalysis.o \
 	$(FE)/analysis/algorithm/SolutionAlgorithm.o \
 	$(FE)/analysis/algorithm/equiSolnAlgo/EquiSolnAlgo.o \
 	$(FE)/analysis/algorithm/equiSolnAlgo/Linear.o \
