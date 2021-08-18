@@ -45,6 +45,8 @@
 #include <string.h>
 #include <elementAPI.h>
 
+extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp * interp, int cArg, int mArg, TCL_Char * *argv, Domain * domain);
+
 extern void *OPS_FedeasHardeningMaterial(void);
 extern void *OPS_FedeasHyster1Material(void);
 extern void *OPS_FedeasHyster2Material(void);

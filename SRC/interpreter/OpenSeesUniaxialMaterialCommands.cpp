@@ -368,7 +368,8 @@ namespace {
 	uniaxialMaterialsMap.insert(std::make_pair("Hysteretic1", &OPS_FedeasHyster1Material));
 	uniaxialMaterialsMap.insert(std::make_pair("Hysteretic2", &OPS_FedeasHyster2Material));
 	uniaxialMaterialsMap.insert(std::make_pair("Steel1", &OPS_FedeasSteel1Material));
-	//uniaxialMaterialsMap.insert(std::make_pair("Steel2", &OPS_FedeasSteel2Material));	
+	uniaxialMaterialsMap.insert(std::make_pair("Steel2f", &OPS_FedeasSteel2Material));	
+	uniaxialMaterialsMap.insert(std::make_pair("Steel2", &OPS_Steel2));	
 	uniaxialMaterialsMap.insert(std::make_pair("PlasticDamage", &OPS_PlasticDamageMaterial));
 	uniaxialMaterialsMap.insert(std::make_pair("ConcretePlasticDamage", &OPS_PlasticDamageMaterial));	
 	uniaxialMaterialsMap.insert(std::make_pair("HystereticPoly", &OPS_HystereticPoly)); // Salvatore Sessa 14-Jan-2021 Mail: salvatore.sessa2@unina.it

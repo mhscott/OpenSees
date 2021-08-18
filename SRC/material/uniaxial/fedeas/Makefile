@@ -9,7 +9,7 @@ OBJS       = FedeasHardeningMaterial.o Hard1.o \
 	FedeasHyster1Material.o Hyster1.o \
 	FedeasHyster2Material.o Hyster2.o \
 	FedeasSteel1Material.o Steel1.o \
-	FedeasSteel2Material.o Steel2.o \
+	FedeasSteel2Material.o Steel2f.o \
 	PD1.o PlasticDamageMaterial.o \
 	TclFedeasMaterialCommand.o
 

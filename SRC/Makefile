@@ -997,7 +997,7 @@ FEDEAS_LIBS = $(FE)/material/uniaxial/FedeasMaterial.o \
 	$(FE)/material/uniaxial/fedeas/FedeasSteel1Material.o \
 	$(FE)/material/uniaxial/fedeas/Steel1.o \
 	$(FE)/material/uniaxial/fedeas/FedeasSteel2Material.o \
-	$(FE)/material/uniaxial/fedeas/Steel2.o
+	$(FE)/material/uniaxial/fedeas/Steel2f.o
 
 
 DRAIN_LIBS = $(FE)/material/uniaxial/DrainMaterial.o \
