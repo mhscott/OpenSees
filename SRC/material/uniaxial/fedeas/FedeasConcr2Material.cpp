@@ -35,7 +35,7 @@
 void* OPS_FedeasConcr2Material()
 {
   int numdata = OPS_GetNumRemainingInputArgs();
-  if (numdata < 5) {
+  if (numdata < 8) {
     opserr << "WARNING insufficient arguments\n";
     opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? ratio? ft? Ets?" << endln;
     return 0;
