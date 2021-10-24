@@ -159,7 +159,8 @@ SeriesMaterial::SeriesMaterial()
 SeriesMaterial::~SeriesMaterial()
 {
     for (int i = 0; i < numMaterials; i++)
-		delete theModels[i];
+      if (theModels[i])
+	delete theModels[i];
 
     if (theModels != 0)
 		delete [] theModels;
