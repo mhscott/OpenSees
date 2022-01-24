@@ -399,6 +399,10 @@ MultiLinear::activateParameter(int passedParameterID)
 int
 MultiLinear::getActiveParameter(double &param)
 {
+  if (parameterID == 101) {
+    param = data(0,3);
+  }
+  
   return parameterID;
 }
 
