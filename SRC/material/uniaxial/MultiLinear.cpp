@@ -562,6 +562,29 @@ MultiLinear::getStressSensitivity(int gradIndex, bool conditional)
     }    
   }
 
+  for (int ip = 102; ip <= 100+numSlope; ip++) {
+    if (parameterID == ip) {
+      int i0 = ip-102;
+      int i1 = ip-101;
+      int i2 = ip-100;
+      if (tStrain > e0(i0) && tStrain <= e0(i1)) {
+	dsdh = 1.0/(e0(i1)-e0(i0))*(tStrain-e0(i0));
+      }
+      if (tStrain < -e0(i0) && tStrain >= -e0(i1)) {
+	dsdh = -1.0/(e0(i1)-e0(i0))*(-e0(i0)-tStrain);
+      }
+      if (tStrain > e0(i1) && tStrain <= e0(i2)) {
+	dsdh =  1.0 - 1.0/(e0(i2)-e0(i1))*(tStrain-e0(i1));
+      }
+      if (tStrain < -e0(i1) && tStrain >= -e0(i2)) {
+	dsdh = -1.0 + 1.0/(e0(i2)-e0(i1))*(-e0(i1)-tStrain);
+      }    
+    }  
+  }
+
+  return dsdh;
+
+  
   if (parameterID == 102) {
     if (tStrain > e0(0) && tStrain <= e0(1)) {
       dsdh = 1.0/(e0(1)-e0(0))*(tStrain-e0(0));
