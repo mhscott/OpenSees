@@ -17,55 +17,46 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.3 $
-// $Date: 2009-05-11 21:01:10 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/eigenSOE/FullGenEigenSolver.h,v $
-
-
-#ifndef FullGenEigenSolver_h
-#define FullGenEigenSolver_h
-
-// Written: Andreas Schellenberg (andreas.schellenberg@gmx.net)
-// Created: 11/07
-// Revision: A
+                                                                        
+// $Revision: 1.5 $
+// $Date: 2007-03-02 00:12:50 $
+// $Source: /usr/local/cvs/OpenSees/SRC/recorder/response/CrdTransfResponse.h,v $
+                                                                        
+// Written: MHS 
+// Created: Oct 2000
 //
-// Description: This file contains the class definition for 
-// FullGenEigenSolver. It computes the generalized eigenvalues
-// and eigenvectors of a pair of real nonsymmetric matrices using
-// the LAPACK subroutine DGGEV.
+// Description: This file contains the CrdTransfResponse class interface
 
-#include <EigenSolver.h>
-#include <FullGenEigenSOE.h>
+#ifndef CrdTransfResponse_h
+#define CrdTransfResponse_h
 
-class FullGenEigenSolver : public EigenSolver
+#include <Response.h>
+#include <Information.h>
+
+class CrdTransf;
+class CrdTransfState;
+
+class ID;
+class Vector;
+class Matrix;
+
+class CrdTransfResponse : public Response
 {
-public:
-    FullGenEigenSolver();    
-    virtual ~FullGenEigenSolver();
+ public:
+  CrdTransfResponse(CrdTransf *mat, int id);
+  CrdTransfResponse(CrdTransf *mat, int id, int val);
+  CrdTransfResponse(CrdTransf *mat, int id, double val);
+  CrdTransfResponse(CrdTransf *mat, int id, const ID &val);
+  CrdTransfResponse(CrdTransf *mat, int id, const Vector &val);
+  CrdTransfResponse(CrdTransf *mat, int id, const Matrix &val);
 
-    virtual int solve(int numEigen, bool generalized, bool findSmallest = true);    
-    virtual int setSize(void);
-    virtual int setEigenSOE(FullGenEigenSOE &theSOE);
-
-    virtual const Vector &getEigenvector(int mode);
-    virtual double getEigenvalue(int mode);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-        FEM_ObjectBroker &theBroker);
-
-protected:
+  ~CrdTransfResponse();
+  
+  int getResponse(void);
 
 private:
-    void sort(int length, double *x, int *id);
-    FullGenEigenSOE *theSOE;
-    int numEigen;
-
-    double *eigenvalue;
-    double *eigenvector;
-    int *sortingID;
-    Vector *eigenV;
+  CrdTransf *theCrdTransf;
+  int responseID;
 };
 
 #endif
