@@ -76,6 +76,7 @@ target_sources(OPS_Material
       Bond_SP01.cpp
       BoucWenMaterial.cpp
       BoucWenOriginal.cpp
+      BoucWenInfill.cpp      
       CFSSSWP.cpp
       CFSWSWP.cpp
       CableMaterial.cpp
@@ -114,8 +115,10 @@ target_sources(OPS_Material
       #HardeningMaterial2.cpp
       HookGap.cpp
       HyperbolicGapMaterial.cpp
+      HystereticAsym.cpp
       HystereticMaterial.cpp
       HystereticPoly.cpp
+      HystereticSmooth.cpp
       ImpactMaterial.cpp
       InitStrainMaterial.cpp
       InitStressMaterial.cpp
@@ -128,6 +131,7 @@ target_sources(OPS_Material
       ModIMKPinching.cpp
       ModIMKPinching02.cpp
       MultiLinear.cpp
+      MultiplierMaterial.cpp
       Neoprene.cpp
       OOHystereticMaterial.cpp
       PathIndependentMaterial.cpp
@@ -180,6 +184,7 @@ target_sources(OPS_Material
       Bond_SP01.h
       BoucWenMaterial.h
       BoucWenOriginal.h
+      BoucWenInfill.h      
       CFSSSWP.h
       CFSWSWP.h
       CableMaterial.h
@@ -214,12 +219,14 @@ target_sources(OPS_Material
       FatigueMaterial.h
       #FedeasMaterial.h
       GNGMaterial.h
-      #HardeningMaterial.h
-      HardeningMaterial2.h
+      HardeningMaterial.h
+      #HardeningMaterial2.h
       HookGap.h
       HyperbolicGapMaterial.h
+      HystereticAsym.h
       HystereticMaterial.h
       HystereticPoly.h
+      HystereticSmooth.h
       ImpactMaterial.h
       InitStrainMaterial.h
       InitStressMaterial.h
@@ -232,6 +239,7 @@ target_sources(OPS_Material
       ModIMKPinching.h
       ModIMKPinching02.h
       MultiLinear.h
+      MultiplierMaterial.h
       Neoprene.h
       OOHystereticMaterial.h
       PathIndependentMaterial.h

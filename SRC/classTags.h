@@ -288,8 +288,13 @@
 
 #define MAT_TAG_DuctileFracture 6115 // Kuanshi Zhong
 
+#define MAT_TAG_HystereticSmooth 6116			// Salvatore Sessa 19-Apr-2022 Mail: salvatore.sessa2@unina.it
+#define MAT_TAG_HystereticAsym 6117			// Salvatore Sessa 19-Apr-2022 Mail: salvatore.sessa2@unina.it
+
 #define ND_TAG_ExternalNDMaterial 999901
 #define MAT_TAG_ExternalUniaxialMaterial 999901
+
+#define MAT_TAG_BoucWenInfill  6666    // Stefano Sirotti 09-Feb-2022 stefano.sirotti@unimore.it
 
 
 // GNG material - J.Cook UCanterbury

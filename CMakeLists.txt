@@ -36,7 +36,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${PROJECT_SOURCE_DIR}/BuildTools/c
 # export CC=icc CXX=icpc FC=ifort
 # export MUMPS_DIR=$HOME/MUMPS_5.0.0
 
-
 # for OpenSeesPY
 add_Compile_options(-fPIC)
 
@@ -49,7 +48,6 @@ add_library(OPS_OS_Specific_libs INTERFACE)
 
 # include user config
 include(${PROJECT_SOURCE_DIR}/Conf.cmake)
-
 
 # 
 # Conan (manages external dependencies for a typical build)
@@ -96,7 +94,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    include(OpenSeesDependenciesWin)
     target_link_libraries(OPS_OS_Specific_libs INTERFACE wsock32 ws2_32)
     add_compile_definitions(_WIN32 _TCL85)
   if (NOT_USING_CONAN)
@@ -314,6 +311,7 @@ add_library(OPS_Actor              OBJECT)
 add_library(OPS_ObjectBroker       OBJECT)
 add_library(OPS_Handler            OBJECT)
 add_library(OPS_Recorder           OBJECT)
+add_library(OPS_Reliability        OBJECT)
 add_library(OPS_Tagged             OBJECT)
 add_library(OPS_Utilities          OBJECT)
 add_library(OPS_ModelBuilder       OBJECT)
@@ -436,6 +434,8 @@ target_link_libraries(OpenSeesLIB
 # OpenSees Tcl Interpreter
 #
 
+
+
 add_executable(OpenSees EXCLUDE_FROM_ALL 
   ${OPS_SRC_DIR}/tcl/tclAppInit.cpp
   ${OPS_SRC_DIR}/tcl/tclMain.cpp
@@ -443,12 +443,28 @@ add_executable(OpenSees EXCLUDE_FROM_ALL
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
   target_include_directories(OpenSees PUBLIC ${TCL_INCLUDE_PATH})
+
+  FILE(COPY ${CONAN_LIB_DIRS_TCL}/tcl8.6
+       DESTINATION ${PROJECT_BINARY_DIR}/lib/tcl8.6
+       FILES_MATCHING PATTERN .tcl)
+     
+else ()
+     FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6)
+     add_custom_command(
+     	TARGET OpenSees POST_BUILD
+	COMMENT("Copying init.tcl to ${CMAKE_CURRENT_BINARY_DIR}")
+     	COMMAND ${CMAKE_COMMAND} -E copy
+        ${CONAN_LIB_DIRS_TCL}/tcl8.6/init.tcl
+	${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6
+     )
 endif()
 
 
 target_link_libraries(OpenSees
   OPS_InterpTcl 
-  OpenSeesLIB 
+  OpenSeesLIB
+  OPS_Reliability
+  OPS_ReliabilityTcl  
   OPS_Numerics
   ${CMAKE_DL_LIBS} 
   ${HDF5_LIBRARIES} 
@@ -595,11 +611,10 @@ endif()
 
 # Reliability
 #----------------------------
-if ("OPS_Reliability" IN_LIST OPS_Extension_List)
+#if ("OPS_Reliability" IN_LIST OPS_Extension_List)
     add_compile_definitions(_RELIABILITY)
-    target_link_libraries(${OPS_FINAL_TARGET} OPS_Reliability)
-endif()
-
+    #target_link_libraries(${OPS_FINAL_TARGET} OPS_Reliability)
+#endif()
 
 
 #----------------------------
