@@ -523,12 +523,14 @@ MultiLinear::updateParameter(int parameterID, Information &info)
         dindx = parameterID-100;
         data(dindx-1,2) = -1.0*info.theDouble;
         data(dindx-1,3) = info.theDouble;
+	s0(dindx-1) = info.theDouble;
     }
     else if (parameterID > 200 && parameterID <= 200+numSlope) {
         // strain terms
         dindx = parameterID-200;
         data(dindx-1,0) = -1.0*info.theDouble;
         data(dindx-1,1) = info.theDouble;
+	e0(dindx-1) = info.theDouble;	
     }
     else {
         return -1;
