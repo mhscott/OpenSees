@@ -118,17 +118,85 @@ VRMMaterial::setTrialStrain (double strain, double strainRate)
 double 
 VRMMaterial::getStress(void)
 {
-  double stress = 0.0;
-    
-  return stress;
+  double kb = kbp;
+  double f0 = f0p;
+  double alfa = alfap;
+  double beta1 = beta1p;
+  double beta2 = beta2p;  
+  double gamma1 = gamma1p;
+  double gamma2 = gamma2p;
+  double gamma3 = gamma3p;
+  double s = 1.0;
+  
+  if (v_n1 < 0.0) {
+    kb = kbm;
+    f0 = f0m;
+    alfa = alfam;
+    beta1 = beta1m;
+    beta2 = beta2m;  
+    gamma1 = gamma1m;
+    gamma2 = gamma2m;
+    gamma3 = gamma3m;
+    s = -1.0;
+  }
+
+  double us = -(1.0/alfa)*log(1.e-20);
+
+  double fe = beta1*exp(beta2*u_n) - beta1 +
+    ((4*gamma1)/(1+exp(-gamma2*(u_n-gamma3)))) - 2*gamma1;
+  double arg = s*alfa*(fe+kb*u_n+s*f0+(s/alfa)*exp(-alfa*us)-f_n);
+  double uj  = u_n + s*us+(s/alfa)*log(arg);
+  if (arg < 0.0)
+    uj = u_n;
+
+  fe = beta1*exp(beta2*u_n1)-beta1+((4*gamma1)/(1+exp(-gamma2*(u_n1-gamma3))))-2*gamma1;
+  f_n1  = fe+kb*u_n1+s*f0;
+  if (s*u_n1 < s*uj)
+    f_n1 = f_n1 - (s/alfa)*(exp(-alfa*(s*u_n1-s*uj+us))-exp(-alfa*us));
+  
+  return f_n1;
 }
 
 double 
 VRMMaterial::getTangent(void)
 {
-  double tangent;
+  double kb = kbp;
+  double f0 = f0p;
+  double alfa = alfap;
+  double beta1 = beta1p;
+  double beta2 = beta2p;  
+  double gamma1 = gamma1p;
+  double gamma2 = gamma2p;
+  double gamma3 = gamma3p;
+  double s = 1.0;
   
-  return tangent;
+  if (v_n1 < 0.0) {
+    kb = kbm;
+    f0 = f0m;
+    alfa = alfam;
+    beta1 = beta1m;
+    beta2 = beta2m;  
+    gamma1 = gamma1m;
+    gamma2 = gamma2m;
+    gamma3 = gamma3m;
+    s = -1.0;
+  }
+
+  double us = -(1.0/alfa)*log(1.e-20);
+
+  double fe = beta1*exp(beta2*u_n) - beta1 +
+    ((4*gamma1)/(1+exp(-gamma2*(u_n-gamma3)))) - 2*gamma1;
+  double arg = s*alfa*(fe+kb*u_n+v_n1*f0+(s/alfa)*exp(-alfa*us)-f_n);
+  double uj  = u_n + s*us+(s/alfa)*log(arg);
+  if (arg < 0.0)
+    uj = u_n;
+
+  double ke = beta1*beta2*exp(beta2*u_n1)+(4*gamma1*gamma2*exp(-gamma2*(u_n1-gamma3)))/pow(1+exp(-gamma2*(u_n1-gamma3)),2);
+  double kt = ke+kb;
+  if (s*u_n1 < s*uj)
+    kt = kt+exp(-alfa*(s*u_n1-s*uj+us));  
+  
+  return kt;
 }
 
 double 
