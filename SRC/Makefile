@@ -842,6 +842,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/HystereticPoly.o \
 	$(FE)/material/uniaxial/HystereticSmooth.o \
 	$(FE)/material/uniaxial/HystereticAsym.o \
+	$(FE)/material/uniaxial/VRMMateraial.o \
 	$(FE)/material/uniaxial/SLModel.o \
 	$(FE)/material/uniaxial/MaterialState.o \
 	$(FE)/material/uniaxial/backbone/HystereticBackbone.o \
