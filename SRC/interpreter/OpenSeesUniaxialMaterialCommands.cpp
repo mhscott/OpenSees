@@ -237,6 +237,7 @@ void* OPS_HystereticAsym();  // Salvatore Sessa
                              // salvatore.sessa2@unina.it
 void* OPS_DowelType();
 void* OPS_DuctileFracture();  // Kuanshi Zhong
+void* OPS_VRMMaterial();
 
 void* OPS_TDConcreteEXP(void);
 void* OPS_TDConcrete(void);
@@ -540,6 +541,7 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("DuctileFracture",
                      &OPS_DuctileFracture));  // Kuanshi Zhong
+  uniaxialMaterialsMap.insert(std::make_pair("VRM", &OPS_VRMMaterial));
   uniaxialMaterialsMap.insert(
       std::make_pair("TDConcreteEXP", &OPS_TDConcreteEXP));
   uniaxialMaterialsMap.insert(
