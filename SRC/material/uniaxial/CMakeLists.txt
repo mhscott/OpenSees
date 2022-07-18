@@ -169,6 +169,7 @@ target_sources(OPS_Material
       UniaxialJ2Plasticity.cpp
       ViscousDamper.cpp
       ViscousMaterial.cpp
+      VRMMaterial.cpp
       WrapperUniaxialMaterial.cpp
       pyUCLA.cpp
       SMAMaterial.cpp
@@ -276,6 +277,7 @@ target_sources(OPS_Material
       UniaxialJ2Plasticity.h
       ViscousDamper.h
       ViscousMaterial.h
+      VRMMaterial.h      
       WrapperUniaxialMaterial.h
       pyUCLA.h
 

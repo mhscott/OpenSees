@@ -148,6 +148,7 @@ OBJS       = UniaxialMaterial.o \
 	BoucWenInfill.o \
 	HystereticSmooth.o \
 	HystereticAsym.o \
+	VRMMaterial.o \
     TclModelBuilderUniaxialMaterialCommand.o
 
 all:         $(OBJS)
