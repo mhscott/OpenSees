@@ -41,7 +41,7 @@ public:
   double getStrain(void);          
   double getStress(void);
   double getTangent(void);
-  double getInitialTangent(void);
+  double getInitialTangent(void) {return kbp;}
   
   int commitState(void);
   int revertToLastCommit(void);    
