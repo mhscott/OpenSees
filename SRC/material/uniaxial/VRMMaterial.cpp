@@ -199,10 +199,20 @@ VRMMaterial::getTangent(void)
   return kt;
 }
 
+double
+VRMMaterial::getInitialTangent(void)
+{
+  double ki;
+
+  ki = kbp + beta1p*beta2p + 4*gamma1p*gamma2p*exp(gamma2p*gamma3p)/pow(1.0+exp(gamma2p*gamma3p),2);
+
+  return ki;
+}
+
 double 
 VRMMaterial::getStrain(void)
 {
-    return u_n1;
+  return u_n1;
 }
 
 int 
