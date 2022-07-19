@@ -215,6 +215,12 @@ VRMMaterial::getStrain(void)
   return u_n1;
 }
 
+double 
+VRMMaterial::getStrainRate(void)
+{
+  return v_n1;
+}
+
 int 
 VRMMaterial::commitState(void)
 {

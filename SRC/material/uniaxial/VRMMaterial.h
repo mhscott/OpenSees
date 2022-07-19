@@ -38,7 +38,8 @@ public:
   const char *getClassType(void) const {return "VRMMaterial";};
   
   int setTrialStrain(double strain, double strainRate = 0.0); 
-  double getStrain(void);          
+  double getStrain(void);
+  double getStrainRate(void);            
   double getStress(void);
   double getTangent(void);
   double getInitialTangent(void);
