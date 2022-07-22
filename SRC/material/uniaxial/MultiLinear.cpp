@@ -429,8 +429,12 @@ int
 MultiLinear::getActiveParameter(double &param)
 {
   if (parameterID == 101) {
-    param = data(0,3);
+    //param = data(0,3);
+    param = s0(0);
   }
+  if (parameterID == 102) {
+    param = s0(1);
+  }  
   
   return parameterID;
 }
@@ -519,12 +523,14 @@ MultiLinear::updateParameter(int parameterID, Information &info)
         dindx = parameterID-100;
         data(dindx-1,2) = -1.0*info.theDouble;
         data(dindx-1,3) = info.theDouble;
+	s0(dindx-1) = info.theDouble;
     }
     else if (parameterID > 200 && parameterID <= 200+numSlope) {
         // strain terms
         dindx = parameterID-200;
         data(dindx-1,0) = -1.0*info.theDouble;
         data(dindx-1,1) = info.theDouble;
+	e0(dindx-1) = info.theDouble;	
     }
     else {
         return -1;
@@ -539,4 +545,80 @@ MultiLinear::updateParameter(int parameterID, Information &info)
     data(dindx-1,5) = data(dindx-1,1) - eprev;
     
     return 0;
+}
+
+double
+MultiLinear::getStressSensitivity(int gradIndex, bool conditional)
+{
+  double dsdh = 0.0;
+
+  if (parameterID == 101) {
+    if (tStrain >= -e0(0) && tStrain <= e0(0)) {
+      //dsdh = tStrain/e0(0);
+    }
+    if (tStrain > e0(0) && tStrain <= e0(1)) {
+      dsdh =  1.0 - 1.0/(e0(1)-e0(0))*(tStrain-e0(0));
+    }
+    if (tStrain < -e0(0) && tStrain >= -e0(1)) {
+      dsdh = -1.0 + 1.0/(e0(1)-e0(0))*(-e0(0)-tStrain);
+    }    
+  }
+
+  for (int ip = 102; ip <= 100+numSlope; ip++) {
+    if (parameterID == ip) {
+      int i0 = ip-102;
+      int i1 = ip-101;
+      int i2 = ip-100;
+      if (tStrain > e0(i0) && tStrain <= e0(i1)) {
+	dsdh = 1.0/(e0(i1)-e0(i0))*(tStrain-e0(i0));
+      }
+      if (tStrain < -e0(i0) && tStrain >= -e0(i1)) {
+	dsdh = -1.0/(e0(i1)-e0(i0))*(-e0(i0)-tStrain);
+      }
+      if (tStrain > e0(i1) && tStrain <= e0(i2)) {
+	dsdh =  1.0 - 1.0/(e0(i2)-e0(i1))*(tStrain-e0(i1));
+      }
+      if (tStrain < -e0(i1) && tStrain >= -e0(i2)) {
+	dsdh = -1.0 + 1.0/(e0(i2)-e0(i1))*(-e0(i1)-tStrain);
+      }    
+    }  
+  }
+
+  return dsdh;
+
+  
+  if (parameterID == 102) {
+    if (tStrain > e0(0) && tStrain <= e0(1)) {
+      dsdh = 1.0/(e0(1)-e0(0))*(tStrain-e0(0));
+    }
+    if (tStrain < -e0(0) && tStrain >= -e0(1)) {
+      dsdh = -1.0/(e0(1)-e0(0))*(-e0(0)-tStrain);
+    }
+    if (tStrain > e0(1) && tStrain <= e0(2)) {
+      dsdh =  1.0 - 1.0/(e0(2)-e0(1))*(tStrain-e0(1));
+    }
+    if (tStrain < -e0(1) && tStrain >= -e0(2)) {
+      dsdh = -1.0 + 1.0/(e0(2)-e0(1))*(-e0(1)-tStrain);
+    }    
+  }  
+
+  return dsdh;
+}
+
+double
+MultiLinear::getTangentSensitivity(int gradIndex)
+{
+  return 0.0;
+}
+
+double
+MultiLinear::getInitialTangentSensitivity(int gradIndex)
+{
+  return 0.0;
+}
+
+int
+MultiLinear::commitSensitivity(double dedh, int gradIndex, int numGrads)
+{
+  return 0;
 }
