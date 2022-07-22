@@ -3423,6 +3423,18 @@ ForceBeamColumnCBDI3d::setResponse(const char **argv, int argc, OPS_Stream &outp
 
     theResponse =  new ElementResponse(this, 7, Vector(6));
 
+  // basic stiffness -
+  } else if (strcmp(argv[0],"basicStiffness") == 0) {
+
+      output.tag("ResponseType","N");
+      output.tag("ResponseType","Mz_1");
+      output.tag("ResponseType","Mz_2");
+      output.tag("ResponseType","My_1");
+      output.tag("ResponseType","My_2");
+      output.tag("ResponseType","T");                  
+      
+      theResponse =  new ElementResponse(this, 19, Matrix(6,6));    
+
   // chord rotation -
   } else if (strcmp(argv[0],"chordRotation") == 0 || strcmp(argv[0],"chordDeformation") == 0 
 	     || strcmp(argv[0],"basicDeformation") == 0) {
@@ -3481,20 +3493,14 @@ ForceBeamColumnCBDI3d::setResponse(const char **argv, int argc, OPS_Stream &outp
   else if (strcmp(argv[0],"integrationWeights") == 0)
     theResponse = new ElementResponse(this, 11, Vector(numSections));
 
+  else if (strcmp(argv[0],"sectionTags") == 0)
+    theResponse = new ElementResponse(this, 110, ID(numSections));
+  
   else if (strcmp(argv[0],"sectionDisplacements") == 0)
     theResponse = new ElementResponse(this, 111, Matrix(numSections,3));
   
   else if (strcmp(argv[0],"cbdiDisplacements") == 0)
     theResponse = new ElementResponse(this, 112, Matrix(20,3));
-  
-  else if (strcmp(argv[0],"xaxis") == 0 || strcmp(argv[0],"xlocal") == 0)
-    theResponse = new ElementResponse(this, 201, Vector(3));
-  
-  else if (strcmp(argv[0],"yaxis") == 0 || strcmp(argv[0],"ylocal") == 0)
-    theResponse = new ElementResponse(this, 202, Vector(3));
-  
-  else if (strcmp(argv[0],"zaxis") == 0 || strcmp(argv[0],"zlocal") == 0)
-    theResponse = new ElementResponse(this, 203, Vector(3));
   
   // section response -
   else if (strstr(argv[0],"sectionX") != 0) {
@@ -3591,6 +3597,9 @@ ForceBeamColumnCBDI3d::setResponse(const char **argv, int argc, OPS_Stream &outp
       }
     }
   }
+
+  if (theResponse == 0)
+    theResponse = crdTransf->setResponse(argv, argc, output);
   
   output.endTag(); // ElementOutput
 
@@ -3622,11 +3631,14 @@ ForceBeamColumnCBDI3d::getResponse(int responseID, Information &eleInfo)
     return eleInfo.setVector(theVector);
   }
 
-  // Chord rotation
   else if (responseID == 7) {
     return eleInfo.setVector(Se);
   }
-      
+
+  else if (responseID == 19) {
+    return eleInfo.setMatrix(kv);
+  }
+  
   // Chord rotation
   else if (responseID == 3) {
     vp = crdTransf->getBasicTrialDisp();
@@ -3755,6 +3767,13 @@ ForceBeamColumnCBDI3d::getResponse(int responseID, Information &eleInfo)
     return eleInfo.setVector(weights);
   }
 
+  else if (responseID == 110) {
+    ID tags(numSections);
+    for (int i = 0; i < numSections; i++)
+      tags(i) = sections[i]->getTag();
+    return eleInfo.setID(tags);
+  }
+    
   else if (responseID == 111) {
     double L = crdTransf->getInitialLength();
     double pts[maxNumSections];
@@ -3843,21 +3862,6 @@ ForceBeamColumnCBDI3d::getResponse(int responseID, Information &eleInfo)
     return eleInfo.setMatrix(disps);
   }
 
-  else if (responseID >= 201 && responseID <= 203) {
-    static Vector xlocal(3);
-    static Vector ylocal(3);
-    static Vector zlocal(3);
-
-    crdTransf->getLocalAxes(xlocal,ylocal,zlocal);
-    
-    if (responseID == 201)
-      return eleInfo.setVector(xlocal);
-    if (responseID == 202)
-      return eleInfo.setVector(ylocal);
-    if (responseID == 203)
-      return eleInfo.setVector(zlocal);    
-  }
-    
   else
     return -1;
 }
