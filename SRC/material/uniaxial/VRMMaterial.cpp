@@ -42,14 +42,14 @@ void* OPS_VRMMaterial()
   int tag;
   numdata = 1;
   if (OPS_GetIntInput(&numdata,&tag) < 0) {
-    opserr << "WARNING: failed to read tag\n";
+    opserr << "WARNING VRM material - failed to read tag" << endln;
     return 0;
   }
   
   double data[16];
   numdata = 16;
   if (OPS_GetDoubleInput(&numdata,data)) {
-    opserr << "WARNING: failed to read data\n";
+    opserr << "WARNING VRM material - failed to read data" << endln;
     return 0;
   }
   
