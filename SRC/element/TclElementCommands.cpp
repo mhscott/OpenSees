@@ -195,6 +195,7 @@ extern void *OPS_MasonPan12(void);
 extern void *OPS_MasonPan3D(void);
 extern void *OPS_BeamGT(void);
 
+extern void* OPS_ForceBeamColumn2d();
 extern void* OPS_DispBeamColumnAsym3dTcl();  //Xinlong Du
 extern void* OPS_MixedBeamColumnAsym3dTcl(); //Xinlong Du
 extern void* OPS_ZeroLengthContactASDimplex(void); // Onur Deniz Akan (IUSS), Massimo Petracca (ASDEA)
@@ -1591,6 +1592,18 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
       }
   }
+
+  else if (strcmp(argv[1], "forceBeamColumn") == 0 ||
+	   strcmp(argv[1],"nonlinearBeamColumn") == 0) {
+    
+    void* theEle = OPS_ForceBeamColumn2d();
+    if (theEle != 0)
+      theElement = (Element*)theEle;
+    else {
+      opserr << "tclelementcommand -- unable to create element of type : " << argv[1] << endln;
+      return TCL_ERROR;
+    }
+  }
   
   // if one of the above worked
   if (theElement != 0) {
@@ -1619,7 +1632,8 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
 						   theTclDomain, theTclBuilder);
     return result;
 
-  } else if (strcmp(argv[1],"forceBeamColumn") == 0 || 
+  }
+  else if (/*strcmp(argv[1],"forceBeamColumn") == 0 || */
 	     strcmp(argv[1],"dispBeamColumn") == 0  || 
 	     strcmp(argv[1],"timoshenkoBeamColumn") == 0  || 
 	     strcmp(argv[1],"forceBeamColumnCBDI") == 0  || 
@@ -1630,7 +1644,7 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
 	     strcmp(argv[1],"dispBeamColumnNL") == 0  || 
 	     strcmp(argv[1],"dispBeamColumnThermal") == 0  || 
 	     strcmp(argv[1],"elasticForceBeamColumn") == 0 || 
-	     strcmp(argv[1],"nonlinearBeamColumn") == 0 || 
+	     /* strcmp(argv[1],"nonlinearBeamColumn") == 0 || */
 	     strcmp(argv[1],"dispBeamColumnWithSensitivity") == 0) {
 
     int result = TclModelBuilder_addForceBeamColumn(clientData, interp, argc, argv,
