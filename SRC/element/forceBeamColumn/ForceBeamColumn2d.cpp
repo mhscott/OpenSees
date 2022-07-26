@@ -67,6 +67,7 @@ Journal of Structural Engineering, Approved for publication, February 2007.
 #include <Parameter.h>
 #include <LobattoBeamIntegration.h>
 #include <ForceBeamColumn2d.h>
+#include <ForceBeamColumn3d.h>
 #include <MatrixUtil.h>
 #include <Domain.h>
 #include <Channel.h>
@@ -94,7 +95,7 @@ void* OPS_ForceBeamColumn2d()
   // First check NDM and NDF
   int ndm = OPS_GetNDM();
   int ndf = OPS_GetNDF();
-  if(ndm != 2 || ndf != 3) {
+  if ((ndm != 2 || ndf != 3) && (ndm != 3 || ndf != 6)){
     opserr<<"ndm must be 2 and ndf must be 3\n";
     return 0;
   }
@@ -226,11 +227,13 @@ void* OPS_ForceBeamColumn2d()
       sections[i] = theSection;
   }
 
-  // Read the next arg, which should be a string
-  const char* integrationType = OPS_GetString();
+  const char *integrationType = 0;
+  if (OPS_GetNumRemainingInputArgs() > 0)
+    // Read the next arg, which should be a string
+    integrationType = OPS_GetString();
   
   // Option 3 - element forceBeamColumn tag I J --> Np | -sections 1 2 ... Np transfTag (Lobatto)
-  if (strcmp(integrationType,"-sections") == 0) {
+  if (sections == 0 && strcmp(integrationType,"-sections") == 0) {
     numSections = iData[3];
 
     if (OPS_GetNumRemainingInputArgs() < numSections+1) {
@@ -239,6 +242,8 @@ void* OPS_ForceBeamColumn2d()
       return 0;
     }
 
+    bi = &lobatto;
+    
     sections = new SectionForceDeformation *[numSections];
     int secTag;
     numData = 1;
@@ -270,8 +275,13 @@ void* OPS_ForceBeamColumn2d()
     return 0;
   }
 
-  Element *theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],numSections,sections,
+  Element *theEle = 0;
+  if (ndm == 2)
+    theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],numSections,sections,
 					   *bi,*theTransf,mass,maxIter,tol);
+  if (ndm == 3)
+    theEle =  new ForceBeamColumn3d(iData[0],iData[1],iData[2],numSections,sections,
+					   *bi,*theTransf,mass,maxIter,tol);  
 
   if (sections != 0)
     delete [] sections;
