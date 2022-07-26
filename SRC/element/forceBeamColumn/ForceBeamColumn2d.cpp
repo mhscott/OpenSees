@@ -303,12 +303,15 @@ void* OPS_ForceBeamColumn2d()
 
 void* OPS_ForceBeamColumn2d(const ID &info)
 {
+    if (info.Size() == 0)
+      return OPS_ForceBeamColumn2d();
+
     // data
     int iData[5];
     int numData;
     double mass = 0.0, tol=1e-12;
     int maxIter = 10;
-
+    
     // regular element, not in a mesh, get tags
     if (info.Size() == 0) {
 	if(OPS_GetNumRemainingInputArgs() < 5) {
