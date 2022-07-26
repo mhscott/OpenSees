@@ -144,9 +144,9 @@ void* OPS_ForceBeamColumn2d()
     return 0;
   }
 
-  // Read eleTag, I, J
+  // Read eleTag, I, J, nextInt
   int iData[6];
-  numData = 3;
+  numData = 4;
   if(OPS_GetIntInput(&numData,&iData[0]) < 0) {
     opserr << "WARNING invalid int inputs\n";
     return 0;
@@ -164,10 +164,10 @@ void* OPS_ForceBeamColumn2d()
   LobattoBeamIntegration lobatto;
   int transfTag = 0;
   
-  // Option 1 - element forceBeamColumn tag I J --> transfTag beamIntTag
-  if (numRemainingArgs == 2) {
-    numData = 2;
-    if(OPS_GetIntInput(&numData,&iData[3]) < 0) {
+  // Option 1 - element forceBeamColumn tag I J --> transfTag | beamIntTag
+  if (numRemainingArgs == 1) {
+    numData = 1;
+    if(OPS_GetIntInput(&numData,&iData[4]) < 0) {
       opserr << "WARNING invalid int inputs\n";
       return 0;
     }
@@ -202,10 +202,10 @@ void* OPS_ForceBeamColumn2d()
     option1 = true;
   }
 
-  // Option 2 - element forceBeamColumn tag I J --> Np secTag transfTag  (Lobatto)
-  if (numRemainingArgs == 3) {
-    numData = 3;
-    if(OPS_GetIntInput(&numData,&iData[3]) < 0) {
+  // Option 2 - element forceBeamColumn tag I J --> Np | secTag transfTag  (Lobatto)
+  if (numRemainingArgs == 2) {
+    numData = 2;
+    if(OPS_GetIntInput(&numData,&iData[4]) < 0) {
       opserr << "WARNING invalid int inputs\n";
       return 0;
     }
@@ -226,6 +226,41 @@ void* OPS_ForceBeamColumn2d()
       sections[i] = theSection;
   }
 
+  // Read the next arg, which should be a string
+  const char* integrationType = OPS_GetString();
+  
+  // Option 3 - element forceBeamColumn tag I J --> Np | -sections 1 2 ... Np transfTag (Lobatto)
+  if (strcmp(integrationType,"-sections") == 0) {
+    numSections = iData[3];
+
+    if (OPS_GetNumRemainingInputArgs() < numSections+1) {
+      opserr << "WARNING ForceBeamColumn - " << iData[0]
+	     << " insufficient argumnets for -sections *sections transfTag" << endln;
+      return 0;
+    }
+
+    sections = new SectionForceDeformation *[numSections];
+    int secTag;
+    numData = 1;
+    for(int i=0; i<numSections; i++) {
+      if(OPS_GetIntInput(&numData,&secTag) < 0) {
+	opserr << "WARNING invalid secTag input" << endln;
+	return 0;
+      }
+      sections[i] = OPS_getSectionForceDeformation(secTag);
+      if(sections[i] == 0) {
+	opserr<<"section " << secTag << " not found" << endln;
+	delete [] sections;
+	return 0;
+      }
+    }
+    
+    if(OPS_GetIntInput(&numData,&transfTag) < 0) {
+      opserr << "WARNING invalid transfTag input" << endln;
+      return 0;
+    }    
+  }
+  
   // check transf
   theTransf = OPS_getCrdTransf(transfTag);
   if(theTransf == 0) {
