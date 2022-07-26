@@ -65,6 +65,7 @@ Journal of Structural Engineering, Approved for publication, February 2007.
 
 #include <Information.h>
 #include <Parameter.h>
+#include <LobattoBeamIntegration.h>
 #include <ForceBeamColumn2d.h>
 #include <MatrixUtil.h>
 #include <Domain.h>
@@ -90,88 +91,157 @@ Vector ForceBeamColumn2d::SsrSubdivide[maxNumSections];
 
 void* OPS_ForceBeamColumn2d()
 {
-    if(OPS_GetNumRemainingInputArgs() < 5) {
-	opserr<<"insufficient arguments:eleTag,iNode,jNode,transfTag,integrationTag\n";
-	return 0;
-    }
+  // First check NDM and NDF
+  int ndm = OPS_GetNDM();
+  int ndf = OPS_GetNDF();
+  if(ndm != 2 || ndf != 3) {
+    opserr<<"ndm must be 2 and ndf must be 3\n";
+    return 0;
+  }
 
-    int ndm = OPS_GetNDM();
-    int ndf = OPS_GetNDF();
-    if(ndm != 2 || ndf != 3) {
-	opserr<<"ndm must be 2 and ndf must be 3\n";
-	return 0;
-    }
-
-    // inputs: 
-    int iData[5];
-    int numData = 5;
-    if(OPS_GetIntInput(&numData,&iData[0]) < 0) {
-	opserr << "WARNING invalid int inputs\n";
-	return 0;
-    }
-
-    // options
-    double mass = 0.0, tol=1e-12;
-    int maxIter = 10;
-    numData = 1;
-    while(OPS_GetNumRemainingInputArgs() > 0) {
-	const char* type = OPS_GetString();
-	if(strcmp(type,"-iter") == 0) {
-	    if(OPS_GetNumRemainingInputArgs() > 1) {
-		if(OPS_GetIntInput(&numData,&maxIter) < 0) {
-		    opserr << "WARNING invalid maxIter\n";
-		    return 0;
-		}
-		if(OPS_GetDoubleInput(&numData,&tol) < 0) {
-		    opserr << "WARNING invalid tol\n";
-		    return 0;
-		}
-	    }
-	} else if(strcmp(type,"-mass") == 0) {
-	    if(OPS_GetNumRemainingInputArgs() > 0) {
-		if(OPS_GetDoubleInput(&numData,&mass) < 0) {
-		    opserr << "WARNING invalid mass\n";
-		    return 0;
-		}
-	    }
+  int numArgs = OPS_GetNumRemainingInputArgs();
+  
+  // Read optional args first
+  double mass = 0.0, tol=1e-12;
+  int maxIter = 10;
+  int numData = 1;
+  int numOptionalArgs = 0;
+  while(OPS_GetNumRemainingInputArgs() > 0) {
+    const char* type = OPS_GetString();
+    if(strcmp(type,"-iter") == 0) {
+      numOptionalArgs++;
+      if(OPS_GetNumRemainingInputArgs() > 1) {
+	if(OPS_GetIntInput(&numData,&maxIter) < 0) {
+	  opserr << "WARNING invalid maxIter\n";
+	  return 0;
 	}
+	numOptionalArgs++;	
+	if(OPS_GetDoubleInput(&numData,&tol) < 0) {
+	  opserr << "WARNING invalid tol\n";
+	  return 0;
+	}
+	numOptionalArgs++;		
+      }
+    } else if(strcmp(type,"-mass") == 0) {
+      numOptionalArgs++;
+      if(OPS_GetNumRemainingInputArgs() > 0) {
+	if(OPS_GetDoubleInput(&numData,&mass) < 0) {
+	  opserr << "WARNING invalid mass\n";
+	  return 0;
+	}
+	numOptionalArgs++;	
+      }
+    }
+  }
+
+  // Reset to start of input
+  OPS_ResetCurrentInputArg(-numArgs);    
+  numArgs = numArgs - numOptionalArgs;  
+
+  // Check num args
+  if (numArgs < 5) {
+    opserr<<"insufficient arguments:eleTag,iNode,jNode,transfTag,integrationTag\n";
+    return 0;
+  }
+
+  // Read eleTag, I, J
+  int iData[6];
+  numData = 3;
+  if(OPS_GetIntInput(&numData,&iData[0]) < 0) {
+    opserr << "WARNING invalid int inputs\n";
+    return 0;
+  }
+
+  CrdTransf *theTransf = 0;
+  BeamIntegrationRule *theRule = 0;
+  BeamIntegration *bi = 0;
+  bool option1 = false;
+  
+  int numRemainingArgs = OPS_GetNumRemainingInputArgs();
+
+  int numSections = 0;
+  SectionForceDeformation **sections = 0;
+  LobattoBeamIntegration lobatto;
+  int transfTag = 0;
+  
+  // Option 1 - element forceBeamColumn tag I J --> transfTag beamIntTag
+  if (numRemainingArgs == 2) {
+    numData = 2;
+    if(OPS_GetIntInput(&numData,&iData[3]) < 0) {
+      opserr << "WARNING invalid int inputs\n";
+      return 0;
     }
 
-    // check transf
-    CrdTransf* theTransf = OPS_getCrdTransf(iData[3]);
-    if(theTransf == 0) {
-	opserr<<"coord transfomration not found\n";
-	return 0;
-    }
+    transfTag = iData[3];
 
     // check beam integrataion
-    BeamIntegrationRule* theRule = OPS_getBeamIntegrationRule(iData[4]);
+    theRule = OPS_getBeamIntegrationRule(iData[4]);
     if(theRule == 0) {
-	opserr<<"beam integration not found\n";
-	return 0;
+      opserr<<"beam integration not found\n";
+      return 0;
     }
-    BeamIntegration* bi = theRule->getBeamIntegration();
+    bi = theRule->getBeamIntegration();
     if(bi == 0) {
-	opserr<<"beam integration is null\n";
-	return 0;
+      opserr<<"beam integration is null\n";
+      return 0;
     }
-
+  
     // check sections
     const ID& secTags = theRule->getSectionTags();
-    SectionForceDeformation** sections = new SectionForceDeformation *[secTags.Size()];
-    for(int i=0; i<secTags.Size(); i++) {
-	sections[i] = OPS_getSectionForceDeformation(secTags(i));
-	if(sections[i] == 0) {
-	    opserr<<"section "<<secTags(i)<<"not found\n";
-	    delete [] sections;
-	    return 0;
-	}
+    numSections = secTags.Size();
+    sections = new SectionForceDeformation *[numSections];
+    for(int i=0; i<numSections; i++) {
+      sections[i] = OPS_getSectionForceDeformation(secTags(i));
+      if(sections[i] == 0) {
+	opserr<<"section "<<secTags(i)<<"not found\n";
+	delete [] sections;
+	return 0;
+      }
     }
 
-    Element *theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],secTags.Size(),sections,
-					     *bi,*theTransf,mass,maxIter,tol);
+    option1 = true;
+  }
+
+  // Option 2 - element forceBeamColumn tag I J --> Np secTag transfTag  (Lobatto)
+  if (numRemainingArgs == 3) {
+    numData = 3;
+    if(OPS_GetIntInput(&numData,&iData[3]) < 0) {
+      opserr << "WARNING invalid int inputs\n";
+      return 0;
+    }
+
+    transfTag = iData[5];
+    
+    bi = &lobatto;
+
+    numSections = iData[3];
+    int secTag = iData[4];
+    SectionForceDeformation *theSection = OPS_getSectionForceDeformation(secTag);
+    if(theSection == 0) {
+      opserr << "section " << secTag << " not found" << endln;
+      return 0;
+    }
+    sections = new SectionForceDeformation *[numSections];
+    for(int i=0; i<numSections; i++)
+      sections[i] = theSection;
+  }
+
+  // check transf
+  theTransf = OPS_getCrdTransf(transfTag);
+  if(theTransf == 0) {
+    opserr<<"coord transfomration not found\n";
+    if (sections != 0)
+      delete [] sections;
+    return 0;
+  }
+
+  Element *theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],numSections,sections,
+					   *bi,*theTransf,mass,maxIter,tol);
+
+  if (sections != 0)
     delete [] sections;
-    return theEle;
+  
+  return theEle;
 }
 
 void* OPS_ForceBeamColumn2d(const ID &info)
