@@ -105,6 +105,7 @@ void* OPS_ForceBeamColumn2d()
   // Read optional args first
   double mass = 0.0, tol=1e-12;
   int maxIter = 10;
+  bool iterations = false;
   int numData = 1;
   int numOptionalArgs = 0;
   while(OPS_GetNumRemainingInputArgs() > 0) {
@@ -121,7 +122,8 @@ void* OPS_ForceBeamColumn2d()
 	  opserr << "WARNING invalid tol\n";
 	  return 0;
 	}
-	numOptionalArgs++;		
+	numOptionalArgs++;
+	iterations = true;
       }
     } else if(strcmp(type,"-mass") == 0) {
       numOptionalArgs++;
@@ -237,8 +239,8 @@ void* OPS_ForceBeamColumn2d()
     numSections = iData[3];
 
     if (OPS_GetNumRemainingInputArgs() < numSections+1) {
-      opserr << "WARNING ForceBeamColumn - " << iData[0]
-	     << " insufficient argumnets for -sections *sections transfTag" << endln;
+      opserr << "WARNING ForceBeamColumn tag " << iData[0]
+	     << " - insufficient arguments for -sections *sections transfTag" << endln;
       return 0;
     }
 
@@ -276,13 +278,23 @@ void* OPS_ForceBeamColumn2d()
   }
 
   Element *theEle = 0;
-  if (ndm == 2)
-    theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],numSections,sections,
-					   *bi,*theTransf,mass,maxIter,tol);
-  if (ndm == 3)
-    theEle =  new ForceBeamColumn3d(iData[0],iData[1],iData[2],numSections,sections,
-					   *bi,*theTransf,mass,maxIter,tol);  
-
+  if (ndm == 2) {
+    if (iterations)
+      theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],numSections,sections,
+				      *bi,*theTransf,mass,maxIter,tol);
+    else
+      theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],numSections,sections,
+				      *bi,*theTransf,mass);
+  }
+  if (ndm == 3) {
+    if (iterations)
+      theEle =  new ForceBeamColumn3d(iData[0],iData[1],iData[2],numSections,sections,
+				      *bi,*theTransf,mass,maxIter,tol);
+    else
+      theEle =  new ForceBeamColumn3d(iData[0],iData[1],iData[2],numSections,sections,
+				      *bi,*theTransf,mass);      
+  }
+  
   if (sections != 0)
     delete [] sections;
   
