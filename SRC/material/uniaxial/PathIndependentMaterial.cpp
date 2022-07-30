@@ -195,64 +195,52 @@ int
 PathIndependentMaterial::sendSelf(int cTag, Channel &theChannel)
 {
   if (theMaterial == 0) {
-    opserr << "PathIndependentMaterial::sendSelf() - theMaterial is null, nothing to send\n";
+    opserr << "PathIndependentMaterial::sendSelf() - theMaterial is null, nothing to send" << endln;
     return -1;
   }
   
-	int res = 0;
-
-	static ID classTags(3);
-
-	int clTag = theMaterial->getClassTag();
-	int dbTag = theMaterial->getDbTag();
-	
-	classTags(0) = clTag;
-
-	if (dbTag == 0) {
-		dbTag = theChannel.getDbTag();
-		if (dbTag != 0)
-			theMaterial->setDbTag(dbTag);
-	}
-
-	classTags(1) = dbTag;
-	classTags(2) = this->getTag();
-
-	res = theChannel.sendID(dbTag, cTag, classTags);
-	if (res < 0) {
-	  opserr << "PathIndependentMaterial::sendSelf -- could not send ID\n";
-	  return res;
-	}
-    
-	res = theMaterial->sendSelf(cTag, theChannel);
-	if (res < 0) {
-	  opserr << "PathIndependentMaterial::sendSelf -- could not send UniaxialMaterial\n";
-	  return res;
-	}
-
-	return res;
+  int dbTag = this->getDbTag();
+  
+  static ID data(3);
+  data(0) = this->getTag();
+  data(1) = theMaterial->getClassTag();
+  int matDbTag = theMaterial->getDbTag();
+  if (matDbTag == 0) {
+    matDbTag = theChannel.getDbTag();
+    if (matDbTag != 0)
+      theMaterial->setDbTag(matDbTag);
+  }
+  data(2) = matDbTag;
+  if (theChannel.sendID(dbTag, cTag, data) < 0) {
+    opserr << "PathIndependentMaterial::sendSelf -- could not send ID\n";
+    return -1;
+  }
+  
+  if (theMaterial->sendSelf(cTag, theChannel) < 0) {
+    opserr << "PathIndependentMaterial::sendSelf -- could not send UniaxialMaterial\n";
+    return -2;
+  }
+  
+  return 0;
 }
 
 int 
 PathIndependentMaterial::recvSelf(int cTag, Channel &theChannel, 
 			       FEM_ObjectBroker &theBroker)
 {
-  int res = 0;
-
-  static ID classTags(3);
-
   int dbTag = this->getDbTag();
-
-  res = theChannel.recvID(dbTag, cTag, classTags);
-  if (res < 0) {
+  
+  static ID data(3);
+  if (theChannel.recvID(dbTag, cTag, data) < 0) {
     opserr << "PathIndependentMaterial::recvSelf -- could not receive ID\n";
-    return res;
+    return -1;
   }
+  this->setTag(data(0));
 
-  this->setTag(int(classTags(2)));
-
+  int matClassTag = data(1);
   // Check if the material is null; if so, get a new one
   if (theMaterial == 0) {
-    theMaterial = theBroker.getNewUniaxialMaterial(classTags(0));
+    theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
     if (theMaterial == 0) {
       opserr << " PathIndependentMaterial::recvSelf -- could not get a UniaxialMaterial\n";
       return -1;
@@ -260,25 +248,25 @@ PathIndependentMaterial::recvSelf(int cTag, Channel &theChannel,
   }
   // Check that the material is of the right type; if not, delete
   // the current one and get a new one of the right type
-  if (theMaterial->getClassTag() != classTags(0)) {
+  if (theMaterial->getClassTag() != matClassTag) {
     delete theMaterial;
-    theMaterial = theBroker.getNewUniaxialMaterial(classTags(0));
+    theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
     if (theMaterial == 0) {
-      opserr << "PathIndependentMaterial::recvSelf -- could not get a UniaxialMaterial\n";
-      //exit(-1);
+      opserr << "PathIndependentMaterial::recvSelf -- could not get a UniaxialMaterial "
+	     << " with class tag " << matClassTag << endln;
       return -1;
     }
   }
-  
+
   // Now, receive the material
-  theMaterial->setDbTag(classTags(1));
-  res += theMaterial->recvSelf(cTag, theChannel, theBroker);
-  if (res < 0) {
-    opserr << "PathIndependentMaterial::recvSelf -- could not receive UniaxialMaterial\n";
-    return res;
+  theMaterial->setDbTag(data(2));
+  if (theMaterial->recvSelf(cTag, theChannel, theBroker) < 0) {
+    opserr << "PathIndependentMaterial::recvSelf -- could not receive UniaxialMaterial"
+	   << data << endln;
+    return -2;
   }
   
-  return res;
+  return 0;
 }
 
 void 
