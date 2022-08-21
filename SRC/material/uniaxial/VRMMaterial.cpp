@@ -59,7 +59,7 @@ void* OPS_VRMMaterial()
 					  data[8],data[9],data[10],data[11],
 					  data[12],data[13],data[14],data[15]);
   if (mat == 0) {
-    opserr << "WARNING: failed to create VRM material\n";
+    opserr << "WARNING: failed to create VRM material" << endln;
     return 0;
   }
   
@@ -73,13 +73,9 @@ VRMMaterial::VRMMaterial(int tag,
 			 double g1m, double g2m, double g3m)
 :UniaxialMaterial(tag,MAT_TAG_VRM),
  kbp(kp), f0p(fp), alfap(ap), beta1p(b1p), beta2p(b2p), gamma1p(g1p), gamma2p(g2p), gamma3p(g3p),
- kbm(km), f0m(fm), alfam(am), beta1m(b1m), beta2m(b2m), gamma1m(g1m), gamma2m(g2m), gamma3m(g3m) 
+ kbm(km), f0m(fm), alfam(am), beta1m(b1m), beta2m(b2m), gamma1m(g1m), gamma2m(g2m), gamma3m(g3m),
+ parameterID(0), SHVs(0)
 {
-  // AddingSensitivity:BEGIN /////////////////////////////////////
-  parameterID = 0;
-  SHVs = 0;
-  // AddingSensitivity:END //////////////////////////////////////
-  
   // Initialize variables
   this->revertToStart();
 }
@@ -87,13 +83,9 @@ VRMMaterial::VRMMaterial(int tag,
 VRMMaterial::VRMMaterial()
 :UniaxialMaterial(0,MAT_TAG_VRM),
  kbp(0.0), f0p(0.0), alfap(0.0), beta1p(0.0), beta2p(0.0), gamma1p(0.0), gamma2p(0.0), gamma3p(0.0),
- kbm(0.0), f0m(0.0), alfam(0.0), beta1m(0.0), beta2m(0.0), gamma1m(0.0), gamma2m(0.0), gamma3m(0.0) 
+ kbm(0.0), f0m(0.0), alfam(0.0), beta1m(0.0), beta2m(0.0), gamma1m(0.0), gamma2m(0.0), gamma3m(0.0),
+ parameterID(0), SHVs(0)
 {
-  // AddingSensitivity:BEGIN /////////////////////////////////////
-  parameterID = 0;
-  SHVs = 0;
-  // AddingSensitivity:END //////////////////////////////////////
-  
   // Initialize variables
   this->revertToStart();
 }
@@ -248,10 +240,8 @@ VRMMaterial::revertToStart(void)
   u_n = 0.0;
   f_n = 0.0;
   
-  // AddingSensitivity:BEGIN /////////////////////////////////
   if (SHVs != 0) 
     SHVs->Zero();
-  // AddingSensitivity:END //////////////////////////////////
 
   return 0;
 }
@@ -270,6 +260,10 @@ VRMMaterial::getCopy(void)
   
   theCopy->u_n = u_n;
   theCopy->f_n = f_n;        
+
+  theCopy->parameterID = parameterID;
+  if (SHVs != 0)
+    theCopy->SHVs = new Matrix(*SHVs);
   
   return theCopy;
 }
@@ -277,8 +271,6 @@ VRMMaterial::getCopy(void)
 int 
 VRMMaterial::sendSelf(int cTag, Channel &theChannel)
 {
-  int res = 0;
-  
   static Vector data(1 + 16 + 2);
   
   data(0) = this->getTag();
@@ -304,25 +296,24 @@ VRMMaterial::sendSelf(int cTag, Channel &theChannel)
   data(17) = u_n;
   data(18) = f_n;
 
-  res = theChannel.sendVector(this->getDbTag(), cTag, data);
-  if (res < 0) 
-    opserr << "VRMMaterial::sendSelf() - failed to send data\n";
-
-  return res;
+  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
+    opserr << "VRMMaterial::sendSelf() - failed to send data" << endln;
+    return -1;
+  }
+  
+  return 0;
 }
 
 int 
 VRMMaterial::recvSelf(int cTag, Channel &theChannel, 
 			       FEM_ObjectBroker &theBroker)
 {
-  int res = 0;
-  
   static Vector data(1 + 16 + 2);
-  res = theChannel.recvVector(this->getDbTag(), cTag, data);
   
-  if (res < 0) {
+  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
     opserr << "VRMMaterial::recvSelf() - failed to receive data\n";
-    this->setTag(0);      
+    this->setTag(0);
+    return -1;
   }
   else {
     this->setTag((int)data(0));
@@ -349,26 +340,163 @@ VRMMaterial::recvSelf(int cTag, Channel &theChannel,
     f_n = data(18);    
   }
     
-  return res;
+  return 0;
 }
 
 void 
 VRMMaterial::Print(OPS_Stream &s, int flag)
 {
-  
+  s << "VRMMaterial, tag: " << this->getTag() << endln;
+  s << " kbp: " << kbp << endln;
+  s << " f0p: " << f0p << endln;
+  s << " alphap: " << alfap << endln;
+  s << " beta1p: " << beta1p << endln;
+  s << " beta2p: " << beta2p << endln;
+  s << " gamma1p: " << gamma1p << endln;
+  s << " gamma2p: " << gamma2p << endln;
+  s << " gamma2p: " << gamma3p << endln;
+  s << " kbm: " << kbm << endln;
+  s << " f0m: " << f0m << endln;
+  s << " alpham: " << alfam << endln;
+  s << " beta1m: " << beta1m << endln;
+  s << " beta2m: " << beta2m << endln;
+  s << " gamma1m: " << gamma1m << endln;
+  s << " gamma2m: " << gamma2m << endln;
+  s << " gamma2m: " << gamma3m << endln;              
 }
 
 
-// AddingSensitivity:BEGIN ///////////////////////////////////
 int
 VRMMaterial::setParameter(const char **argv, int argc, Parameter &param)
 {
-  return 0;
+  if (strcmp(argv[0],"kbp") == 0) {
+    param.setValue(kbp);
+    return 1;
+  }
+  if (strcmp(argv[0],"f0p") == 0) {
+    param.setValue(f0p);
+    return 2;
+  }
+  if (strcmp(argv[0],"alphap") == 0) {
+    param.setValue(alfap);
+    return 3;
+  }
+  if (strcmp(argv[0],"beta1p") == 0) {
+    param.setValue(beta1p);
+    return 4;
+  }
+  if (strcmp(argv[0],"beta2p") == 0) {
+    param.setValue(beta2p);
+    return 5;
+  }
+  if (strcmp(argv[0],"gamma1p") == 0) {
+    param.setValue(gamma1p);
+    return 6;
+  }
+  if (strcmp(argv[0],"gamma2p") == 0) {
+    param.setValue(gamma2p);
+    return 7;
+  }
+  if (strcmp(argv[0],"gamma3p") == 0) {
+    param.setValue(gamma3p);
+    return 8;
+  }
+
+  if (strcmp(argv[0],"kbm") == 0) {
+    param.setValue(kbm);
+    return 11;
+  }
+  if (strcmp(argv[0],"f0m") == 0) {
+    param.setValue(f0m);
+    return 12;
+  }
+  if (strcmp(argv[0],"alpham") == 0) {
+    param.setValue(alfam);
+    return 13;
+  }
+  if (strcmp(argv[0],"beta1m") == 0) {
+    param.setValue(beta1m);
+    return 14;
+  }
+  if (strcmp(argv[0],"beta2m") == 0) {
+    param.setValue(beta2m);
+    return 15;
+  }
+  if (strcmp(argv[0],"gamma1m") == 0) {
+    param.setValue(gamma1m);
+    return 16;
+  }
+  if (strcmp(argv[0],"gamma2m") == 0) {
+    param.setValue(gamma2m);
+    return 17;
+  }
+  if (strcmp(argv[0],"gamma3m") == 0) {
+    param.setValue(gamma3m);
+    return 18;
+  }
+  
+  return -1;
 }
 
 int
 VRMMaterial::updateParameter(int parameterID, Information &info)
 {
+  switch (parameterID) {
+  case -1:
+    return -1;
+  case 1:
+    kbp = info.theDouble;
+    break;
+  case 2:
+    f0p = info.theDouble;
+    break;
+  case 3:
+    alfap = info.theDouble;
+    break;
+  case 4:
+    beta1p = info.theDouble;
+    break;
+  case 5:
+    beta2p = info.theDouble;
+    break;
+  case 6:
+    gamma1p = info.theDouble;
+    break;
+  case 7:
+    gamma2p = info.theDouble;
+    break;
+  case 8:
+    gamma3p = info.theDouble;
+    break;
+    
+  case 11:
+    kbm = info.theDouble;
+    break;
+  case 12:
+    f0m = info.theDouble;
+    break;
+  case 13:
+    alfam = info.theDouble;
+    break;
+  case 14:
+    beta1m = info.theDouble;
+    break;
+  case 15:
+    beta2m = info.theDouble;
+    break;
+  case 16:
+    gamma1m = info.theDouble;
+    break;
+  case 17:
+    gamma2m = info.theDouble;
+    break;
+  case 18:
+    gamma3m = info.theDouble;
+    break;                
+  default:
+    return -1;
+  }
+  
   return 0;
 }
 
