@@ -106,6 +106,7 @@ target_sources(OPS_Material
       EPPGapMaterial.cpp
       ElasticBDMaterial.cpp
       ElasticMaterialThermal.cpp
+      FRCC.cpp
       FRPConfinedConcrete.cpp
       FRPConfinedConcrete02.cpp
       FatigueMaterial.cpp
@@ -215,6 +216,7 @@ target_sources(OPS_Material
       EPPGapMaterial.h
       ElasticBDMaterial.h
       ElasticMaterialThermal.h
+      FRCC.h
       FRPConfinedConcrete.h
       FRPConfinedConcrete02.h
       FatigueMaterial.h
