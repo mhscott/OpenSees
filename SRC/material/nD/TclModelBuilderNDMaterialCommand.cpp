@@ -114,6 +114,9 @@ extern void *OPS_AcousticMedium(void);
 extern void* OPS_UVCmultiaxial(void);
 extern void* OPS_UVCplanestress(void);
 extern  void *OPS_SAniSandMSMaterial(void);
+extern void* OPS_OrthotropicMaterial(void);
+extern void* OPS_Series3DMaterial(void);
+extern void* OPS_ASDConcrete3DMaterial(void);
 extern  void *OPS_ConcreteMcftNonlinear5(void);
 extern  void *OPS_ConcreteMcftNonlinear7(void);
 extern  void *OPS_ConcreteS(void);
@@ -1186,6 +1189,33 @@ TclModelBuilderNDMaterialCommand (ClientData clientData, Tcl_Interp *interp, int
 	theMaterial = new FluidSolidPorousMaterial (tag, param[0], *soil,
 						    param[2],param[3]);
     }
+
+	else if(strcmp(argv[1], "Orthotropic") == 0) {
+		void *theMat = OPS_OrthotropicMaterial();
+		if (theMat != 0)  {
+			theMaterial = (NDMaterial *)theMat;
+		}
+		else 
+			return TCL_ERROR;
+	}
+
+	else if(strcmp(argv[1], "Series3D") == 0) {
+		void *theMat = OPS_Series3DMaterial();
+		if (theMat != 0)  {
+			theMaterial = (NDMaterial *)theMat;
+		}
+		else 
+			return TCL_ERROR;
+	}
+	
+	else if(strcmp(argv[1], "ASDConcrete3D") == 0) {
+		void *theMat = OPS_ASDConcrete3DMaterial();
+		if (theMat != 0)  {
+			theMaterial = (NDMaterial *)theMat;
+		}
+		else 
+			return TCL_ERROR;
+	}
 
     else if (strcmp(argv[1],"PlaneStressMaterial") == 0 ||
  	     strcmp(argv[1],"PlaneStress") == 0) {
