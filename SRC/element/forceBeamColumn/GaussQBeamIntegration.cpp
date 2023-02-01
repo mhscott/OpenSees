@@ -23,12 +23,80 @@
 // $Source$
 
 #include <GaussQBeamIntegration.h>
+#include <elementAPI.h>
 #include <math.h>
+
+void* OPS_GaussQBeamIntegration(int &integrationTag, ID &secTags)
+{
+  int nArgs = OPS_GetNumRemainingInputArgs();
+
+  if (nArgs < 3) {
+    opserr<<"insufficient arguments:integrationTag,type, secTag,N -or- N,*secTagList\n";
+    return 0;
+  }
+  
+  // Read tag
+  int iData[3];
+  int numData = 3;
+  if (OPS_GetIntInput(&numData,&iData[0]) < 0) {
+    opserr << "GaussQBeamIntegration - unable to read int data" << endln;
+    return 0;
+  }
+  integrationTag = iData[0];
+  
+  if (nArgs == 4) {
+    // inputs: integrationTag,type,secTag,N
+    numData = 1;
+    int Nsections;
+    if (OPS_GetIntInput(&numData,&Nsections) < 0) {
+      opserr << "GaussQBeamIntegration - Unable to read number of sections" << endln;
+      return 0;
+    }
+    if (Nsections < 0)
+      return 0;
+    
+    if (Nsections > 0) {
+      secTags.resize(Nsections);
+    } else {
+      secTags = ID();
+    }
+    for (int i=0; i<secTags.Size(); i++) {
+      secTags(i) = iData[2];
+    }
+  }
+  else {
+    // inputs: integrationTag,type,N,*secTagList
+    int Nsections = iData[2];
+    if (Nsections < 0)
+      return 0;
+    int *sections = new int[Nsections];
+    if (OPS_GetIntInput(&Nsections,sections) < 0) {
+      opserr << "GaussQBeamIntegration - Unable to read section tags" << endln;
+      return 0;
+    }
+    if (Nsections > 0) {
+      secTags.resize(Nsections);
+    } else {
+      secTags = ID();
+    }
+    for (int i=0; i<secTags.Size(); i++) {
+      secTags(i) = sections[i];
+    }      
+    delete [] sections;
+  }
+  
+  return new GaussQBeamIntegration(iData[1]);
+}
 
 GaussQBeamIntegration::GaussQBeamIntegration(int t):
   BeamIntegration(BEAM_INTEGRATION_TAG_GaussQ), type(t)
 {
-  // Nothing to do
+  if (type < 1 || type > 6) {
+    opserr << "GaussQBeamIntegration - invalid type of quadrature rule " << type << endln;
+    opserr << "Valid range 1--6, " << type << " was input" << endln;
+    opserr << "Setting to 1 (Gauss quadrature)" << endln;
+    type = 1;
+  }
 }
 
 GaussQBeamIntegration::~GaussQBeamIntegration()
