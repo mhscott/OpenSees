@@ -229,6 +229,9 @@ REMO_LIBS = $(FE)/element/nonlinearBeamColumn/matrixutil/MatrixUtil.o \
 	$(FE)/element/forceBeamColumn/CompositeSimpsonBeamIntegration.o \
 	$(FE)/element/forceBeamColumn/LegendreBeamIntegration.o \
 	$(FE)/element/forceBeamColumn/RadauBeamIntegration.o \
+	$(FE)/element/forceBeamColumn/GaussQBeamIntegration.o \
+	$(FE)/element/forceBeamColumn/gaussq.o \
+	$(FE)/element/forceBeamColumn/d1mach.o \
 	$(FE)/element/forceBeamColumn/SimpsonBeamIntegration.o \
 	$(FE)/element/forceBeamColumn/NewtonCotesBeamIntegration.o \
 	$(FE)/element/forceBeamColumn/HingeMidpointBeamIntegration.o \
