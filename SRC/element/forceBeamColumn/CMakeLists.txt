@@ -38,7 +38,6 @@ target_sources(OPS_Element
         MidDistanceBeamIntegration.cpp
         ConcentratedPlasticityBeamIntegration.cpp
         ConcentratedCurvatureBeamIntegration.cpp
-        #GaussQBeamIntegration.cpp
 	ChebyshevBeamIntegration.cpp
     PUBLIC
         ForceBeamColumn2d.h
@@ -70,7 +69,6 @@ target_sources(OPS_Element
         FixedLocationBeamIntegration.h
         LowOrderBeamIntegration.h
         MidDistanceBeamIntegration.h
-        #GaussQBeamIntegration.h
 	ChebyshevBeamIntegration.h
 )
 
