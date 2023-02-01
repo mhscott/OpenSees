@@ -11,6 +11,7 @@ OBJS       = ForceBeamColumn2d.o ForceBeamColumn3d.o \
 	LobattoBeamIntegration.o \
 	LegendreBeamIntegration.o \
 	RadauBeamIntegration.o \
+	GaussQBeamIntegration.o \
 	NewtonCotesBeamIntegration.o \
 	HingeMidpointBeamIntegration.o \
 	HingeEndpointBeamIntegration.o \

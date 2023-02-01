@@ -20,6 +20,7 @@ target_sources(OPS_Element
         LobattoBeamIntegration.cpp
         LegendreBeamIntegration.cpp
         RadauBeamIntegration.cpp
+	GaussQBeamIntegration.cpp
         NewtonCotesBeamIntegration.cpp
         HingeMidpointBeamIntegration.cpp
         HingeEndpointBeamIntegration.cpp
@@ -53,6 +54,7 @@ target_sources(OPS_Element
         LobattoBeamIntegration.h
         LegendreBeamIntegration.h
         RadauBeamIntegration.h
+	GaussQBeamIntegration.h
         NewtonCotesBeamIntegration.h
         HingeMidpointBeamIntegration.h
         HingeEndpointBeamIntegration.h
