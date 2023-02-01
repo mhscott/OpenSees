@@ -1033,7 +1033,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\element\componentElement\ComponentElement3d.cpp">
       <Filter>componentElement</Filter>
-    </ClCompile>      
+    </ClCompile>
     <ClCompile Include="..\..\..\SRC\element\forceBeamColumn\ConcentratedPlasticityBeamIntegration.cpp">
       <Filter>forceBeamColumn\beamIntegration</Filter>
     </ClCompile>
@@ -1042,6 +1042,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\element\PFEMElement\BeamDisk.cpp">
       <Filter>pfem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\element\forceBeamColumn\GaussQBeamIntegration.cpp">
+      <Filter>forceBeamColumn\beamIntegration</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
