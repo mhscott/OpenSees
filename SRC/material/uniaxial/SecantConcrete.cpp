@@ -242,12 +242,15 @@ int
 SecantConcrete::setParameter(const char **argv, int argc, Parameter &param)
 {
   if (strcmp(argv[0],"fc") == 0 || strcmp(argv[0],"fpc") == 0) {
+    param.setValue(fc);
     return param.addObject(5, this);
   }
   else if (strcmp(argv[0],"ec") == 0 || strcmp(argv[0],"epsc") == 0) {
+    param.setValue(epsc);
     return param.addObject(6, this);
   }
   else if (strcmp(argv[0],"eu") == 0 || strcmp(argv[0],"epsu") == 0) {
+    param.setValue(epsu);
     return param.addObject(7, this);
   }
 
