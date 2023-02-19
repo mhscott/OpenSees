@@ -42,6 +42,13 @@ SecantConcrete::SecantConcrete(int tag, double f, double ec, double eu)
    fc(f), epsc(ec), epsu(eu),
    parameterID(0), SHVs(0)
 {
+  if (fc > 0.0)
+    fc = -fc;
+  if (epsc > 0.0)
+    epsc = -epsc;
+  if (epsu > 0.0)
+    epsu = -epsu;
+  
   // Initialize variables
   this->revertToStart();
 }
