@@ -81,6 +81,7 @@ extern void *OPS_RambergOsgoodSteel(void);
 extern void *OPS_ReinforcingSteel(void);
 extern void *OPS_SteelDRC(void); // R. Carreno
 extern void *OPS_Concrete01(void);
+extern void *OPS_SecantConcrete(void);
 extern void *OPS_Concrete01WithSITC(void);
 extern void *OPS_Concrete02(void);
 extern void *OPS_Concrete02IS(void);
@@ -376,16 +377,24 @@ TclModelBuilderUniaxialMaterialCommand (ClientData clientData, Tcl_Interp *inter
 	theMaterial = (UniaxialMaterial *)theMat;
       else 
 	return TCL_ERROR;
+    }
+    if (strcmp(argv[1],"SecantConcrete") == 0) {
+      void *theMat = OPS_SecantConcrete();
+      if (theMat != 0) 
+	theMaterial = (UniaxialMaterial *)theMat;
+      else 
+	return TCL_ERROR;
+    }     
       /*
-	    } 
       if (strcmp(argv[1],"HoehlerStanton") == 0) {
       void *theMat = OPS_HoehlerStanton();
       if (theMat != 0) 
 	theMaterial = (UniaxialMaterial *)theMat;
       else 
 	return TCL_ERROR;
+	}
       */
-    }
+
     if (strcmp(argv[1],"Concrete02") == 0) {
       void *theMat = OPS_Concrete02();
       if (theMat != 0) 
