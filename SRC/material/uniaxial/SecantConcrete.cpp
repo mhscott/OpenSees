@@ -37,6 +37,48 @@
 #include <math.h>
 #include <string.h>
 
+#include <elementAPI.h>
+
+void *
+OPS_SecantConcrete()
+{
+  // Pointer to a uniaxial material that will be returned
+  UniaxialMaterial *theMaterial = 0;
+
+  int    iData[1];
+  double dData[3];
+  int numData = 1;
+
+  if (OPS_GetIntInput(&numData, iData) != 0) {
+    opserr << "WARNING invalid uniaxialMaterial SecantConcrete tag" << endln;
+    return 0;
+  }
+
+  numData = OPS_GetNumRemainingInputArgs();
+
+  if (numData < 3) {
+    opserr << "Invalid #args, want: uniaxialMaterial SecantConcrete " << iData[0] << "fpc? epsc0? epscu?\n";
+    return 0;
+  }
+
+  numData = 3;
+  if (OPS_GetDoubleInput(&numData, dData) != 0) {
+    opserr << "Invalid #args, want: uniaxialMaterial SecantConcrete " << iData[0] << "fpc? epsc0? fpcu? epscu?\n";
+    return 0;
+  }
+
+
+  // Parsing was successful, allocate the material
+  theMaterial = new SecantConcrete(iData[0], dData[0], dData[1], dData[2]);
+  
+  if (theMaterial == 0) {
+    opserr << "WARNING could not create uniaxialMaterial of type SecantConcrete Material\n";
+    return 0;
+  }
+
+  return theMaterial;
+}
+
 SecantConcrete::SecantConcrete(int tag, double f, double ec, double eu)
   :UniaxialMaterial(tag,MAT_TAG_SecantConcrete),
    fc(f), epsc(ec), epsu(eu),
