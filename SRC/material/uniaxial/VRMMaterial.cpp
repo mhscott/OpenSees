@@ -167,7 +167,7 @@ VRMMaterial::setTrialStrain(double strain, double strainRate)
         uj = u_n;
 
     double ke = beta1 * beta2 * exp(beta2 * u_n1) + (4 * gamma1 * gamma2 * exp(-gamma2 * (u_n1 - gamma3))) / pow(1 + exp(-gamma2 * (u_n1 - gamma3)), 2);
-    double kt = ke + kb;
+    kt = ke + kb;
 
     fe = beta1 * exp(beta2 * u_n1) - beta1 + ((4 * gamma1) / (1 + exp(-gamma2 * (u_n1 - gamma3)))) - 2 * gamma1;
     //std::cout << "The Fe_2 is:" << fe << std::endl;
