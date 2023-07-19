@@ -472,11 +472,11 @@ private:
 	void update_damage_hardeingin_Shr(void);
 
 	//void Total_area(void);
-	double GMG_CMAC2D::getTangent_Multi(void);
-	double GMG_CMAC2D::getStress_Multi(void);
-	double GMG_CMAC2D::getInitialTangent_Multi(void);
-	double GMG_CMAC2D::getStrain_Multi(void);
-	double GMG_CMAC2D::getDampTangent_Multi(void);
+	double getTangent_Multi(void);
+	double getStress_Multi(void);
+	double getInitialTangent_Multi(void);
+	double getStrain_Multi(void);
+	double getDampTangent_Multi(void);
 	//-------------------My Variable--------------------------------
 
 								 //Trial Variable
