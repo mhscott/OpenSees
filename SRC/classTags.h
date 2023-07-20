@@ -635,6 +635,7 @@
 #define ELE_TAG_CoupledZeroLength	26
 #define ELE_TAG_BiaxialZeroLength	260
 #define ELE_TAG_ZeroLengthRocking       27
+#define ELE_TAG_GMG_CMAZ2D              2727
 #define ELE_TAG_NLBeamColumn2d	        28
 #define ELE_TAG_NLBeamColumn3d	        29
 #define ELE_TAG_LargeDispBeamColumn3d	30
