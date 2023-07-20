@@ -484,6 +484,7 @@ ELE_LIBS   =  $(FE)/element/Element.o \
 	$(FE)/element/zeroLength/ZeroLengthContactNTS2D.o \
 	$(FE)/element/zeroLength/ZeroLengthInterface2D.o \
 	$(FE)/element/zeroLength/ZeroLengthRocking.o \
+	$(FE)/element/zeroLength/GMG_CMAZ2D.o \
 	$(FE)/element/surfaceLoad/SurfaceLoad.o \
 	$(FE)/element/surfaceLoad/TriSurfaceLoad.o \
 	$(FE)/element/UWelements/SimpleContact2D.o \
@@ -914,6 +915,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/SteelFractureDI.o \
 	$(FE)/material/uniaxial/DowelType.o \
 	$(FE)/material/uniaxial/DuctileFracture.o \
+	$(FE)/material/uniaxial/GMG_CMAC2D.o \
 	$(FE)/material/nD/NDMaterial.o \
 	$(FE)/material/nD/PlaneStressLayeredMaterial.o \
 	$(FE)/material/nD/PlaneStressRebarMaterial.o \

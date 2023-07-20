@@ -9,6 +9,7 @@ target_sources(OPS_Element
     PRIVATE
     ZeroLength.cpp
     CoupledZeroLength.cpp
+    GMG_CMAZ2D.cpp
     ZeroLengthContact2D.cpp
     ZeroLengthContact3D.cpp
     ZeroLengthContactASDimplex.cpp
@@ -22,6 +23,7 @@ target_sources(OPS_Element
     PUBLIC
     ZeroLength.h
     CoupledZeroLength.h
+    GMG_CMAZ2D.h
     ZeroLengthContact2D.h
     ZeroLengthContact3D.h
     ZeroLengthContactASDimplex.h

@@ -12,6 +12,7 @@ OBJS       = ZeroLength.o \
 	CoupledZeroLength.o \
 	ZeroLengthImpact3D.o \
 	ZeroLengthVG_HG.o \
+	GMG_CMAZ2D.o \
 	TclZeroLength.o
 
 

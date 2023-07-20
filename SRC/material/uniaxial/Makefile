@@ -160,6 +160,7 @@ OBJS       = UniaxialMaterial.o \
 	CoulombDamperMaterial.o \
 	FlagShapeMaterial.o \
 	GMG_CyclicReinforcedConcrete.o \
+	GMG_CMAC2D.o \
     TclModelBuilderUniaxialMaterialCommand.o
 
 all:         $(OBJS)
