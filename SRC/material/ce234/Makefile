@@ -1,7 +1,8 @@
 include ../../../Makefile.def
 
 OBJS       = CE234Model01.o CE234Model02.o \
-	CE234Model03.o CE234PlaneStress.o
+	CE234Model03.o CE234PlaneStress.o \
+	TclCE234MaterialCommand.o
 
 all:         $(OBJS)
 

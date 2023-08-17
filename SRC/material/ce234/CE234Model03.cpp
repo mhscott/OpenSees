@@ -29,6 +29,7 @@
 
 #include <CE234Model03.h>
 #include <Channel.h>
+#include <math.h>
 
 Vector CE234Model03::sigmaVector(4);
 Vector CE234Model03::epsilonVector(4);

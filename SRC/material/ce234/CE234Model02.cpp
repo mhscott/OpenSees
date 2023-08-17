@@ -322,10 +322,10 @@ CE234Model02::Print(OPS_Stream &s, int flag)
 }
 
 Response* 
-CE234Model02::setResponse(const char **argv, int argc, Information &matInfo)
+CE234Model02::setResponse(const char **argv, int argc, OPS_Stream &s)
 {
   // Query base class for default responses
-  Response *result = UniaxialMaterial::setResponse(argv, argc, matInfo);
+  Response *result = UniaxialMaterial::setResponse(argv, argc, s);
   if (result != 0)
     return result;
 

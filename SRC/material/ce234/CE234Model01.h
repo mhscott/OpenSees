@@ -62,7 +62,7 @@ class CE234Model01 : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
 
-    Response *setResponse (const char **argv, int argc, Information &matInfo);
+    Response *setResponse (const char **argv, int argc, OPS_Stream &s);
     int getResponse (int responseID, Information &matInfo);
 
   protected:

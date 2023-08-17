@@ -29,6 +29,7 @@
 
 #include <CE234PlaneStress.h>
 #include <Channel.h>
+#include <math.h>
 
 Vector CE234PlaneStress::sigmaVector(3);
 Vector CE234PlaneStress::epsilonVector(3);
