@@ -128,10 +128,12 @@ void* OPS_BarSlipMaterial();
 void* OPS_Bond_SP01();
 void* OPS_FatigueMaterial();
 void* OPS_HardeningMaterial();
+void* OPS_FlagShapeMaterial();
 void* OPS_ImpactMaterial();
 void* OPS_HyperbolicGapMaterial();
 void* OPS_LimiStateMaterial();
 void* OPS_MinMaxMaterial();
+void* OPS_PenaltyMaterial();
 void* OPS_TensionOnlyMaterial();
 void* OPS_ElasticBilin();
 void* OPS_ElasticMultiLinear();
@@ -252,10 +254,23 @@ void* OPS_DuctileFracture();  // Kuanshi Zhong
 
 void* OPS_TDConcreteEXP(void);
 void* OPS_TDConcrete(void);
+void* OPS_TDConcreteNL(void);
 void* OPS_TDConcreteMC10(void);
 void* OPS_TDConcreteMC10NL(void);
 
 void* OPS_CoulombDamperMaterial();
+void* OPS_GMG_CyclicReinforcedConcrete();
+
+void *OPS_Hertzdamp(void);
+void *OPS_JankowskiImpact(void);
+void *OPS_ViscoelasticGap(void);
+
+void *OPS_Masonry(void);
+void *OPS_Trilinwp(void);
+void *OPS_Trilinwp2(void);
+void *OPS_Masonryt(void);
+
+void* OPS_Ratchet(void); // Yi Xiao
 
 namespace {
 
@@ -383,6 +398,8 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("Hardening", &OPS_HardeningMaterial));
   uniaxialMaterialsMap.insert(
+      std::make_pair("FlagShape", &OPS_FlagShapeMaterial));  
+  uniaxialMaterialsMap.insert(
       std::make_pair("Impact", &OPS_ImpactMaterial));
   uniaxialMaterialsMap.insert(
       std::make_pair("ImpactMaterial", &OPS_ImpactMaterial));
@@ -395,7 +412,9 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("MinMaxMaterial", &OPS_MinMaxMaterial));
   uniaxialMaterialsMap.insert(
-      std::make_pair("TensionOnly", &OPS_TensionOnlyMaterial));
+      std::make_pair("Penalty", &OPS_PenaltyMaterial));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("TensionOnly", &OPS_TensionOnlyMaterial));  
   uniaxialMaterialsMap.insert(
       std::make_pair("ElasticBilin", &OPS_ElasticBilin));
   uniaxialMaterialsMap.insert(
@@ -575,12 +594,29 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("TDConcrete", &OPS_TDConcrete));
   uniaxialMaterialsMap.insert(
+      std::make_pair("TDConcreteNL", &OPS_TDConcreteNL));  
+  uniaxialMaterialsMap.insert(
       std::make_pair("TDConcreteMC10", &OPS_TDConcreteMC10));
   uniaxialMaterialsMap.insert(
       std::make_pair("TDConcreteMC10NL", &OPS_TDConcreteMC10NL));
   uniaxialMaterialsMap.insert(
       std::make_pair("CoulombDamper", &OPS_CoulombDamperMaterial));
-
+  uniaxialMaterialsMap.insert(std::make_pair(
+	  "GMG_CyclicReinforcedConcrete", &OPS_GMG_CyclicReinforcedConcrete));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("Hertzdamp", &OPS_Hertzdamp));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("HertzDamp", &OPS_Hertzdamp));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("JankowskiImpact", &OPS_JankowskiImpact));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("ViscoelasticGap", &OPS_ViscoelasticGap));
+  uniaxialMaterialsMap.insert(std::make_pair("Masonry", &OPS_Masonry));
+  uniaxialMaterialsMap.insert(std::make_pair("Masonryt", &OPS_Masonryt));
+  uniaxialMaterialsMap.insert(std::make_pair("Trilinwp", &OPS_Trilinwp));
+  uniaxialMaterialsMap.insert(std::make_pair("Trilinwp2", &OPS_Trilinwp2));
+  uniaxialMaterialsMap.insert(std::make_pair("Ratchet", &OPS_Ratchet));
+  
   return 0;
 }
 
