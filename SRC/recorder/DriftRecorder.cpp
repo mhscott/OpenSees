@@ -39,6 +39,13 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
+void*
+OPS_DriftRecorder()
+{
+  opserr << "Drift recorder currently not linked with OpenSeesPy" << endln;
+  return 0;
+}
+
 DriftRecorder::DriftRecorder()
   :Recorder(RECORDER_TAGS_DriftRecorder),
    ndI(0), ndJ(0), dof(0), perpDirn(0), oneOverL(0), data(0),
