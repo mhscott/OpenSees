@@ -36,9 +36,11 @@
 
 
 #include <TaggedObject.h>
+#include <MovableObject.h>
+
 class ReliabilityDomain;
 
-class ReliabilityDomainComponent: public TaggedObject
+class ReliabilityDomainComponent: public TaggedObject, public MovableObject
 {
 
 public:

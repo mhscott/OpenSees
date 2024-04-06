@@ -35,7 +35,7 @@
 #include <ReliabilityDomainComponent.h>
 
 ReliabilityDomainComponent::ReliabilityDomainComponent(int passedTag, int passedClassTag)
-:TaggedObject(passedTag)
+  :TaggedObject(passedTag), MovableObject(passedClassTag)
 {
 }
 
