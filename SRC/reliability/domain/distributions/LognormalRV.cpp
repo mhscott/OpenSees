@@ -33,6 +33,7 @@
 
 #include <LognormalRV.h>
 #include <NormalRV.h>
+#include <Channel.h>
 #include <cmath>
 #include <Vector.h>
 
@@ -309,6 +310,51 @@ LognormalRV::getParameterStdvSensitivity(Vector &dPdstdv)
     return 0;
 }
 
+int
+LognormalRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(6);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = zeta;
+  data(4) = lambda;
+  data(5) = isPositive ? 1.0 : -1.0;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "LognormalRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+LognormalRV::recvSelf(int commitTag, Channel &theChannel, 
+		      FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(6);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "LognormalRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    zeta = data(3);
+    lambda = data(4);
+    isPositive = (data(5) > 0.0) ? true : false;
+  }
+    
+  return res;
+}
 
 void
 LognormalRV::Print(OPS_Stream &s, int flag)
