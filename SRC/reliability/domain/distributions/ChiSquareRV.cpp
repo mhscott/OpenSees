@@ -33,6 +33,7 @@
 
 #include <ChiSquareRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 ChiSquareRV::ChiSquareRV(int passedTag, double passedMean, double passedStdv)
@@ -150,7 +151,7 @@ ChiSquareRV::getInverseCDFvalue(double probValue)
 	double tol = 1.0e-7;
 	double x_new = x_old;
 	double dx = x_old;
-	int step = 1;
+	//int step = 1;
 	int nmax = 50;
 
 	for (int i = 1; i <= nmax; i++) {
@@ -221,6 +222,47 @@ ChiSquareRV::getParameterStdvSensitivity(Vector &dPdstdv)
     return 0;
 }
 
+int
+ChiSquareRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = nu;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "ChiSquareRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+ChiSquareRV::recvSelf(int commitTag, Channel &theChannel, 
+		      FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(7);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "ChiSquareRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    nu = data(3);
+  }
+    
+  return res;
+}
 
 void
 ChiSquareRV::Print(OPS_Stream &s, int flag)
