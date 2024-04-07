@@ -247,7 +247,7 @@ ChiSquareRV::recvSelf(int commitTag, Channel &theChannel,
 {
   int res = 0;
 
-  static Vector data(7);
+  static Vector data(4);
 
   res = theChannel.recvVector(this->getDbTag(), commitTag, data);
   if (res < 0) {
