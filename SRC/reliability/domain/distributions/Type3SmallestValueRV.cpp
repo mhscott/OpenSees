@@ -33,6 +33,7 @@
 
 #include <Type3SmallestValueRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 Type3SmallestValueRV::Type3SmallestValueRV(int passedTag, 
@@ -134,6 +135,51 @@ Type3SmallestValueRV::getInverseCDFvalue(double probValue)
 	return (u-epsilon) * ( epsilon/(u-epsilon) + pow((-log(1-probValue)),(1/k)) );
 }
 
+int
+Type3SmallestValueRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(6);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = u;
+  data(4) = k;
+  data(5) = epsilon;
+  
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "Type3SmallestValueRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+Type3SmallestValueRV::recvSelf(int commitTag, Channel &theChannel, 
+			      FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(6);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "Type3SmallestValueRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    u = data(3);
+    k = data(4);
+    epsilon = data(5);
+  }
+    
+  return res;
+}
 
 void
 Type3SmallestValueRV::Print(OPS_Stream &s, int flag)
