@@ -59,6 +59,10 @@ class PythonRV : public RandomVariable
   int getCDFparameterSensitivity(Vector &dFdP);
   int getParameterMeanSensitivity(Vector &dPdmu);
   int getParameterStdvSensitivity(Vector &dPdstdv);
+
+  int sendSelf(int commitTag, Channel &theChannel);  
+  int recvSelf(int commitTag, Channel &theChannel, 
+	       FEM_ObjectBroker &theBroker);
   
   // other
   void Print(OPS_Stream &s, int flag = 0);

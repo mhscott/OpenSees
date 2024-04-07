@@ -28,6 +28,7 @@
 
 #include <PythonRV.h>
 #include <NormalRV.h>
+#include <Channel.h>
 #include <cmath>
 
 #ifdef _DEBUG
@@ -262,6 +263,49 @@ PythonRV::getParameterStdvSensitivity(Vector &dPdstdv)
   return 0;
 }
 
+int
+PythonRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(5);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = a;
+  data(4) = b;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "PythonRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+PythonRV::recvSelf(int commitTag, Channel &theChannel, 
+		   FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(5);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "PythonRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    a = data(3);
+    b = data(4);
+  }
+    
+  return res;
+}
 
 void
 PythonRV::Print(OPS_Stream &s, int flag)
