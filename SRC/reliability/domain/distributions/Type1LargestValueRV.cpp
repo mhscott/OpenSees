@@ -33,6 +33,7 @@
 
 #include <Type1LargestValueRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 Type1LargestValueRV::Type1LargestValueRV(int passedTag, 
@@ -137,6 +138,49 @@ Type1LargestValueRV::getInverseCDFvalue(double probValue)
 	return (alpha*u - log(-log(probValue))) / alpha;
 }
 
+int
+Type1LargestValueRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(5);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = u;
+  data(4) = alpha;
+  
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "Type1LargestValueRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+Type1LargestValueRV::recvSelf(int commitTag, Channel &theChannel, 
+			      FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(5);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "Type1LargestValueRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    u = data(3);
+    alpha = data(4);
+  }
+    
+  return res;
+}
 
 void
 Type1LargestValueRV::Print(OPS_Stream &s, int flag)
