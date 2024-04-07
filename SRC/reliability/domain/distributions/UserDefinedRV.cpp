@@ -33,6 +33,7 @@
 
 #include <UserDefinedRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 UserDefinedRV::UserDefinedRV(int passedTag, const Vector &pxPoints,
@@ -220,7 +221,7 @@ UserDefinedRV::getInverseCDFvalue(double p)
 	}
 
 
-	double ok;
+	double ok = 0.0;
 	for ( int i=1; i<xPoints.Size(); i++ ) {
 		if ( getCDFvalue(xPoints(i)) > p) {
 			double a = (getPDFvalue(xPoints(i))-getPDFvalue(xPoints(i-1)))/(xPoints(i)-xPoints(i-1));
@@ -245,3 +246,74 @@ UserDefinedRV::getInverseCDFvalue(double p)
 }
 
 
+int
+UserDefinedRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  int numPoints = xPoints.Size();
+  data(3) = numPoints;
+  
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) { 
+    opserr << "UserDefinedRV::sendSelf() - failed to send data" << endln;
+    return -1;
+  }
+
+  Vector ptData(2*numPoints + 1);
+  for (int i = 0; i < numPoints; i++) {
+    ptData(i) = xPoints(i);
+    ptData(numPoints+i) = PDFpoints(i);
+  }
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, ptData);
+  if (res < 0) { 
+    opserr << "UserDefinedRV::sendSelf() - failed to send point data" << endln;
+    return -2;
+  }
+  
+  return res;
+}
+
+int
+UserDefinedRV::recvSelf(int commitTag, Channel &theChannel, 
+			FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(4);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "UserDefinedRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);
+    return -1;
+  }
+
+  this->setTag(int(data(0)));
+  this->setStartValue(data(1));
+  this->setCurrentValue(data(2));
+  int numPoints = (int)data(3);
+
+  Vector ptData(2*numPoints);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, ptData);
+  if (res < 0) {
+    opserr << "UserDefinedRV::recvSelf() - failed to receive point data" << endln;
+    return -1;
+  }
+
+  xPoints.resize(numPoints);
+  PDFpoints.resize(numPoints);
+  for (int i = 0; i < numPoints; i++) {
+    xPoints(i) = ptData(i);
+    PDFpoints(i) = ptData(numPoints+i);
+  }
+  
+  return res;
+}
