@@ -33,6 +33,7 @@
 
 #include <ExponentialRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 ExponentialRV::ExponentialRV(int passedTag, double passedMean, double passedStdv)
@@ -178,6 +179,47 @@ ExponentialRV::getParameterStdvSensitivity(Vector &dPdstdv)
     return 0;
 }
 
+int
+ExponentialRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = lambda;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "ExponentialRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+ExponentialRV::recvSelf(int commitTag, Channel &theChannel, 
+			FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(4);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "ExponentialRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    lambda = data(3);
+  }
+    
+  return res;
+}
 
 void
 ExponentialRV::Print(OPS_Stream &s, int flag)
