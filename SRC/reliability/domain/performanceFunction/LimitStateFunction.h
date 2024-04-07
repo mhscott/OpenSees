@@ -57,6 +57,10 @@ public:
 	int removeGradientExpression(int rvTag);
 	const char* getGradientExpression(int rvTag);
 
+  int sendSelf(int commitTag, Channel &theChannel) {return -1;}
+  int recvSelf(int commitTag, Channel &theChannel, 
+	       FEM_ObjectBroker &theBroker) {return -1;}
+  
 protected:
 
 private:
