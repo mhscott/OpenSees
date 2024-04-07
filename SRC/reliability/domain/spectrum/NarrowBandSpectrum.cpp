@@ -34,7 +34,7 @@
 #include <NarrowBandSpectrum.h>
 #include <Spectrum.h>
 #include <Vector.h>
-#include <classTags.h>
+#include <Channel.h>
 
 
 NarrowBandSpectrum::NarrowBandSpectrum(int tag, double min, double max, double ampl)
@@ -78,4 +78,46 @@ NarrowBandSpectrum::getAmplitude(double frequency)
 	else {
 		return amplitude;
 	}
+}
+
+int
+NarrowBandSpectrum::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = minFreq;
+  data(2) = maxFreq;
+  data(3) = amplitude;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "NarrowBandSpectrum::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+NarrowBandSpectrum::recvSelf(int commitTag, Channel &theChannel, 
+			     FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(4);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "NarrowBandSpectrum::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    minFreq = data(1);
+    maxFreq = data(2);
+    amplitude = data(3);
+  }
+    
+  return res;
 }
