@@ -1,8 +1,7 @@
 include ../../../../Makefile.def
 
 OBJS       = 	PerformanceFunction.o PerformanceFunctionIter.o \
-	LimitStateFunction.o LimitStateFunctionIter.o \
-	ConstraintFunction.o
+	LimitStateFunction.o LimitStateFunctionIter.o
 
 # Compilation control
 all:         $(OBJS)
