@@ -33,6 +33,7 @@
 
 #include <RayleighRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 RayleighRV::RayleighRV(int passedTag, const Vector &passedParameters)
@@ -161,6 +162,47 @@ RayleighRV::getParameterStdvSensitivity(Vector &dPdstdv)
     return 0;
 }
 
+int
+RayleighRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = u;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "RayleighRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+RayleighRV::recvSelf(int commitTag, Channel &theChannel, 
+		     FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(4);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "RayleighRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    u = data(3);
+  }
+    
+  return res;
+}
 
 void
 RayleighRV::Print(OPS_Stream &s, int flag)
