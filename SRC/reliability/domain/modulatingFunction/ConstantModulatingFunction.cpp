@@ -33,7 +33,7 @@
 
 #include <ConstantModulatingFunction.h>
 #include <ModulatingFunction.h>
-#include <classTags.h>
+#include <Channel.h>
 
 
 ConstantModulatingFunction::ConstantModulatingFunction(int tag,
@@ -65,6 +65,60 @@ double
 ConstantModulatingFunction::getMaxAmplitude()
 {
 	return amplitude;
+}
+
+int
+ConstantModulatingFunction::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(2);
+
+  data(0) = this->getTag();
+  data(1) = amplitude;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "ConstantModulatingFunction::sendSelf() - failed to send data" << endln;
+    return -1;
+  }
+
+  // Some other stuff needs to happen before sending the filter
+  //
+  if (theFilter->sendSelf(commitTag, theChannel) < 0) {
+    opserr << "ConstantModulatingFunction::sendSelf() - failed to send filter" << endln;
+    return -2;
+  }
+  
+  return res;
+}
+
+int
+ConstantModulatingFunction::recvSelf(int commitTag, Channel &theChannel, 
+				     FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(2);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "ConstantModulatingFunction::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);
+    return -1;
+  }
+
+  this->setTag(int(data(0)));
+  amplitude = data(1);
+
+  // Receive filter
+  theFilter = 0;
+  if (theFilter == 0) {
+    opserr << "ConstantModulatingFunction::recvSelf - failed to receive filter" << endln;
+    return -2;
+  }
+
+  return res;
 }
 
 void

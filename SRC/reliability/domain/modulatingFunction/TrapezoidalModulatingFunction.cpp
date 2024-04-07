@@ -33,16 +33,16 @@
 
 #include <TrapezoidalModulatingFunction.h>
 #include <ModulatingFunction.h>
-#include <classTags.h>
+#include <Channel.h>
 
 
 TrapezoidalModulatingFunction::TrapezoidalModulatingFunction(int tag,
-												 Filter *theFilt, 
-												 double pt1,
-												 double pt2,
-												 double pt3,
-												 double pt4,
-												 double pamplitude)
+							     Filter *theFilt, 
+							     double pt1,
+							     double pt2,
+							     double pt3,
+							     double pt4,
+							     double pamplitude)
 :ModulatingFunction(tag,MODULATING_FUNCTION_trapezoidal)
 {
 	t1 = pt1;
@@ -94,6 +94,68 @@ double
 TrapezoidalModulatingFunction::getMaxAmplitude()
 {
 	return amplitude;
+}
+
+int
+TrapezoidalModulatingFunction::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(6);
+
+  data(0) = this->getTag();
+  data(1) = t1;
+  data(2) = t2;
+  data(3) = t3;
+  data(4) = t4;
+  data(5) = amplitude;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "TrapezoidalModulatingFunction::sendSelf() - failed to send data" << endln;
+    return -1;
+  }
+
+  // Some other stuff needs to happen before sending the filter
+  //
+  if (theFilter->sendSelf(commitTag, theChannel) < 0) {
+    opserr << "TrapezoidalModulatingFunction::sendSelf() - failed to send filter" << endln;
+    return -2;
+  }
+  
+  return res;
+}
+
+int
+TrapezoidalModulatingFunction::recvSelf(int commitTag, Channel &theChannel, 
+				FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(6);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "TrapezoidalModulatingFunction::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);
+    return -1;
+  }
+
+  this->setTag(int(data(0)));
+  t1 = data(1);
+  t2 = data(2);
+  t3 = data(2);
+  t4 = data(2);
+  amplitude = data(2);
+
+  // Receive filter
+  theFilter = 0;
+  if (theFilter == 0) {
+    opserr << "TrapezoidalModulatingFunction::recvSelf - failed to receive filter" << endln;
+    return -2;
+  }
+
+  return res;
 }
 
 void

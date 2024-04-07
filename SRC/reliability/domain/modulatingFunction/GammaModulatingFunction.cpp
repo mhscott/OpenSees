@@ -33,7 +33,7 @@
 
 #include <GammaModulatingFunction.h>
 #include <ModulatingFunction.h>
-#include <classTags.h>
+#include <Channel.h>
 #include <math.h>
 
 GammaModulatingFunction::GammaModulatingFunction(int tag,
@@ -69,6 +69,64 @@ double
 GammaModulatingFunction::getMaxAmplitude()
 {
 	return ( a * pow( (b/c), b) * exp(-b) );
+}
+
+int
+GammaModulatingFunction::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = a;
+  data(2) = b;
+  data(3) = c;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "GammaModulatingFunction::sendSelf() - failed to send data" << endln;
+    return -1;
+  }
+
+  // Some other stuff needs to happen before sending the filter
+  //
+  if (theFilter->sendSelf(commitTag, theChannel) < 0) {
+    opserr << "GammaModulatingFunction::sendSelf() - failed to send filter" << endln;
+    return -2;
+  }
+  
+  return res;
+}
+
+int
+GammaModulatingFunction::recvSelf(int commitTag, Channel &theChannel, 
+				  FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(4);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "GammaModulatingFunction::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);
+    return -1;
+  }
+
+  this->setTag(int(data(0)));
+  a = data(1);
+  b = data(2);
+  c = data(3);
+
+  // Receive filter
+  theFilter = 0;
+  if (theFilter == 0) {
+    opserr << "GammaModulatingFunction::recvSelf - failed to receive filter" << endln;
+    return -2;
+  }
+
+  return res;
 }
 
 void
