@@ -33,6 +33,7 @@
 
 #include <GammaRV.h>
 #include <NormalRV.h>
+#include <Channel.h>
 #include <cmath>
 
 GammaRV::GammaRV(int passedTag, double passedMean, double passedStdv)
@@ -262,6 +263,49 @@ GammaRV::getParameterStdvSensitivity(Vector &dPdstdv)
     return 0;
 }
 
+int
+GammaRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(5);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = k;
+  data(4) = lambda;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "GammaRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+GammaRV::recvSelf(int commitTag, Channel &theChannel, 
+		  FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(5);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "GammaRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    k = data(3);
+    lambda = data(4);
+  }
+    
+  return res;
+}
 
 void
 GammaRV::Print(OPS_Stream &s, int flag)
