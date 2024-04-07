@@ -32,9 +32,10 @@
 //
 
 #include <Cutset.h>
+#include <ID.h>
 #include <Vector.h>
 #include <Matrix.h>
-#include <classTags.h>
+#include <Channel.h>
 #include <OPS_Globals.h>
 
 Cutset::Cutset(int passedTag, Vector passedComponents)
@@ -75,6 +76,9 @@ Cutset::Print(OPS_Stream &s, int flag)
 int
 Cutset::setBetaCutset(const Vector &bin)
 {
+  if (betas == 0)
+    betas = new Vector(numComponents);
+  
 	*betas = bin;
 	return 0;
 }
@@ -82,6 +86,9 @@ Cutset::setBetaCutset(const Vector &bin)
 int 
 Cutset::setRhoCutset(const Matrix &rin)
 {
+  if (rhos == 0)
+    rhos = new Matrix(numComponents,numComponents);
+  
 	*rhos = rin;
 	return 0;
 }
@@ -111,3 +118,75 @@ Cutset::getRhoCutset(void)
 	return *rhos;
 }
 
+int
+Cutset::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static ID idata(2);
+
+  idata(0) = this->getTag();
+  idata(1) = numComponents;
+
+  res = theChannel.sendID(this->getDbTag(), commitTag, idata);
+  if (res < 0) {
+    opserr << "Cutset::sendSelf() - failed to send ID data" << endln;
+    return -1;
+  }
+
+  if (components != 0) {
+    res = theChannel.sendVector(this->getDbTag(), commitTag, *components);
+    if (res < 0) {
+      opserr << "Cutset::sendSelf() - failed to send component data" << endln;
+      return -2;
+    }    
+  }
+  
+  return res;
+}
+
+int
+Cutset::recvSelf(int commitTag, Channel &theChannel, 
+		 FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static ID data(2);
+
+  res = theChannel.recvID(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "Cutset::recvSelf() - failed to receive ID data" << endln;
+    this->setTag(0);
+    return -1;
+  }
+
+  this->setTag(data(0));
+  numComponents = data(1);
+
+  if (components == 0)
+    components = new Vector(numComponents);
+  if (components->Size() != numComponents) {
+    delete components;
+    components = new Vector(numComponents);    
+  }
+  if (components == 0) {
+    opserr << "Cutset::recvSelf() - could not allocate components vector" << endln;
+    return -2;
+  }
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, *components);
+  if (res < 0) {
+    opserr << "Cutset::recvSelf() - failed to receive component data" << endln;
+    return -3;
+  }
+  if (betas != 0) {
+    delete betas;
+    betas = 0;
+  }
+  if (rhos != 0) {
+    delete rhos;
+    rhos = 0;
+  }
+  
+  return res;
+}
