@@ -170,11 +170,11 @@ BetaRV::getInverseCDFvalue(double probValue)
 			// In case of zero derivative in Newton MEthod (This often happen because we went outside the boundaries)
 			// We use slower but robust bisection method
 			double x_A, x_B;
-			double f_A, f_B, f_M;
+			double f_A, /*f_B,*/f_M;
 			x_A = a;
 			x_B = b;
 			f_A = probValue - getCDFvalue(x_A);
-			f_B = probValue - getCDFvalue(x_B);
+			//f_B = probValue - getCDFvalue(x_B);
 			for (int j = 1; j <= 200; j++) {
 				x_new = (x_A + x_B) / 2.0;
 				f_M = probValue - getCDFvalue(x_new);
@@ -189,7 +189,7 @@ BetaRV::getInverseCDFvalue(double probValue)
 					if (f_M * f_A < 0) {
 						// The zero is between A and M
 						x_B = x_new;
-						f_B = f_M;
+						//f_B = f_M;
 					}
 					else {
 						// The zero is between M and B
