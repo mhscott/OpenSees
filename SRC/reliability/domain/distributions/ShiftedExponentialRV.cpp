@@ -33,6 +33,7 @@
 
 #include <ShiftedExponentialRV.h>
 #include <Vector.h>
+#include <Channel.h>
 #include <cmath>
 
 ShiftedExponentialRV::ShiftedExponentialRV(int passedTag, 
@@ -193,6 +194,49 @@ ShiftedExponentialRV::getParameterStdvSensitivity(Vector &dPdstdv)
     return 0;
 }
 
+int
+ShiftedExponentialRV::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(5);
+
+  data(0) = this->getTag();
+  data(1) = this->getStartValue();
+  data(2) = this->getCurrentValue();
+  data(3) = lambda;
+  data(4) = x0;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "ShiftedExponentialRV::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+ShiftedExponentialRV::recvSelf(int commitTag, Channel &theChannel, 
+			       FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(5);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "ShiftedExponentialRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    this->setStartValue(data(1));
+    this->setCurrentValue(data(2));
+    lambda = data(3);
+    x0 = data(4);    
+  }
+    
+  return res;
+}
 
 void
 ShiftedExponentialRV::Print(OPS_Stream &s, int flag)
