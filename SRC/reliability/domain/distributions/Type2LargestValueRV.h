@@ -55,7 +55,11 @@ public:
 	double getPDFvalue(double rvValue);
 	double getCDFvalue(double rvValue);
 	double getInverseCDFvalue(double rvValue); 
-	
+
+  int sendSelf(int commitTag, Channel &theChannel);  
+  int recvSelf(int commitTag, Channel &theChannel, 
+	       FEM_ObjectBroker &theBroker);
+  
 	// other
 	void Print(OPS_Stream &s, int flag = 0);
 
