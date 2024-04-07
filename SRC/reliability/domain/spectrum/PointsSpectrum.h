@@ -50,7 +50,10 @@ public:
 	double getMaxFrequency();
 	double getAmplitude(double frequency);
 
-
+  int sendSelf(int commitTag, Channel &theChannel);  
+  int recvSelf(int commitTag, Channel &theChannel, 
+	       FEM_ObjectBroker &theBroker);
+  
 protected:
 
 private:

@@ -34,7 +34,7 @@
 #include <PointsSpectrum.h>
 #include <Spectrum.h>
 #include <Vector.h>
-#include <classTags.h>
+#include <Channel.h>
 
 
 PointsSpectrum::PointsSpectrum(int tag, const Vector &freq, const Vector &ampl)
@@ -83,7 +83,7 @@ PointsSpectrum::getMaxFrequency()
 double
 PointsSpectrum::getAmplitude(double frequency)
 {
-	double result;
+	double result = 0.0;
 
 	if (frequency < frequencies(0)  ||  frequency > frequencies(frequencies.Size()-1) ) {
 		result = 0.0;
@@ -102,4 +102,72 @@ PointsSpectrum::getAmplitude(double frequency)
 	}
 
 	return result;
+}
+
+int
+PointsSpectrum::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(2);
+
+  data(0) = this->getTag();
+  int numPoints = frequencies.Size();
+  data(1) = numPoints;
+  
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) { 
+    opserr << "PointsSpectrum::sendSelf() - failed to send data" << endln;
+    return -1;
+  }
+
+  Vector ptData(2*numPoints + 1);
+  for (int i = 0; i < numPoints; i++) {
+    ptData(i) = frequencies(i);
+    ptData(numPoints+i) = amplitudes(i);
+  }
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, ptData);
+  if (res < 0) { 
+    opserr << "PointsSpectrum::sendSelf() - failed to send point data" << endln;
+    return -2;
+  }
+  
+  return res;
+}
+
+int
+PointsSpectrum::recvSelf(int commitTag, Channel &theChannel, 
+			 FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(2);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "UserDefinedRV::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);
+    return -1;
+  }
+
+  this->setTag(int(data(0)));
+  int numPoints = (int)data(1);
+
+  Vector ptData(2*numPoints + 1);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, ptData);
+  if (res < 0) {
+    opserr << "PointsSpectrum::recvSelf() - failed to receive point data" << endln;
+    return -1;
+  }
+
+  frequencies.resize(numPoints);
+  amplitudes.resize(numPoints);
+  for (int i = 0; i < numPoints; i++) {
+    frequencies(i) = ptData(i);
+    amplitudes(i) = ptData(numPoints+i);
+  }
+  
+  return res;
 }
