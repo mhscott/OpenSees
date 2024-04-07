@@ -32,7 +32,8 @@
 //
 
 #include <CorrelationCoefficient.h>
-#include <classTags.h>
+#include <Vector.h>
+#include <Channel.h>
 #include <OPS_Globals.h>
 
 CorrelationCoefficient::CorrelationCoefficient(int passedTag,
@@ -79,4 +80,46 @@ double
 CorrelationCoefficient::getCorrelation()
 {
 	return correlation;
+}
+
+int
+CorrelationCoefficient::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(4);
+
+  data(0) = this->getTag();
+  data(1) = rv1;
+  data(2) = rv2;
+  data(3) = correlation;
+  
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "CorrelationCoefficient::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+CorrelationCoefficient::recvSelf(int commitTag, Channel &theChannel, 
+				 FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(4);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "CorrelationCoefficient::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    rv1 = int(data(1));
+    rv2 = int(data(2));
+    correlation = data(3);
+  }
+    
+  return res;
 }
