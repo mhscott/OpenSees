@@ -34,7 +34,7 @@
 #include <JonswapSpectrum.h>
 #include <Spectrum.h>
 #include <Vector.h>
-#include <classTags.h>
+#include <Channel.h>
 #include <math.h>
 
 JonswapSpectrum::JonswapSpectrum(int tag, double min, double max,
@@ -68,6 +68,7 @@ JonswapSpectrum::getMaxFrequency()
 {
 	return maxFreq;
 }
+
 double
 JonswapSpectrum::getAmplitude(double frequency)
 {
@@ -87,4 +88,50 @@ JonswapSpectrum::getAmplitude(double frequency)
 	double GAMMA = pow(gamma,power);
 
 	return GAMMA*alpha*pow(frequency,-5.0)*exp(-5.0/4.0*pow((frequency/wp),-4.0));
+}
+
+int
+JonswapSpectrum::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(6);
+
+  data(0) = this->getTag();
+  data(1) = minFreq;
+  data(2) = maxFreq;
+  data(3) = alpha;
+  data(4) = wp;
+  data(5) = gamma;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "JonswapSpectrum::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+JonswapSpectrum::recvSelf(int commitTag, Channel &theChannel, 
+			  FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(6);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "JonswapSpectrum::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    minFreq = data(1);
+    maxFreq = data(2);
+    alpha = data(3);
+    wp = data(4);
+    gamma = data(5);
+  }
+    
+  return res;
 }
