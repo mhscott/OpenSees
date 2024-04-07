@@ -31,7 +31,6 @@
 
 #include <DeltaFilter.h>
 #include <Filter.h>
-#include <classTags.h>
 #include <math.h>
 
 #define FILTER_DELTA  9877101
@@ -68,6 +67,20 @@ DeltaFilter::getTimeOfMaxAmplitude(){
 	return 0.0;
 };
 
+int
+DeltaFilter::sendSelf(int commitTag, Channel &theChannel)
+{
+  // Nothing to send
+  return 0;
+}
+
+int
+DeltaFilter::recvSelf(int commitTag, Channel &theChannel, 
+		      FEM_ObjectBroker &theBroker)
+{
+  // Nothing to receive
+  return 0;
+}
 
 void
 DeltaFilter::Print(OPS_Stream &s, int flag)  

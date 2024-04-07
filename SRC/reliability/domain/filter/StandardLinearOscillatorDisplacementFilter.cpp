@@ -33,7 +33,7 @@
 
 #include <StandardLinearOscillatorDisplacementFilter.h>
 #include <Filter.h>
-#include <classTags.h>
+#include <Channel.h>
 #include <math.h>
 
 StandardLinearOscillatorDisplacementFilter::StandardLinearOscillatorDisplacementFilter(int tag, double period, double dampingRatio)
@@ -77,6 +77,46 @@ StandardLinearOscillatorDisplacementFilter::getTimeOfMaxAmplitude()
 	double wd = wn * sqrt(1.0-pow(xi,2.0));
 
 	return (atan(wd/(xi*wn))/wd);
+}
+
+int
+StandardLinearOscillatorDisplacementFilter::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(3);
+
+  data(0) = this->getTag();
+  data(1) = wn;
+  data(2) = xi;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "StandardLinearOscillatorDisplacementFilter::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+StandardLinearOscillatorDisplacementFilter::recvSelf(int commitTag, Channel &theChannel, 
+						     FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(3);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "StandardLinearOscillatorDisplacementFilter::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    wn = data(1);
+    xi = data(2);
+  }
+    
+  return res;
 }
 
 void

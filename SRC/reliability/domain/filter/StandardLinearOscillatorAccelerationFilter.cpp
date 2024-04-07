@@ -33,7 +33,7 @@
 
 #include <StandardLinearOscillatorAccelerationFilter.h>
 #include <Filter.h>
-#include <classTags.h>
+#include <Channel.h>
 #include <math.h>
 
 StandardLinearOscillatorAccelerationFilter::StandardLinearOscillatorAccelerationFilter(int tag, double period, double dampingRatio)
@@ -63,7 +63,7 @@ StandardLinearOscillatorAccelerationFilter::getAmplitude(double time, double dT)
 double
 StandardLinearOscillatorAccelerationFilter::getMaxAmplitude()
 {
-	double wd = wn * sqrt(1.0-pow(xi,2.0));
+  //double wd = wn * sqrt(1.0-pow(xi,2.0));
 
 	opserr << "ERROR: The getMaxAmplitude() method is not implemented for acceleration filter." << endln;
 
@@ -75,11 +75,51 @@ StandardLinearOscillatorAccelerationFilter::getMaxAmplitude()
 double
 StandardLinearOscillatorAccelerationFilter::getTimeOfMaxAmplitude()
 {
-	double wd = wn * sqrt(1.0-pow(xi,2.0));
+  //double wd = wn * sqrt(1.0-pow(xi,2.0));
 
 	opserr << "ERROR: The getTimeOfMaxAmplitude() method is not implemented for acceleration filter." << endln;
 
 	return 0.0;
+}
+
+int
+StandardLinearOscillatorAccelerationFilter::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+  
+  static Vector data(3);
+
+  data(0) = this->getTag();
+  data(1) = wn;
+  data(2) = xi;
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "StandardLinearOscillatorAccelerationFilter::sendSelf() - failed to send data" << endln;
+
+  return res;
+}
+
+int
+StandardLinearOscillatorAccelerationFilter::recvSelf(int commitTag, Channel &theChannel, 
+						     FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+
+  static Vector data(3);
+
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "StandardLinearOscillatorAccelerationFilter::recvSelf() - failed to receive data" << endln;
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+    wn = data(1);
+    xi = data(2);
+  }
+    
+  return res;
 }
 
 void
