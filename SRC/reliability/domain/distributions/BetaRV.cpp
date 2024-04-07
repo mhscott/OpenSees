@@ -328,7 +328,7 @@ BetaRV::sendSelf(int commitTag, Channel &theChannel)
 
   res = theChannel.sendVector(this->getDbTag(), commitTag, data);
   if (res < 0) 
-    opserr << "LognormalRV::sendSelf() - failed to send data" << endln;
+    opserr << "BetaRV::sendSelf() - failed to send data" << endln;
 
   return res;
 }
