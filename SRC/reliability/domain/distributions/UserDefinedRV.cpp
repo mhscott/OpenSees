@@ -300,7 +300,7 @@ UserDefinedRV::recvSelf(int commitTag, Channel &theChannel,
   this->setCurrentValue(data(2));
   int numPoints = (int)data(3);
 
-  Vector ptData(2*numPoints);
+  Vector ptData(2*numPoints + 1);
 
   res = theChannel.recvVector(this->getDbTag(), commitTag, ptData);
   if (res < 0) {
