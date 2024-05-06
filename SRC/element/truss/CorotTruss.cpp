@@ -693,6 +693,7 @@ CorotTruss::getDamp(void)
 {
     static Matrix kl(3,3);
 
+    /*
     Matrix a(3,1);
     a(0,0) = (Lo+d21[0])/Ln;
     a(1,0) = d21[1]/Ln;
@@ -702,7 +703,32 @@ CorotTruss::getDamp(void)
     cb(0,0) = A*theMaterial->getDampTangent()/Lo;
 
     kl.addMatrixTripleProduct(0.0, a, cb, 1.0);
+    */
 
+    // Get material tangent
+    double EA = A*theMaterial->getDampTangent();
+    EA /= (Ln * Ln * Lo);
+
+    int i,j;
+    for (i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            kl(i,j) = EA*d21[i]*d21[j];
+
+    // Geometric stiffness
+    //
+    // Get material stress
+    double q = A*theMaterial->getStress();
+    double SA = q/(Ln*Ln*Ln);
+    double SL = q/Ln;
+    
+    for (i = 0; i < 3; i++) {
+        kl(i,i) += SL;
+        for (j = 0; j < 3; j++)
+            kl(i,j) -= SA*d21[i]*d21[j];
+    }
+
+    
+    
     // Compute R'*kl*R
     static Matrix kg(3,3);
     kg.addMatrixTripleProduct(0.0, R, kl, 1.0);

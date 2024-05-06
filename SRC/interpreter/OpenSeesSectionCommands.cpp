@@ -164,7 +164,7 @@ namespace {
 	if(ndm == 2) {
 	    theSec = OPS_FiberSection2d();
 	    theActiveFiberSection2d = (FiberSection2d*)theSec;
-	} else if(ndm == 3) {
+	} else {
 	    theSec = OPS_FiberSection3d();
 	    theActiveFiberSection3d = (FiberSection3d*)theSec;
 	}

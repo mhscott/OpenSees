@@ -57,8 +57,8 @@ MonteCarloResponseAnalysis::MonteCarloResponseAnalysis(
 						RandomNumberGenerator *passedRandomNumberGenerator,
 						int passedNumberOfSimulations,
 						int passedPrintFlag,
-						TCL_Char *passedFileName,
-						TCL_Char *pTclFileToRunFileName,
+						char *passedFileName,
+						char *pTclFileToRunFileName,
 						int pSeed
 						)
 {

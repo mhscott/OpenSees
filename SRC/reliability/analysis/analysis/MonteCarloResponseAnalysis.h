@@ -19,8 +19,8 @@ public:
 						RandomNumberGenerator *passedRandomNumberGenerator,
 						int passedNumberOfSimulations,
 						int printFlag,
-						TCL_Char *outputFileName,
-						TCL_Char *tclFileToRunFileName,
+						char *outputFileName,
+						char *tclFileToRunFileName,
 						int seed
 						);
 

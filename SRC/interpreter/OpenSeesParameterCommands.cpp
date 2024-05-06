@@ -38,19 +38,12 @@
 
 #include <vector>
 
-#ifdef _RELIABILITY
-
 #include <ReliabilityDomain.h>
 
 ReliabilityDomain *OPS_GetReliabilityDomain();
 
-#endif
-
 int OPS_Parameter() {
   Domain *theDomain = OPS_GetDomain();
-  #ifdef _RELIABILITY
-    ReliabilityDomain *theReliabilityDomain = OPS_GetReliabilityDomain();
-  #endif
   if (theDomain == 0) return -1;
 
   // check at least two arguments so don't segment fault on strcmp
@@ -61,6 +54,8 @@ int OPS_Parameter() {
     return -1;
   }
 
+  ReliabilityDomain *theReliabilityDomain = OPS_GetReliabilityDomain();
+  
   // Figure out which parameter we are dealing with
   int paramTag;
   int num = 1;
@@ -198,7 +193,6 @@ int OPS_Parameter() {
       theObject = (DomainComponent *)element;
 
     } else if (strcmp(type, "randomVariable") == 0) {
-#ifdef _RELIABILITY
       // associate with random variable
       if (OPS_GetNumRemainingInputArgs() == 0) {
         opserr << "WARNING: need random variable tag\n";
@@ -221,8 +215,6 @@ int OPS_Parameter() {
                << " not defined\n";
         return -1;
       }
-#endif
-
     } else if (node != 0 && strcmp(type, "disp") == 0) {
       // special node disp object
       if (OPS_GetNumRemainingInputArgs() == 0) {

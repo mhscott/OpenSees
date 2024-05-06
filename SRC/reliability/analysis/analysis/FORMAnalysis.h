@@ -53,7 +53,7 @@ public:
 				 FindDesignPointAlgorithm *passedFindDesignPointAlgorithm,
                  FunctionEvaluator *passedGFunEvaluator,
 				 ProbabilityTransformation *passedProbabilityTransformation,
-				 TCL_Char *fileName, int relSensTag);
+				 const char *fileName, int relSensTag);
 	virtual ~FORMAnalysis();
 
     int initStorage();

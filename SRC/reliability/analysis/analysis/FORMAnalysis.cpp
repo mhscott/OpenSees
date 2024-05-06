@@ -63,7 +63,7 @@ FORMAnalysis::FORMAnalysis(ReliabilityDomain *passedReliabilityDomain,
 						   FindDesignPointAlgorithm *passedFindDesignPointAlgorithm,
                            FunctionEvaluator *passedFunctionEvaluator,
 						   ProbabilityTransformation *passedProbabilityTransformation,
-						   TCL_Char *passedFileName, int p_relSensTag)
+						   const char *passedFileName, int p_relSensTag)
 :ReliabilityAnalysis()
 {
 	theReliabilityDomain = passedReliabilityDomain;

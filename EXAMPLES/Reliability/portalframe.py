@@ -1,4 +1,4 @@
-import opensees as ops
+import openseespy.opensees as ops
 
 ops.model('basic', '-ndm', 2, '-ndf', 3)
 
@@ -79,8 +79,9 @@ ops.randomNumberGenerator('CStdLib')
 ops.probabilityTransformation('Nataf', "-print", 3)
 ops.reliabilityConvergenceCheck('Standard', "-e1", 1e-2,
                                 "-e2", 1e-2, "-print", 1)
-ops.functionEvaluator('Python', "-file", "opensees.analyze(1)")
+ops.functionEvaluator('Python', "-file", "ops.analyze(1)")
 ops.gradientEvaluator('Implicit')
+#ops.gradientEvaluator('FiniteDifference')
 ops.searchDirection('iHLRF')
 ops.meritFunctionCheck('AdkZhang', "-multi", 2.0, "-add", 50.0,
                        "-factor", 0.5)

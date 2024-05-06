@@ -1,4 +1,4 @@
-import opensees as ops
+import openseespy.opensees as ops
 
 ops.wipe()
 

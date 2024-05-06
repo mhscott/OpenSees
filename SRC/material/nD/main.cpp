@@ -31,6 +31,10 @@
 
 #include <OPS_Globals.h>
 #include <StandardStream.h>
+#include <iostream>
+
+#include <SLModel.h>
+#include <Steel01.h>
 
 StandardStream sserr;
 OPS_Stream *opserrPtr = &sserr;
@@ -47,6 +51,17 @@ int main()
   const Vector &stress = material.getStress();
   const Matrix &tangent = material.getTangent();
   opserr << stress << tangent << endln;
+
+  Steel01 *abc = new Steel01();
+
+  std::cout << sizeof(stress) << std::endl;
+  std::cout << sizeof(tangent) << std::endl;
+  std::cout << sizeof(abc) << std::endl;
+  std::cout << sizeof(*abc) << std::endl;
+  std::cout << sizeof(material) << std::endl;
+  std::cout << sizeof(ElasticIsotropicThreeDimensional) << std::endl;
+
+  delete abc;
 }
 
 

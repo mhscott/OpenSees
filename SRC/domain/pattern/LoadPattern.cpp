@@ -1066,7 +1066,8 @@ LoadPattern::setParameter(const char **argv, int argc, Parameter &param)
 	return -1;
 
         RVisRandomProcessDiscretizer = true;
-        return theSeries->setParameter(&argv[1], argc-1, param);
+        //return theSeries->setParameter(&argv[1], argc-1, param);
+        return theSeries->setParameter(argv, argc, param);	
     }
 
     // Unknown parameter
