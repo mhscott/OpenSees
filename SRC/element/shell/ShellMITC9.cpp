@@ -563,6 +563,19 @@ ShellMITC9::getResponse(int responseID, Information &eleInfo)
   }
 }
 
+int
+ShellMITC9::setParameter(const char **argv, int argc, Parameter &param)
+{
+  int res = -1;
+  // Send to all sections
+  for (int i = 0; i < 9; i++) {
+    int secRes = materialPointers[i]->setParameter(argv, argc, param);
+    if (secRes != -1) {
+      res = secRes;
+    }
+  }
+  return res;
+}
 
 //return stiffness matrix 
 const Matrix&  ShellMITC9::getTangentStiff( ) 
@@ -1622,7 +1635,7 @@ int  ShellMITC9::sendSelf (int commitTag,Channel &theChannel)
   int dataTag = this->getDbTag();
   // Now quad sends the ids of its materials
   int matDbTag;
-  static ID idData(27);
+  static ID idData(28);
   int i;
 
   for (i = 0; i < 9; i++) {
@@ -1683,7 +1696,7 @@ int  ShellMITC9::recvSelf (int commitTag,Channel &theChannel,
 {
   int res = 0;
   int dataTag = this->getDbTag();
-  static ID idData(27);
+  static ID idData(28);
   // Quad now receives the tags of its four external nodes
   res += theChannel.recvID(dataTag, commitTag, idData);
   if (res < 0) {

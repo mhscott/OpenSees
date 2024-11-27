@@ -79,6 +79,8 @@ class Concrete02 : public UniaxialMaterial
   int activateParameter(int parameterID);
 
   int getActiveParameter(double &param);
+    
+    double getEnergy() { return TEnergy; }
 
  protected:
   int getNumHistoryVariables(void) {return 5;}
@@ -112,9 +114,12 @@ class Concrete02 : public UniaxialMaterial
     double dept;   
     double sig;   
     double e;     
-    double eps;
+    double eps;   
 
-    int parameterID;
+    double TEnergy = 0.0;
+    double CEnergy = 0.0;
+
+  int parameterID;
 };
 
 
