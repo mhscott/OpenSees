@@ -403,6 +403,8 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
   int paramID;
   double h0 = 0.0;
   paramID = this->getActiveParameter(h0);
+  opserr << "h0 = " << h0 << endln;
+  
   // Early return so don't divide by zero
   // in difference calculation below
   if (h0 == 0.0)
@@ -464,7 +466,7 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
   //this->setTrialStrain(strain, strainRate);
   //this->getStress();
   //
-  //opserr << sig-sig0 << ' ' << eps << endln;
+  opserr << sig << ' ' << sig0 << ' ' << eps << endln;
 
   return (sig-sig0)/(eps*h0);
 
