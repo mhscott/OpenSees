@@ -129,6 +129,7 @@ void* OPS_BarSlipMaterial();
 void* OPS_Bond_SP01();
 void* OPS_FatigueMaterial();
 void* OPS_HardeningMaterial();
+void* OPS_HardeningMaterial2();
 void* OPS_FlagShapeMaterial();
 void* OPS_ImpactMaterial();
 void* OPS_HyperbolicGapMaterial();
@@ -411,6 +412,8 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("Hardening", &OPS_HardeningMaterial));
   uniaxialMaterialsMap.insert(
+      std::make_pair("Hardening2", &OPS_HardeningMaterial2));
+  uniaxialMaterialsMap.insert(			      
       std::make_pair("FlagShape", &OPS_FlagShapeMaterial));  
   uniaxialMaterialsMap.insert(
       std::make_pair("Impact", &OPS_ImpactMaterial));
