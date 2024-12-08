@@ -68,7 +68,6 @@ OBJS       = UniaxialMaterial.o \
 	BoucWenOriginal.o \
     BoucWenMaterial.o \
 	SecantConcrete.o \
-	HardeningMaterial2.o \
 	Pinching4Material.o \
 	BarSlipMaterial.o \
 	FatigueMaterial.o \
