@@ -403,7 +403,7 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
   int paramID;
   double h0 = 0.0;
   paramID = this->getActiveParameter(h0);
-  opserr << "h0 = " << h0 << endln;
+  //opserr << "h0 = " << h0 << endln;
   
   // Early return so don't divide by zero
   // in difference calculation below
@@ -427,6 +427,14 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
     for (int i = 0; i < numHV; i++)
       sensHstv[gradIndex*numHV + i] = hstv[i];
   }
+
+  //
+  //
+  // x == plastic strain
+  // \Delta x_{n+1} = x_{n+1} - x_n
+  // d \Delta x_{n+1} / dh = dx_{n+1} / dh - dx_n / dh
+  // dx_{n+1} / dh = d \Delta x_{n+1} / dh + dx_n / dh
+  // x_{n+1} = (dx_{n+1} / dh) * \Delta h
   
   // Perturb the active parameter
   double eps = 1.0e-5;
@@ -466,7 +474,7 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
   //this->setTrialStrain(strain, strainRate);
   //this->getStress();
   //
-  opserr << sig << ' ' << sig0 << ' ' << eps << endln;
+  //opserr << sig << ' ' << sig0 << ' ' << eps << endln;
 
   return (sig-sig0)/(eps*h0);
 
