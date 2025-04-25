@@ -181,6 +181,12 @@ all:         $(OBJS)
 	@$(CD) $(FE)/material/uniaxial/unloading; $(MAKE);
 	@$(CD) $(FE)/material/uniaxial/limitState; $(MAKE);
 
+test: $(OBJS) main.o
+	$(LINKER) $(LINKFLAGS) main.o ../../../SRC/api/elementAPI_Dummy.o $(FE_LIBRARY) \
+	$(MACHINE_LINKLIBS) $(TCL_LIBRARY) \
+	$(MACHINE_NUMERICAL_LIBS) $(FE_LIBRARY) \
+	-o mixed_ddm
+
 # Miscellaneous
 
 tidy:   
