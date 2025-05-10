@@ -31,6 +31,9 @@
 #include <HardeningMaterial.h>
 #include <HardeningMaterial2.h>
 
+#include <Parameter.h>
+#include <Information.h>
+
 #include <OPS_Globals.h>
 #include <ConsoleErrorHandler.h>
 #include <StandardStream.h>
@@ -40,34 +43,105 @@ OPS_Stream *opserrPtr = &sserr;
 
 int main()
 {
-  double Fy = 60.0;
-  double E = 29000.0;
-  double Hk = 500.0;
-  double Hi = 100.0;
+  const double Fy0 = 60.0;
+  const double E0 = 29000.0;
+  const double Hk0 = 500.0;
+  const double Hi0 = 100.0;
 
-  HardeningMaterial matl(0, E, Fy, Hi, Hk);
+  double E = E0;
+  double Fy = Fy0;
+  double Hk = Hk0;
+  double Hi = Hi0;
+
+  HardeningMaterial  matl(0, E, Fy, Hi, Hk);
+  HardeningMaterial2 matl2(0, E, Fy, Hi, Hk);
 
   double epsy = Fy/E;
   double epsmax = 3*epsy;
-  int Nsteps = 400;
+  const int Nsteps = 400;
   double deps = epsmax/Nsteps;
 
-  int numHV = matl.getNumHistoryVariables();
-  double *hstv = new double[numHV];
+  Parameter p(1);
   
-  for (int i = 0; i < Nsteps; i++) {
-    double eps = i*deps;
-    matl.setTrialStrain(eps);
-    double sig = matl.getStress();
-    matl.getTrialHistoryVariables(hstv);
-  }
-  for (int i = 0; i < Nsteps; i++) {
-    double eps = epsmax - i*deps;
-    matl.setTrialStrain(eps);
-    double sig = matl.getStress();
-  }  
+  const char *argv[1];
+  argv[0] = "Fy";
+  int pid = 1;
 
-  delete [] hstv;
+  matl.activateParameter(pid);
+  matl.commitSensitivity(0,0,1);
+  
+  double eplot[2*Nsteps];
+  double splot[2*Nsteps];
+  double dsplot[2*Nsteps];
+  
+  for (int i = 0; i < 2*Nsteps; i++) {
+    // strain
+    double eps = i*deps;
+    if (i >= Nsteps)
+      eps = epsmax - (i-Nsteps)*deps;
+
+    // DDM computation
+    matl.setTrialStrain(eps);    
+    matl.commitState();
+    dsplot[i] = matl.getStressSensitivity(0,true);
+    matl.commitSensitivity(0,0,1);
+
+    matl2.setTrialStrain(eps);
+    double sig = matl2.getStress();
+    eplot[i] = eps;
+    splot[i] = sig;
+    matl2.commitState();
+  }
+
+
+
+  matl2.revertToStart();
+
+  int numHV = matl2.getNumHistoryVariables();
+
+  double *hstvP = new double[numHV];
+  double *hstvP2 = new double[numHV];  
+  matl2.getCommittedHistoryVariables(hstvP);
+  matl2.getCommittedHistoryVariables(hstvP2);  
+  
+  double h0 = Fy0;
+  double dh = 0.001*h0;
+  Fy = Fy0 + dh;
+
+  Information info;
+
+  double ffd[2*Nsteps];
+  
+  for (int i = 0; i < 2*Nsteps; i++) {
+    double eps = i*deps;
+    if (i >= Nsteps)
+      eps = epsmax - (i-Nsteps)*deps;
+
+    matl2.setCommittedHistoryVariables(hstvP);
+    info.theDouble = Fy0;
+    matl2.updateParameter(pid, info);
+    matl2.setTrialStrain(eps);
+
+    double sig = matl2.getStress();
+    matl2.getTrialHistoryVariables(hstvP);
+
+    matl2.setCommittedHistoryVariables(hstvP2);    
+    info.theDouble = Fy;
+    matl2.updateParameter(pid, info);
+    matl2.setTrialStrain(eps);
+    double sig2 = matl2.getStress();    
+    matl2.getTrialHistoryVariables(hstvP2);
+
+    matl2.commitState();
+    
+    ffd[i] = (sig2-sig)/dh;    
+  }
+
+  //  for (int i = 0; i < 2*Nsteps; i++)
+  //opserr << dsplot[i] << ' ' << ffd[i] << endln;
+  
+  delete [] hstvP;
+  delete [] hstvP2;  
   
   return 0;
 }
