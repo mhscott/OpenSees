@@ -33,6 +33,7 @@
 #include <Concrete02.h>
 #include <Concrete02IS.h>
 #include <Concrete04.h>
+#include <ViscousDamper.h>
 
 #include <Bidirectional.h>
 #include <Elliptical2.h>
@@ -62,11 +63,13 @@ int main()
   double Hi = Hi0;
 
   UniaxialMaterial *theMaterial = 0;
-  theMaterial = new HardeningMaterial2(0, E, Fy, Hi, Hk);
+  //theMaterial = new HardeningMaterial2(0, E, Fy, Hi, Hk);
   //theMaterial = new Concrete02(0, 4, 0.002, 2, 0.006);
   //theMaterial = new Concrete02IS(0, 3600, 4, 0.002, 2, 0.006);
   //theMaterial = new Concrete04(0, 4, 0.002, 1, 3600);    
-
+  theMaterial = new ViscousDamper(0, E, 0.01*E, 0.3,
+				  0.0, 1, 1e-6, 1e-10, 15);
+				  
   double epsy = Fy/E;
   double epsmax = 3*epsy;
 
@@ -75,7 +78,7 @@ int main()
   const char *argv[1];
   double h0;
   int pid2;
-  //argv[0] = "E"; pid2 = 1; h0 = E0;
+  argv[0] = "E"; pid2 = 1; h0 = E0;
   //argv[0] = "Fy"; pid2 = 2; h0 = Fy0;
   //  argv[0] = "Hk"; pid2 = 4; h0 = Hk0;
   //argv[0] = "fc"; pid2 = 1; h0 = -4;
@@ -91,14 +94,14 @@ int main()
   double eplot[Nsteps];
   double splot[Nsteps];
   double global[Nsteps];
-
+  ops_Dt = 0.1;
   ofstream sigeps("stress-strain.txt");
   
   f.seekg(ios::beg);
   int i = 0;
   while (i < Nsteps && f >> eps) {
     eps *= epsmax;
-    theMaterial->setTrialStrain(eps);
+    theMaterial->setTrialStrain(eps,eps);
     double sig = theMaterial->getStress();
     eplot[i] = eps;
     splot[i] = sig;
@@ -122,7 +125,7 @@ int main()
   i = 0;
   while (i < Nsteps && f >> eps) {
     eps *= epsmax;    
-    theMaterial->setTrialStrain(eps);
+    theMaterial->setTrialStrain(eps,eps);
     double sig = theMaterial->getStress();
     global[i] = (sig-splot[i])/dh;
     theMaterial->commitState();
@@ -151,7 +154,7 @@ int main()
     theMaterial->updateParameter(pid2, info);
     theMaterial->setCommittedHistoryVariables(hstvP);
     theMaterial->setTrialHistoryVariables(hstvP);
-    theMaterial->setTrialStrain(eps);
+    theMaterial->setTrialStrain(eps,eps);
 
     double sig = theMaterial->getStress();
     theMaterial->getTrialHistoryVariables(hstvP);
@@ -160,7 +163,7 @@ int main()
     theMaterial->updateParameter(pid2, info);
     theMaterial->setCommittedHistoryVariables(hstvP2);
     theMaterial->setTrialHistoryVariables(hstvP2);
-    theMaterial->setTrialStrain(eps);
+    theMaterial->setTrialStrain(eps,eps);
 
     double sig2 = theMaterial->getStress();
     theMaterial->getTrialHistoryVariables(hstvP2);
@@ -175,6 +178,10 @@ int main()
   for (int i = 0; i < Nsteps; i++)
     opserr << "sig: " << splot[i] << ", global: " << global[i] << ", mixed: " << mixed[i] << endln;
 
+
+
+
+  
   SectionForceDeformation *theSection = 0;
   //theSection = new Bidirectional(0, E, Fy, Hi, Hk);
   theSection = new Elliptical2(0, E, E, Fy, Fy, Hi, Hk, Hk);  
@@ -249,7 +256,6 @@ int main()
     e(1) = eps;
     theSection->setTrialSectionDeformation(e);    
 
-    double sig = theMaterial->getStress();
     Vector s(2);
     s = theSection->getStressResultant();
     theSection->getTrialHistoryVariables(hstvP);
@@ -262,21 +268,19 @@ int main()
     e(1) = eps;
     theSection->setTrialSectionDeformation(e);
 
-    double sig2 = theMaterial->getStress();
     Vector s2(2);
     s2 = theSection->getStressResultant();    
     theSection->getTrialHistoryVariables(hstvP2);    
 
     theSection->commitState();
     
-    mixed[i] = (sig2-sig)/dh;
     mixed[i] = (s2(0)-s(0))/dh;    
 
     i++;
   }
 
-  for (int i = 0; i < Nsteps; i++)
-    opserr << "sig: " << splot[i] << ", global: " << global[i] << ", mixed: " << mixed[i] << endln;
+  //for (int i = 0; i < Nsteps; i++)
+  //  opserr << "sig: " << splot[i] << ", global: " << global[i] << ", mixed: " << mixed[i] << endln;
   
   delete [] hstvP;
   delete [] hstvP2;  
