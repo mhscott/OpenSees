@@ -34,6 +34,7 @@
 #include <Concrete02IS.h>
 #include <Concrete04.h>
 #include <ViscousDamper.h>
+#include <BilinearOilDamper.h>
 
 #include <Bidirectional.h>
 #include <Elliptical2.h>
@@ -62,13 +63,21 @@ int main()
   double Hk = Hk0;
   double Hi = Hi0;
 
+  const double C0 = 0.01*E;
+  double C = C0;
+
+  const double Fr0 = 1.0;
+  double Fr = Fr0;  
+  
   UniaxialMaterial *theMaterial = 0;
   //theMaterial = new HardeningMaterial2(0, E, Fy, Hi, Hk);
   //theMaterial = new Concrete02(0, 4, 0.002, 2, 0.006);
   //theMaterial = new Concrete02IS(0, 3600, 4, 0.002, 2, 0.006);
   //theMaterial = new Concrete04(0, 4, 0.002, 1, 3600);    
-  theMaterial = new ViscousDamper(0, E, 0.01*E, 0.3,
-				  0.0, 1, 1e-6, 1e-10, 15);
+  // theMaterial = new ViscousDamper(0, E, C, 0.3,
+  //				  0.0, 1, 1e-6, 1e-10, 15);
+  theMaterial = new BilinearOilDamper(0, E, C, Fr, 1.0,
+				   0.0, 1, 1e-6, 1e-10, 15);  
 				  
   double epsy = Fy/E;
   double epsmax = 3*epsy;
@@ -78,13 +87,16 @@ int main()
   const char *argv[1];
   double h0;
   int pid2;
-  argv[0] = "E"; pid2 = 1; h0 = E0;
+  //argv[0] = "E"; pid2 = 1; h0 = E0;
+  argv[0] = "Fr"; pid2 = 3; h0 = Fr0;  
+  //argv[0] = "C"; pid2 = 2; h0 = C0;  
   //argv[0] = "Fy"; pid2 = 2; h0 = Fy0;
   //  argv[0] = "Hk"; pid2 = 4; h0 = Hk0;
   //argv[0] = "fc"; pid2 = 1; h0 = -4;
 
   
-  ifstream f("white-noise.txt");
+  //ifstream f("white-noise.txt");
+  ifstream f("ramp.txt");  
 
   const int Nsteps = 2000;
   double deps = epsmax/Nsteps;
@@ -94,14 +106,15 @@ int main()
   double eplot[Nsteps];
   double splot[Nsteps];
   double global[Nsteps];
-  ops_Dt = 0.1;
+  ops_Dt = 0.01;
   ofstream sigeps("stress-strain.txt");
   
   f.seekg(ios::beg);
   int i = 0;
   while (i < Nsteps && f >> eps) {
     eps *= epsmax;
-    theMaterial->setTrialStrain(eps,eps);
+    double epsdot = 1.0*epsmax; // ramp
+    theMaterial->setTrialStrain(eps,epsdot);
     double sig = theMaterial->getStress();
     eplot[i] = eps;
     splot[i] = sig;
@@ -124,8 +137,9 @@ int main()
   f.seekg(ios::beg);
   i = 0;
   while (i < Nsteps && f >> eps) {
-    eps *= epsmax;    
-    theMaterial->setTrialStrain(eps,eps);
+    eps *= epsmax;
+    double epsdot = 1.0*epsmax; // ramp    
+    theMaterial->setTrialStrain(eps,epsdot);
     double sig = theMaterial->getStress();
     global[i] = (sig-splot[i])/dh;
     theMaterial->commitState();
@@ -149,12 +163,13 @@ int main()
   f.seekg(ios::beg);
   i = 0;
   while (i < Nsteps && f >> eps) {
-    eps *= epsmax;    
+    eps *= epsmax;
+    double epsdot = 1.0*epsmax; // ramp    
     info.theDouble = h0;
     theMaterial->updateParameter(pid2, info);
     theMaterial->setCommittedHistoryVariables(hstvP);
     theMaterial->setTrialHistoryVariables(hstvP);
-    theMaterial->setTrialStrain(eps,eps);
+    theMaterial->setTrialStrain(eps,epsdot);
 
     double sig = theMaterial->getStress();
     theMaterial->getTrialHistoryVariables(hstvP);
@@ -163,7 +178,7 @@ int main()
     theMaterial->updateParameter(pid2, info);
     theMaterial->setCommittedHistoryVariables(hstvP2);
     theMaterial->setTrialHistoryVariables(hstvP2);
-    theMaterial->setTrialStrain(eps,eps);
+    theMaterial->setTrialStrain(eps,epsdot);
 
     double sig2 = theMaterial->getStress();
     theMaterial->getTrialHistoryVariables(hstvP2);
