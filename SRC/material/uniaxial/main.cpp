@@ -54,19 +54,25 @@ using namespace std;
 int main()
 {
   const double Fy0 = 60.0;
-  const double E0 = 29000.0;
+  //const double E0 = 29000.0;
   const double Hk0 = 500.0;
   const double Hi0 = 0.0;
 
+  const double E0 = 300.0;
+  
   double E = E0;
   double Fy = Fy0;
   double Hk = Hk0;
   double Hi = Hi0;
 
-  const double C0 = 0.01*E;
+  //const double C0 = 0.01*E;
+  const double C0 = 280.3;
+  
   double C = C0;
 
-  const double Fr0 = 1.0;
+  //const double Fr0 = 1.0;
+  const double Fr0 = 300.0;
+  
   double Fr = Fr0;  
   
   UniaxialMaterial *theMaterial = 0;
@@ -76,8 +82,8 @@ int main()
   //theMaterial = new Concrete04(0, 4, 0.002, 1, 3600);    
   // theMaterial = new ViscousDamper(0, E, C, 0.3,
   //				  0.0, 1, 1e-6, 1e-10, 15);
-  theMaterial = new BilinearOilDamper(0, E, C, Fr, 1.0,
-				   0.0, 1, 1e-6, 1e-10, 15);  
+  theMaterial = new BilinearOilDamper(0, E, C, Fr, 0.05,
+				      0.3, 2, 1e-6, 1e-10, 10);  
 				  
   double epsy = Fy/E;
   double epsmax = 3*epsy;
@@ -88,17 +94,19 @@ int main()
   double h0;
   int pid2;
   //argv[0] = "E"; pid2 = 1; h0 = E0;
-  argv[0] = "Fr"; pid2 = 3; h0 = Fr0;  
-  //argv[0] = "C"; pid2 = 2; h0 = C0;  
+  //argv[0] = "Fr"; pid2 = 3; h0 = Fr0;  
+  argv[0] = "C"; pid2 = 2; h0 = C0;  
   //argv[0] = "Fy"; pid2 = 2; h0 = Fy0;
   //  argv[0] = "Hk"; pid2 = 4; h0 = Hk0;
   //argv[0] = "fc"; pid2 = 1; h0 = -4;
 
   
   //ifstream f("white-noise.txt");
-  ifstream f("ramp.txt");  
+  //ifstream f("ramp.txt");
+  ifstream f_disp("node_disp.txt");
+  ifstream f_vel("node_vel.txt");  
 
-  const int Nsteps = 2000;
+  const int Nsteps = 30/0.002;
   double deps = epsmax/Nsteps;
   double eps;
   Vector e(2);
@@ -106,14 +114,20 @@ int main()
   double eplot[Nsteps];
   double splot[Nsteps];
   double global[Nsteps];
-  ops_Dt = 0.01;
+  ops_Dt = 0.002;
   ofstream sigeps("stress-strain.txt");
-  
-  f.seekg(ios::beg);
+
+  //f.seekg(ios::beg);
+  f_disp.seekg(ios::beg);
+  f_vel.seekg(ios::beg);  
   int i = 0;
-  while (i < Nsteps && f >> eps) {
+  while (i < Nsteps && f_disp >> eps) {
     eps *= epsmax;
     double epsdot = 1.0*epsmax; // ramp
+
+    f_disp >> eps; f_disp.ignore(80,'\n');
+    f_vel >> epsdot >> epsdot; f_vel.ignore(80,'\n');    
+
     theMaterial->setTrialStrain(eps,epsdot);
     double sig = theMaterial->getStress();
     eplot[i] = eps;
@@ -134,11 +148,17 @@ int main()
   info.theDouble = h;
   theMaterial->updateParameter(pid2, info);
   
-  f.seekg(ios::beg);
+  //f.seekg(ios::beg);
+  f_disp.seekg(ios::beg);
+  f_vel.seekg(ios::beg);    
   i = 0;
-  while (i < Nsteps && f >> eps) {
+  while (i < Nsteps && f_disp >> eps) {
     eps *= epsmax;
-    double epsdot = 1.0*epsmax; // ramp    
+    double epsdot = 1.0*epsmax; // ramp
+
+    f_disp >> eps; f_disp.ignore(80,'\n');
+    f_vel >> epsdot >> epsdot; f_vel.ignore(80,'\n');
+    
     theMaterial->setTrialStrain(eps,epsdot);
     double sig = theMaterial->getStress();
     global[i] = (sig-splot[i])/dh;
@@ -160,11 +180,17 @@ int main()
 
   double mixed[Nsteps];
 
-  f.seekg(ios::beg);
+  //f.seekg(ios::beg);
+  f_disp.seekg(ios::beg);
+  f_vel.seekg(ios::beg);  
   i = 0;
-  while (i < Nsteps && f >> eps) {
+  while (i < Nsteps && f_disp >> eps) {
     eps *= epsmax;
-    double epsdot = 1.0*epsmax; // ramp    
+    double epsdot = 1.0*epsmax; // ramp
+
+    f_disp >> eps; f_disp.ignore(80,'\n');
+    f_vel >> epsdot >> epsdot; f_vel.ignore(80,'\n');
+    
     info.theDouble = h0;
     theMaterial->updateParameter(pid2, info);
     theMaterial->setCommittedHistoryVariables(hstvP);
@@ -193,9 +219,10 @@ int main()
   for (int i = 0; i < Nsteps; i++)
     opserr << "sig: " << splot[i] << ", global: " << global[i] << ", mixed: " << mixed[i] << endln;
 
+  return 0;
 
 
-
+  /*
   
   SectionForceDeformation *theSection = 0;
   //theSection = new Bidirectional(0, E, Fy, Hi, Hk);
@@ -301,6 +328,7 @@ int main()
   delete [] hstvP2;  
   delete theMaterial;
   delete theSection;
+  */
   
   return 0;
 }
