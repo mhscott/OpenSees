@@ -73,6 +73,13 @@ class Bidirectional : public SectionForceDeformation
 
     void Print(OPS_Stream &s, int flag = 0);
 
+    int setParameter(const char **argv, int argc, Parameter &param);
+    int updateParameter(int parameterID, Information &info);
+    int activateParameter(int paramID);
+    const Vector& getStressResultantSensitivity(int gradIndex,
+						bool conditional);
+    int commitSensitivity(const Vector &dedh, int gradIndex, int numGrads);
+  
   protected:
 
   private:
@@ -85,14 +92,14 @@ class Bidirectional : public SectionForceDeformation
 	double eP_n[2];
 	double eP_n1[2];
 
-	double q_n[2];
-	double q_n1[2];
-
 	double alpha_n;
 	double alpha_n1;
 	
 	int code1, code2;
 
+	int parameterID;
+	Matrix *SHVs;
+  
 	static Vector s;
 	static Matrix ks;
 	static ID code;
