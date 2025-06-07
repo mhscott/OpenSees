@@ -68,6 +68,11 @@ class Elliptical2 : public SectionForceDeformation
 						bool conditional);
     int commitSensitivity(const Vector &dedh, int gradIndex, int numGrads);
 
+  int getNumHistoryVariables(void) {return 3;}
+  int getTrialHistoryVariables(double *hstv);
+  int setTrialHistoryVariables(const double *hstv);
+  int getCommittedHistoryVariables(double *hstv);
+  int setCommittedHistoryVariables(const double *hstv);
   protected:
 
   private:

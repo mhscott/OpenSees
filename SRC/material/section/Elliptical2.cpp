@@ -936,3 +936,35 @@ Elliptical2::commitSensitivity(const Vector &dedh, int gradIndex, int numGrads)
 
   return 0;
 }
+
+int
+Elliptical2::getTrialHistoryVariables(double *hstv) {
+  hstv[0] = eP_n1[0];
+  hstv[1] = eP_n1[1];
+  hstv[2] = alpha_n1;    
+  return 0;
+}
+
+int
+Elliptical2::setTrialHistoryVariables(const double *hstv) {
+  eP_n1[0] = hstv[0];
+  eP_n1[1] = hstv[1];
+  alpha_n1 = hstv[2];    
+  return 0;
+}
+
+int
+Elliptical2::getCommittedHistoryVariables(double *hstv) {
+  hstv[0] = eP_n[0];
+  hstv[1] = eP_n[1];
+  hstv[2] = alpha_n;    
+  return 0;
+}
+
+int
+Elliptical2::setCommittedHistoryVariables(const double *hstv) {
+  eP_n[0] = hstv[0];
+  eP_n[1] = hstv[1];
+  alpha_n = hstv[2];    
+  return 0;
+}  
