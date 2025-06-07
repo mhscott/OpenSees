@@ -84,7 +84,13 @@ class BilinearOilDamper : public UniaxialMaterial
 
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
-    
+
+      int getNumHistoryVariables(void) {return 6;}
+  int getTrialHistoryVariables(double *hstv);
+  int setTrialHistoryVariables(const double *hstv);
+  int getCommittedHistoryVariables(double *hstv);
+  int setCommittedHistoryVariables(const double *hstv);
+  
   protected:
     
   private:
