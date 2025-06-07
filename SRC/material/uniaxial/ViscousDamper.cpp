@@ -594,3 +594,55 @@ ViscousDamper::Print(OPS_Stream &s, int flag)
     s << "  MaxHalf: " << MaxHalf << endln;
         
 }
+
+int
+ViscousDamper::getTrialHistoryVariables(double *hstv)
+{
+  hstv[0] = Tstrain;
+  hstv[1] = Tstress;
+  hstv[2] = Ttangent;
+  hstv[3] = TVel;
+  hstv[4] = Tpugr;
+  hstv[5] = Tnugr;
+      
+  return 0;
+}
+
+int
+ViscousDamper::setTrialHistoryVariables(const double *hstv)
+{
+  Tstrain = hstv[0];
+  Tstress = hstv[1];
+  Ttangent = hstv[2];
+  TVel = hstv[3];
+  Tpugr = hstv[4];
+  Tnugr = hstv[5];
+  
+  return 0;
+}  
+
+int
+ViscousDamper::getCommittedHistoryVariables(double *hstv)
+{
+  hstv[0] = Cstrain;
+  hstv[1] = Cstress;
+  hstv[2] = Ctangent;
+  hstv[3] = CVel;
+  hstv[4] = Cpugr;
+  hstv[5] = Cnugr;
+
+  return 0;
+}  
+
+int
+ViscousDamper::setCommittedHistoryVariables(const double *hstv)
+{
+  Cstrain = hstv[0];
+  Cstress = hstv[1];
+  Ctangent = hstv[2];
+  CVel = hstv[3];
+  Cpugr = hstv[4];
+  Cnugr = hstv[5];
+
+  return 0;
+}

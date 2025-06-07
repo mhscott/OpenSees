@@ -87,7 +87,13 @@ class ViscousDamper : public UniaxialMaterial
                  FEM_ObjectBroker &theBroker);    
     
     void Print(OPS_Stream &s, int flag =0);
-    
+
+    int getNumHistoryVariables(void) {return 6;}
+  int getTrialHistoryVariables(double *hstv);
+  int setTrialHistoryVariables(const double *hstv);
+  int getCommittedHistoryVariables(double *hstv);
+  int setCommittedHistoryVariables(const double *hstv);
+  
   protected:
     
   private:
