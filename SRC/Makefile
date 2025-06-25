@@ -432,9 +432,7 @@ RECORDER_LIBS = $(FE)/recorder/Recorder.o \
 	$(FE)/recorder/ElementRecorderRMS.o \
 	$(FE)/recorder/NodeRecorderRMS.o \
 	$(FE)/recorder/MPCORecorder.o \
-	$(FE)/recorder/VTK_Recorder.o \
-	$(FE)/recorder/VTKHDF_Recorder.o \
-
+	$(FE)/recorder/VTK_Recorder.o
 
 DATABASE_LIBS = $(FE)/database/FileDatastore.o \
 	$(FE)/database/NEESData.o
@@ -1267,6 +1265,11 @@ SequentialSysOfEqn_LIBS =	$(FE)/system_of_eqn/linearSOE/LinearSOE.o \
 	$(SUPER_LU_OBJ) \
 	$(FE)/system_of_eqn/linearSOE/umfGEN/UmfpackGenLinSOE.o \
 	$(FE)/system_of_eqn/linearSOE/umfGEN/UmfpackGenLinSolver.o \
+	$(FE)/system_of_eqn/linearSOE/benny/BennySparseLinSOE.o \
+	$(FE)/system_of_eqn/linearSOE/benny/BennySparseLinSolver.o \
+	$(HOME)/benny-sparse/benny_sparse.o \
+	$(HOME)/benny-sparse/benny_symbolic.o \
+	$(HOME)/benny-sparse/benny_numeric.o \
 	$(FE)/system_of_eqn/eigenSOE/FullGenEigenSOE.o \
 	$(FE)/system_of_eqn/eigenSOE/FullGenEigenSolver.o
 
