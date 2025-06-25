@@ -3,6 +3,11 @@
 
 #include <LinearSOESolver.h>
 
+#include "/home/mhscott/benny-sparse/benny_symbolic.hpp"
+#include "/home/mhscott/benny-sparse/benny_numeric.hpp"
+
+#define SOLVER_TAGS_BennySparseLinSolver 1976
+
 class BennySparseLinSOE;
 
 class BennySparseLinSolver : public LinearSOESolver
@@ -24,6 +29,9 @@ class BennySparseLinSolver : public LinearSOESolver
 
   private:
     BennySparseLinSOE *theSOE;
+  benny_symbolic *Asym;
+  benny_numeric *Anum;
+  bool pivot;
 };
 
 #endif

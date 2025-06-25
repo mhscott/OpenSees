@@ -45,8 +45,8 @@ protected:
     
 private:
     benny_sparse *A;
-    double *b;
-    double *x;
+    Vector *b;
+    Vector *x;
 };
 
 #endif
