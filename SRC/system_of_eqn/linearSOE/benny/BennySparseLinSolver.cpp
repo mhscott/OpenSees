@@ -4,15 +4,41 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <Vector.h>
+#include <elementAPI.h>
 
 void* OPS_BennySparseLinSolver()
 {
-    BennySparseLinSolver *theSolver = new BennySparseLinSolver();
-    return new BennySparseLinSOE(*theSolver);  
+  bool defaultargs = true;
+  bool pivot = false;
+  double pivottol = 1.0;
+  int numdata = 1;
+  if (OPS_GetNumRemainingInputArgs() > 1) {
+    const char* type = OPS_GetString();
+    if (strcmp(type,"-pivot") == 0) {
+      if (OPS_GetDoubleInput(&numdata, &pivottol) < 0) {
+	opserr << "WARNING BennySparse failed to read pivottol\n";
+	return 0;
+      }
+      pivot = true;
+      defaultargs = false;
+    }
+    else {
+      opserr << "WARNING BennySparse -- unknown input option " << type << endln;
+    }
+  }
+
+  BennySparseLinSolver *theSolver = 0;
+  if (defaultargs)
+    theSolver = new BennySparseLinSolver();
+  else
+    theSolver = new BennySparseLinSolver(pivot, pivottol);
+  
+  return new BennySparseLinSOE(*theSolver);  
 }
 
-BennySparseLinSolver::BennySparseLinSolver():
-  LinearSOESolver(SOLVER_TAGS_BennySparseLinSolver), theSOE(0), Asym(0), Anum(0), pivot(false)
+BennySparseLinSolver::BennySparseLinSolver(bool piv, double pivtol):
+  LinearSOESolver(SOLVER_TAGS_BennySparseLinSolver), theSOE(0), Asym(0), Anum(0),
+  pivot(piv), pivottol(pivtol)
 {
 
 }
@@ -31,7 +57,7 @@ BennySparseLinSolver::solve()
 {
   // Check symbolic analysis
   if (Asym == 0) {
-    cerr << "BennySparseLinSolver::solve() -- symbolic analysis has not been performed yet" << endl;
+    opserr << "BennySparseLinSolver::solve() -- symbolic analysis has not been performed yet" << endln;
     return -1;
   }
 
@@ -43,7 +69,7 @@ BennySparseLinSolver::solve()
   else
     Anum = (theSOE->A)->benny_chol(Asym);
   if (Anum == 0) {
-    cerr << "BennySparseLinSolver::solve() -- numeric analysis failed" << endl;
+    opserr << "BennySparseLinSolver::solve() -- numeric analysis failed" << endln;
     return -1;
   }
 
@@ -52,11 +78,11 @@ BennySparseLinSolver::solve()
   Vector &bvec = *(theSOE->b);
   double *b = &(bvec(0));  
   if (!pivot && (theSOE->A)->benny_cholsol(Asym, Anum, b, x) < 0) {
-    cerr << "BennySparseLinSolver::solve() -- cholesky solve failed" << endln;
+    opserr << "BennySparseLinSolver::solve() -- cholesky solve failed" << endln;
     return -1;
   }
   if (pivot && (theSOE->A)->benny_lusol(Asym, Anum, b, x) < 0) {
-    cerr << "BennySparseLinSolver::solve() -- LU solve failed" << endln;
+    opserr << "BennySparseLinSolver::solve() -- LU solve failed" << endln;
     return -1;
   }  
   
@@ -83,7 +109,7 @@ BennySparseLinSolver::setSize()
   else
     Asym = (theSOE->A)->benny_schol(0);
   if (Asym == 0) {
-    cerr << "BennySparseLinSolver::setSize() -- symbolic analysis failed" << endl;
+    opserr << "BennySparseLinSolver::setSize() -- symbolic analysis failed" << endln;
     return -1;
   }
   
