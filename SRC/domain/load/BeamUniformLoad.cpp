@@ -20,53 +20,53 @@
                                                                         
 // $Revision: 1.4 $
 // $Date: 2007-10-17 22:11:35 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/load/Beam3dUniformLoad.cpp,v $
+// $Source: /usr/local/cvs/OpenSees/SRC/domain/load/BeamUniformLoad.cpp,v $
                                                                         
 
 // Written: fmk 
 //
-// Purpose: This file contains the class implementation of Beam3dUniformLoad.
+// Purpose: This file contains the class implementation of BeamUniformLoad.
 
-#include <Beam3dUniformLoad.h>
+#include <BeamUniformLoad.h>
 #include <Vector.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-Vector Beam3dUniformLoad::data(3);
+Vector BeamUniformLoad::data(3);
 
-Beam3dUniformLoad::Beam3dUniformLoad(int tag, double wY, double wZ, double wX,
+BeamUniformLoad::BeamUniformLoad(int tag, double wX, double wY, double wZ,
 				     int theElementTag)
-  :ElementalLoad(tag, LOAD_TAG_Beam3dUniformLoad, theElementTag),
-   wy(wY), wz(wZ), wx(wX)
+  :ElementalLoad(tag, LOAD_TAG_BeamUniformLoad, theElementTag),
+   wx(wX), wy(wY), wz(wZ)
 {
 
 }
 
-Beam3dUniformLoad::Beam3dUniformLoad()
-  :ElementalLoad(LOAD_TAG_Beam3dUniformLoad),
-   wy(0.0), wz(0.0), wx(0.0)
+BeamUniformLoad::BeamUniformLoad()
+  :ElementalLoad(LOAD_TAG_BeamUniformLoad),
+   wx(0.0), wy(0.0), wz(0.0)
 {
 
 }
 
-Beam3dUniformLoad::~Beam3dUniformLoad()
+BeamUniformLoad::~BeamUniformLoad()
 {
 
 }
 
 const Vector &
-Beam3dUniformLoad::getData(int &type, double loadFactor)
+BeamUniformLoad::getData(int &type, double loadFactor)
 {
-  type = LOAD_TAG_Beam3dUniformLoad;
-  data(0) = wy;
-  data(1) = wz;
-  data(2) = wx;
+  type = LOAD_TAG_BeamUniformLoad;
+  data(0) = wx;
+  data(1) = wy;
+  data(2) = wz;
   return data;
 }
 
 
 int 
-Beam3dUniformLoad::sendSelf(int commitTag, Channel &theChannel)
+BeamUniformLoad::sendSelf(int commitTag, Channel &theChannel)
 {
   int dbTag = this->getDbTag();
 
@@ -79,7 +79,7 @@ Beam3dUniformLoad::sendSelf(int commitTag, Channel &theChannel)
 
   int result = theChannel.sendVector(dbTag, commitTag, vectData);
   if (result < 0) {
-    opserr << "Beam3dUniformLoad::sendSelf - failed to send data\n";
+    opserr << "BeamUniformLoad::sendSelf - failed to send data\n";
     return result;
   }
 
@@ -87,7 +87,7 @@ Beam3dUniformLoad::sendSelf(int commitTag, Channel &theChannel)
 }
 
 int 
-Beam3dUniformLoad::recvSelf(int commitTag, Channel &theChannel,
+BeamUniformLoad::recvSelf(int commitTag, Channel &theChannel,
 			    FEM_ObjectBroker &theBroker)
 {
   int dbTag = this->getDbTag();
@@ -96,13 +96,13 @@ Beam3dUniformLoad::recvSelf(int commitTag, Channel &theChannel,
 
   int result = theChannel.recvVector(dbTag, commitTag, vectData);
   if (result < 0) {
-    opserr << "Beam3dUniformLoad::recvSelf - failed to recv data\n";
+    opserr << "BeamUniformLoad::recvSelf - failed to recv data\n";
     return result;
   }
 
-  wx = vectData(0);;
-  wy = vectData(1);;
-  wz = vectData(2);;
+  wx = vectData(0);
+  wy = vectData(1);
+  wz = vectData(2);
   eleTag = (int)vectData(3);
   this->setTag(vectData(4));
 
@@ -110,9 +110,9 @@ Beam3dUniformLoad::recvSelf(int commitTag, Channel &theChannel,
 }
 
 void 
-Beam3dUniformLoad::Print(OPS_Stream &s, int flag)
+BeamUniformLoad::Print(OPS_Stream &s, int flag)
 {
-  s << "Beam3dUniformLoad - Reference load: " << this->getTag() << endln;
+  s << "BeamUniformLoad - Reference load: " << this->getTag() << endln;
   s << "  Transverse (y): " << wy << endln;
   s << "  Transverse (z): " << wz << endln;
   s << "  Axial (x):      " << wx << endln;

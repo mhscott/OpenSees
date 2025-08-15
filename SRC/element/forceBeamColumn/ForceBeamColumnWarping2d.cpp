@@ -519,9 +519,9 @@ ForceBeamColumnWarping2d::computeReactions(double *p0)
     double loadFactor = eleLoadFactors[i];
     const Vector &data = eleLoads[i]->getData(type, loadFactor);
 
-    if (type == LOAD_TAG_Beam2dUniformLoad) {
-      double wa = data(1)*loadFactor;  // Axial
-      double wy = data(0)*loadFactor;  // Transverse
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wa = data(0)*loadFactor;  // Axial
+      double wy = data(1)*loadFactor;  // Transverse
       
       p0[0] -= wa*L;
       double V = 0.5*wy*L;
@@ -558,9 +558,9 @@ ForceBeamColumnWarping2d::computeReactionSensitivity(double *dp0dh, int gradNumb
     
     const Vector &data = eleLoads[i]->getData(type, 1.0);
 
-    if (type == LOAD_TAG_Beam2dUniformLoad) {
-      double wy = data(0)*1.0;  // Transverse
-      double wa = data(1)*1.0;  // Axial
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wy = data(1)*1.0;  // Transverse
+      double wa = data(0)*1.0;  // Axial
 
       const Vector &sens = eleLoads[i]->getSensitivityData(gradNumber);
       double dwydh = sens(0);
@@ -1223,9 +1223,9 @@ ForceBeamColumnWarping2d::computeSectionForces(Vector &sp, int isec)
     double loadFactor = eleLoadFactors[i];
     const Vector &data = eleLoads[i]->getData(type, loadFactor);
 
-    if (type == LOAD_TAG_Beam2dUniformLoad) {
-      double wa = data(1)*loadFactor;  // Axial
-      double wy = data(0)*loadFactor;  // Transverse
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wa = data(0)*loadFactor;  // Axial
+      double wy = data(1)*loadFactor;  // Transverse
       
       for (int ii = 0; ii < order; ii++) {
 	
@@ -1343,9 +1343,9 @@ ForceBeamColumnWarping2d::computeSectionForceSensitivity(Vector &dspdh, int isec
 
     const Vector &data = eleLoads[i]->getData(type, 1.0);
     
-    if (type == LOAD_TAG_Beam2dUniformLoad) {
-      double wy = data(0)*1.0;  // Transverse
-      double wa = data(1)*1.0;  // Axial
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wy = data(1)*1.0;  // Transverse
+      double wa = data(0)*1.0;  // Axial
 
       const Vector &sens = eleLoads[i]->getSensitivityData(gradNumber);
       double dwydh = sens(0);

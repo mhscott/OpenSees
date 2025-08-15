@@ -613,9 +613,8 @@
 #define PATTERN_TAG_DRMLoadPattern        5
 #define PATTERN_TAG_H5DRM                 6
 
-#define LOAD_TAG_Beam2dUniformLoad        3
+#define LOAD_TAG_BeamUniformLoad        3
 #define LOAD_TAG_Beam2dPointLoad          4
-#define LOAD_TAG_Beam3dUniformLoad        5
 #define LOAD_TAG_Beam3dPointLoad          6
 #define LOAD_TAG_BrickSelfWeight          7
 #define LOAD_TAG_Beam2dTempLoad           8

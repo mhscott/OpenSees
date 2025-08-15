@@ -1318,10 +1318,10 @@ int MixedBeamColumnAsym3d::addLoad(ElementalLoad *theLoad, double loadFactor) {
   double xi[maxNumSections];
   beamIntegr->getSectionLocations(numSections, L, xi);
 
-  if (type == LOAD_TAG_Beam3dUniformLoad) {
-    double wy = data(0)*loadFactor;  // Transverse
-    double wz = data(1)*loadFactor;  // Transverse
-    double wx = data(2)*loadFactor;  // Axial
+  if (type == LOAD_TAG_BeamUniformLoad) {
+    double wy = data(1)*loadFactor;  // Transverse
+    double wz = data(2)*loadFactor;  // Transverse
+    double wx = data(0)*loadFactor;  // Axial
 
     Matrix &s_p = *sp;
 

@@ -375,10 +375,10 @@ ElasticForceBeamColumn3d::computeReactions(double *p0)
         double loadFactor = eleLoadFactors[i];
         const Vector &data = eleLoads[i]->getData(type, loadFactor);
 
-        if (type == LOAD_TAG_Beam3dUniformLoad) {
-            double wy = data(0)*loadFactor;  // Transverse
-            double wz = data(1)*loadFactor;  // Transverse
-            double wa = data(2)*loadFactor;  // Axial
+        if (type == LOAD_TAG_BeamUniformLoad) {
+            double wy = data(1)*loadFactor;  // Transverse
+            double wz = data(2)*loadFactor;  // Transverse
+            double wa = data(0)*loadFactor;  // Axial
 
             p0[0] -= wa*L;
             double V = 0.5*wy*L;
@@ -590,10 +590,10 @@ ElasticForceBeamColumn3d::computeSectionForces(Vector &sp, int isec)
         double loadFactor = eleLoadFactors[i];
         const Vector &data = eleLoads[i]->getData(type, loadFactor);
 
-        if (type == LOAD_TAG_Beam3dUniformLoad) {
-            double wy = data(0)*loadFactor;  // Transverse
-            double wz = data(1)*loadFactor;  // Transverse
-            double wa = data(2)*loadFactor;  // Axial
+        if (type == LOAD_TAG_BeamUniformLoad) {
+            double wy = data(1)*loadFactor;  // Transverse
+            double wz = data(2)*loadFactor;  // Transverse
+            double wa = data(0)*loadFactor;  // Axial
 
             for (int ii = 0; ii < order; ii++) {
 

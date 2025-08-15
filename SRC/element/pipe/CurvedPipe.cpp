@@ -354,7 +354,7 @@ int CurvedPipe::addLoad(ElementalLoad *theLoad, double loadFactor) {
     int type;
     const Vector &data = theLoad->getData(type, loadFactor);
 
-    if (type == LOAD_TAG_Beam3dUniformLoad) {
+    if (type == LOAD_TAG_BeamUniformLoad) {
         // transform global member load to local
         Matrix T(3, 3);
         Vector global_w(3);
@@ -365,9 +365,9 @@ int CurvedPipe::addLoad(ElementalLoad *theLoad, double loadFactor) {
         }
 
         // wy, wz, wx
-        global_w(1) = data(0) * loadFactor;
-        global_w(2) = data(1) * loadFactor;
-        global_w(0) = data(2) * loadFactor;
+        global_w(1) = data(1) * loadFactor;
+        global_w(2) = data(2) * loadFactor;
+        global_w(0) = data(0) * loadFactor;
 
         Vector local_w(3);
         local_w.addMatrixVector(0.0, T, global_w, 1.0);

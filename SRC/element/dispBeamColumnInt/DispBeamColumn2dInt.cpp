@@ -1223,11 +1223,11 @@ DispBeamColumn2dInt::addLoad(ElementalLoad *theLoad, double loadFactor)
 
   
 
-  if (type == LOAD_TAG_Beam2dUniformLoad) {
+  if (type == LOAD_TAG_BeamUniformLoad) {
 
-    double wt = data(0)*loadFactor;  // Transverse (+ve upward)
+    double wt = data(1)*loadFactor;  // Transverse (+ve upward)
 
-    double wa = data(1)*loadFactor;  // Axial (+ve from node I to J)
+    double wa = data(0)*loadFactor;  // Axial (+ve from node I to J)
 
 
 

@@ -707,9 +707,9 @@ DispBeamColumn2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
   const Vector &data = theLoad->getData(type, loadFactor);
   double L = crdTransf->getInitialLength();
   
-  if (type == LOAD_TAG_Beam2dUniformLoad) {
-    double wt = data(0)*loadFactor;  // Transverse (+ve upward)
-    double wa = data(1)*loadFactor;  // Axial (+ve from node I to J)
+  if (type == LOAD_TAG_BeamUniformLoad) {
+    double wt = data(1)*loadFactor;  // Transverse (+ve upward)
+    double wa = data(0)*loadFactor;  // Axial (+ve from node I to J)
 
     double V = 0.5*wt*L;
     double M = V*L/6.0; // wt*L*L/12

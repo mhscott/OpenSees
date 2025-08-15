@@ -11,10 +11,9 @@ target_sources(OPS_Domain
     #ElementalLoad.cpp
     ElementalLoadIter.cpp
     NodalLoadIter.cpp
-    Beam2dUniformLoad.cpp
+    BeamUniformLoad.cpp
     Beam2dPointLoad.cpp
     Beam2dPartialUniformLoad.cpp
-    Beam3dUniformLoad.cpp
     Beam3dPointLoad.cpp
     Beam3dPartialUniformLoad.cpp
     BrickSelfWeight.cpp
@@ -26,10 +25,9 @@ target_sources(OPS_Domain
     #ElementalLoad.h
     ElementalLoadIter.h
     NodalLoadIter.h
-    Beam2dUniformLoad.h
+    BeamUniformLoad.h
     Beam2dPointLoad.h
     Beam2dPartialUniformLoad.h
-    Beam3dUniformLoad.h
     Beam3dPointLoad.h
     Beam3dPartialUniformLoad.h
     BrickSelfWeight.h

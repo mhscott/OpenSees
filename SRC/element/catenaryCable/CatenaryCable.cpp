@@ -644,7 +644,7 @@ CatenaryCable::addLoad(ElementalLoad *theLoad, double loadFactor)
 {  
   int type;
   const Vector &data = theLoad->getData(type, loadFactor);
-  if (type == LOAD_TAG_Beam3dUniformLoad) 
+  if (type == LOAD_TAG_BeamUniformLoad) 
   {
       // opserr <<"CatenaryCable::addLoad - Uniform Load - loadFactor = " << loadFactor << endln; 
       w1 = loadFactor*data(0);

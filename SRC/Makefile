@@ -432,8 +432,7 @@ RECORDER_LIBS = $(FE)/recorder/Recorder.o \
 	$(FE)/recorder/ElementRecorderRMS.o \
 	$(FE)/recorder/NodeRecorderRMS.o \
 	$(FE)/recorder/MPCORecorder.o \
-	$(FE)/recorder/VTK_Recorder.o \
-	$(FE)/recorder/VTKHDF_Recorder.o \
+	$(FE)/recorder/VTK_Recorder.o 
 
 
 DATABASE_LIBS = $(FE)/database/FileDatastore.o \
@@ -1322,7 +1321,7 @@ DOMAIN_LIBS =  $(FE)/domain/component/DomainComponent.o \
 	$(FE)/domain/load/NodalLoadIter.o \
 	$(FE)/domain/load/ElementalLoadIter.o \
 	$(FE)/domain/load/Load.o \
-	$(FE)/domain/load/Beam2dUniformLoad.o \
+	$(FE)/domain/load/BeamUniformLoad.o \
 	$(FE)/domain/load/Beam2dPartialUniformLoad.o \
 	$(FE)/domain/load/Beam2dPointLoad.o \
 	$(FE)/domain/load/Beam2dTempLoad.o \
@@ -1331,7 +1330,6 @@ DOMAIN_LIBS =  $(FE)/domain/component/DomainComponent.o \
 	$(FE)/domain/load/ThermalActionWrapper.o \
 	$(FE)/domain/load/Beam3dThermalAction.o \
 	$(FE)/domain/load/ShellThermalAction.o \
-	$(FE)/domain/load/Beam3dUniformLoad.o \
 	$(FE)/domain/load/Beam3dPartialUniformLoad.o \
 	$(FE)/domain/load/Beam3dPointLoad.o \
 	$(FE)/domain/load/BrickSelfWeight.o \

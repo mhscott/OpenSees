@@ -553,7 +553,7 @@ int Pipe::addLoad(ElementalLoad *theLoad, double loadFactor) {
     const Vector &data = theLoad->getData(type, loadFactor);
     double L = theCoordTransf->getInitialLength();
 
-    if (type == LOAD_TAG_Beam3dUniformLoad) {
+    if (type == LOAD_TAG_BeamUniformLoad) {
         // transformation matrix
         Matrix T(3, 3);
         Vector xAxis(3), yAxis(3), zAxis(3);
@@ -571,9 +571,9 @@ int Pipe::addLoad(ElementalLoad *theLoad, double loadFactor) {
         }
 
         // global wy, wz, wx
-        global_w(1) = data(0) * loadFactor;
-        global_w(2) = data(1) * loadFactor;
-        global_w(0) = data(2) * loadFactor;
+        global_w(1) = data(1) * loadFactor;
+        global_w(2) = data(2) * loadFactor;
+        global_w(0) = data(0) * loadFactor;
 
         // local
         Vector local_w(3);

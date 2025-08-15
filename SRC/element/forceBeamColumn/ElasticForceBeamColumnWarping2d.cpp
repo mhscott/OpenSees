@@ -424,9 +424,9 @@ ElasticForceBeamColumnWarping2d::computeReactions(double *p0)
     double loadFactor = eleLoadFactors[i];
     const Vector &data = eleLoads[i]->getData(type, loadFactor);
     
-    if (type == LOAD_TAG_Beam2dUniformLoad) {
-      double wa = data(1)*loadFactor;  // Axial
-      double wy = data(0)*loadFactor;  // Transverse
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wa = data(0)*loadFactor;  // Axial
+      double wy = data(1)*loadFactor;  // Transverse
       
       p0[0] -= wa*L;
       double V = 0.5*wy*L;
@@ -649,9 +649,9 @@ ElasticForceBeamColumnWarping2d::computeSectionForces(Vector &sp, int isec)
     double loadFactor = eleLoadFactors[i];
     const Vector &data = eleLoads[i]->getData(type, loadFactor);
     
-    if (type == LOAD_TAG_Beam2dUniformLoad) {
-      double wa = data(1)*loadFactor;  // Axial
-      double wy = data(0)*loadFactor;  // Transverse
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wa = data(0)*loadFactor;  // Axial
+      double wy = data(1)*loadFactor;  // Transverse
       
       for (int ii = 0; ii < order; ii++) {
 	

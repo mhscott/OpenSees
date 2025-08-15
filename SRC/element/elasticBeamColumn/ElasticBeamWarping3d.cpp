@@ -521,10 +521,10 @@ ElasticBeamWarping3d::addLoad(ElementalLoad *theLoad, double loadFactor)
   const Vector &data = theLoad->getData(type, loadFactor);
   double L = theCoordTransf->getInitialLength();
 
-  if (type == LOAD_TAG_Beam3dUniformLoad) {
-    double wy = data(0)*loadFactor;  // Transverse
-    double wz = data(1)*loadFactor;  // Transverse
-    double wx = data(2)*loadFactor;  // Axial (+ve from node I to J)
+  if (type == LOAD_TAG_BeamUniformLoad) {
+    double wy = data(1)*loadFactor;  // Transverse
+    double wz = data(2)*loadFactor;  // Transverse
+    double wx = data(0)*loadFactor;  // Axial (+ve from node I to J)
 
     double Vy = 0.5*wy*L;
     double Mz = Vy*L/6.0; // wy*L*L/12

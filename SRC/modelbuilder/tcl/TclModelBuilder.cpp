@@ -61,7 +61,7 @@
 
 #include <NodalLoad.h>
 #include <Beam2dPointLoad.h>
-#include <Beam2dUniformLoad.h>
+#include <BeamUniformLoad.h>
 #include <Beam2dPartialUniformLoad.h>
 #include <Beam2dTempLoad.h>
 #include <Beam2dThermalAction.h> //L.Jiang [SIF]
@@ -71,7 +71,6 @@
 #include <NodalThermalAction.h>   //L.Jiang [SIF]
 
 #include <Beam3dPointLoad.h>
-#include <Beam3dUniformLoad.h>
 #include <Beam3dPartialUniformLoad.h>
 #include <BrickSelfWeight.h>
 #include <SurfaceLoader.h>
@@ -2048,7 +2047,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 	if (aL > 0.0 || bL < 1.0 || wta != wtb || waa != wab)
 	  theLoad = new Beam2dPartialUniformLoad(eleLoadTag, wta, wtb, waa, wab, aL, bL, theEleTags(i));
 	else 
-	  theLoad = new Beam2dUniformLoad(eleLoadTag, wta, waa, theEleTags(i));    
+	  theLoad = new BeamUniformLoad(eleLoadTag, waa, wta, 0, theEleTags(i));    
 
 	if (theLoad == 0) {
 	  opserr << "WARNING eleLoad - out of memory creating load of type " << argv[count] ;
@@ -2130,7 +2129,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
         if (aL > 0.0 || bL < 1.0)
           theLoad = new Beam3dPartialUniformLoad(eleLoadTag, wy, wz, wx, aL, bL, wyb, wzb, wxb, theEleTags(i));
         else 
-          theLoad = new Beam3dUniformLoad(eleLoadTag, wy, wz, wx, theEleTags(i));            
+          theLoad = new BeamUniformLoad(eleLoadTag, wx, wy, wz, theEleTags(i));            
 
         if (theLoad == 0) {
           opserr << "WARNING eleLoad - out of memory creating load of type " << argv[count] ;

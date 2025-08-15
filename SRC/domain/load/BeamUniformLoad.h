@@ -31,13 +31,13 @@
 
 #include <ElementalLoad.h>
 
-class Beam3dUniformLoad : public ElementalLoad
+class BeamUniformLoad : public ElementalLoad
 {
   public:
-    Beam3dUniformLoad(int tag, double wy, double wz, double wx, int eleTag);
+    BeamUniformLoad(int tag, double wx, double wy, double wz, int eleTag);
 		      
-    Beam3dUniformLoad();    
-    ~Beam3dUniformLoad();
+    BeamUniformLoad();    
+    ~BeamUniformLoad();
 
     const Vector &getData(int &type, double loadFactor);
 
@@ -48,9 +48,9 @@ class Beam3dUniformLoad : public ElementalLoad
   protected:
 	
   private:
-    double wy;  // Transverse
-    double wz;  // Transverse
     double wx;  // Axial
+    double wy;  // Along y
+    double wz;  // Along z
     static Vector data;
 };
 

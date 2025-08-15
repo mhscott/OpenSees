@@ -1032,9 +1032,9 @@ int MixedBeamColumn2d::addLoad(ElementalLoad *theLoad, double loadFactor) {
   double xi[MAX_NUM_SECTIONS];
   beamIntegr->getSectionLocations(numSections, L, xi);
 
-  if (type == LOAD_TAG_Beam2dUniformLoad) {
-    double wy = data(0)*loadFactor;  // Transverse
-    double wx = data(1)*loadFactor;  // Axial
+  if (type == LOAD_TAG_BeamUniformLoad) {
+    double wy = data(1)*loadFactor;  // Transverse
+    double wx = data(0)*loadFactor;  // Axial
 
     Matrix &s_p = *sp;
 

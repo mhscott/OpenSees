@@ -585,9 +585,8 @@
 
 // elemental load header files
 #include "ElementalLoad.h"
-#include "Beam2dUniformLoad.h"
+#include "BeamUniformLoad.h"
 #include "Beam2dPointLoad.h"
-#include "Beam3dUniformLoad.h"
 #include "Beam3dPointLoad.h"
 #include "BrickSelfWeight.h"
 #include "SelfWeight.h"
@@ -1351,14 +1350,11 @@ FEM_ObjectBrokerAllClasses::getNewElementalLoad(int classTag)
 {
   switch(classTag) {
     
-    case LOAD_TAG_Beam2dUniformLoad:
-      return new Beam2dUniformLoad();
+    case LOAD_TAG_BeamUniformLoad:
+      return new BeamUniformLoad();
     
     case LOAD_TAG_Beam2dPointLoad:
       return new Beam2dPointLoad();
-    
-    case LOAD_TAG_Beam3dUniformLoad:
-      return new Beam3dUniformLoad();
     
     case LOAD_TAG_Beam3dPointLoad:
       return new Beam3dPointLoad();

@@ -3,10 +3,9 @@ include ../../../Makefile.def
 OBJS       = Load.o \
 	ElementalLoadIter.o \
 	NodalLoadIter.o \
-	Beam2dUniformLoad.o \
 	Beam2dPointLoad.o \
 	Beam2dPartialUniformLoad.o \
-	Beam3dUniformLoad.o \
+	BeamUniformLoad.o \
 	Beam3dPointLoad.o \
 	Beam3dPartialUniformLoad.o \
 	BrickSelfWeight.o \

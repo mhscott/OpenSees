@@ -804,10 +804,10 @@ ForceBeamColumn3dThermal::computeReactions(double *p0)
     double loadFactor = eleLoadFactors[i];
     const Vector &data = eleLoads[i]->getData(type, loadFactor);
 
-    if (type == LOAD_TAG_Beam3dUniformLoad) {
-      double wy = data(0)*loadFactor;  // Transverse
-      double wz = data(1)*loadFactor;  // Transverse
-      double wa = data(2)*loadFactor;  // Axial
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wy = data(1)*loadFactor;  // Transverse
+      double wz = data(2)*loadFactor;  // Transverse
+      double wa = data(0)*loadFactor;  // Axial
 
       p0[0] -= wa*L;
       double V = 0.5*wy*L;
@@ -1060,10 +1060,10 @@ ForceBeamColumn3dThermal::computeReactionSensitivity(double *dp0dh, int gradNumb
     
     const Vector &data = eleLoads[i]->getData(type, 1.0);
 
-    if (type == LOAD_TAG_Beam3dUniformLoad) {
-      double wy = data(0)*1.0;  // Transverse
-      double wz = data(1)*1.0;  // Transverse
-      double wa = data(2)*1.0;  // Axial
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wy = data(1)*1.0;  // Transverse
+      double wz = data(2)*1.0;  // Transverse
+      double wa = data(0)*1.0;  // Axial
 
       const Vector &sens = eleLoads[i]->getSensitivityData(gradNumber);
       double dwydh = sens(0);
@@ -1808,10 +1808,10 @@ ForceBeamColumn3dThermal::computeSectionForces(Vector &sp, int isec)
     double loadFactor = eleLoadFactors[i];
     const Vector &data = eleLoads[i]->getData(type, loadFactor);
 
-    if (type == LOAD_TAG_Beam3dUniformLoad) {
-      double wy = data(0)*loadFactor;  // Transverse
-      double wz = data(1)*loadFactor;  // Transverse
-      double wa = data(2)*loadFactor;  // Axial
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wy = data(1)*loadFactor;  // Transverse
+      double wz = data(2)*loadFactor;  // Transverse
+      double wa = data(0)*loadFactor;  // Axial
 
       for (int ii = 0; ii < order; ii++) {
 	
@@ -2041,10 +2041,10 @@ ForceBeamColumn3dThermal::computeSectionForceSensitivity(Vector &dspdh, int isec
 
     const Vector &data = eleLoads[i]->getData(type, 1.0);
     
-    if (type == LOAD_TAG_Beam3dUniformLoad) {
-      double wy = data(0)*1.0;  // Transverse
-      double wz = data(1)*1.0;  // Transverse
-      double wa = data(2)*1.0;  // Axial
+    if (type == LOAD_TAG_BeamUniformLoad) {
+      double wy = data(1)*1.0;  // Transverse
+      double wz = data(2)*1.0;  // Transverse
+      double wa = data(0)*1.0;  // Axial
 
       const Vector &sens = eleLoads[i]->getSensitivityData(gradNumber);
       double dwydh = sens(0);

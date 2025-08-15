@@ -42,8 +42,7 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include <Domain.h>
 #include <NodalLoad.h>
 #include <Beam2dPartialUniformLoad.h>
-#include <Beam2dUniformLoad.h>
-#include <Beam3dUniformLoad.h>
+#include <BeamUniformLoad.h>
 #include <Beam3dPartialUniformLoad.h>
 #include <Beam2dPointLoad.h>
 #include <Beam3dPointLoad.h>
@@ -302,7 +301,7 @@ int OPS_ElementalLoad()
 		if (data[2] > 0.0 || data[3] < 1.0 || numdata > 4)
 		    theLoad = new Beam2dPartialUniformLoad(eleLoadTag, data[0],data[4], data[1], data[5], data[2], data[3], theEleTags(i));
 		else
-		    theLoad = new Beam2dUniformLoad(eleLoadTag, data[0], data[1], theEleTags(i));
+		  theLoad = new BeamUniformLoad(eleLoadTag, data[1], data[0], 0.0, theEleTags(i));
 
 		if (theLoad == 0) {
 		    opserr << "WARNING eleLoad - out of memory creating load of type " << type;
@@ -343,7 +342,7 @@ int OPS_ElementalLoad()
 			if (numdata > 3)
 				theLoad = new Beam3dPartialUniformLoad(eleLoadTag, data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7], theEleTags(i));
 			else
-			    theLoad = new Beam3dUniformLoad(eleLoadTag, data[0], data[1], data[2], theEleTags(i));
+			    theLoad = new BeamUniformLoad(eleLoadTag, data[2], data[0], data[1], theEleTags(i));
 			if (theLoad == 0) {
 				opserr << "WARNING eleLoad - out of memory creating load of type " << type;
 				return -1;
