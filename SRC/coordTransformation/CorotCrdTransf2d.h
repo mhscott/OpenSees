@@ -42,7 +42,7 @@
 class CorotCrdTransf2d: public CrdTransf
 {
 public:
-    CorotCrdTransf2d(int tag, const Vector &rigJntOffsetI, const Vector &rigJntOffsetJ);
+  CorotCrdTransf2d(int tag, const Vector &rigJntOffsetI, const Vector &rigJntOffsetJ, bool follow = false);
     
     CorotCrdTransf2d();
     ~CorotCrdTransf2d();
@@ -133,5 +133,6 @@ private:
     double *nodeIInitialDisp, *nodeJInitialDisp;
     bool initialDispChecked;
     bool nodeOffsets;
+  bool followMemberLoads;
 };
 #endif

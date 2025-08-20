@@ -79,28 +79,51 @@ void* OPS_CorotCrdTransf2d()
     // get option
     Vector jntOffsetI(2), jntOffsetJ(2);
     double *iptr=&jntOffsetI(0), *jptr=&jntOffsetJ(0);
-    while(OPS_GetNumRemainingInputArgs() > 4) {
+    int follow = 0;
+    while(OPS_GetNumRemainingInputArgs() > 0) {
 	std::string type = OPS_GetString();
 	if(type == "-jntOffset") {
-	    numData = 2;
-	    if(OPS_GetDoubleInput(&numData,iptr) < 0) return 0;
-	    if(OPS_GetDoubleInput(&numData,jptr) < 0) return 0;
+	  if (OPS_GetNumRemainingInputArgs() < 4) {
+	    opserr << "Insufficient rigid joint offset arguments for CorotCrdTransf2d" << endln;
+	    return 0;
+	  }
+	  numData = 2;
+	  if (OPS_GetDoubleInput(&numData,iptr) < 0) {
+	    opserr << "Error reading rigid joint offsets at I" << endln;
+	    return 0;
+	  }
+	  if (OPS_GetDoubleInput(&numData,jptr) < 0) {
+	    opserr << "Error reading rigid joint offsets at J" << endln;
+	    return 0;
+	  }
+	}
+	if (type == "-followMemberLoads" || type == "-follow") {
+	  if (OPS_GetNumRemainingInputArgs() < 1) {
+	    opserr << "Insufficient follower load arguments for CorotCrdTransf2d" << endln;
+	    return 0;
+	  }
+	  numData = 1;
+	  if (OPS_GetIntInput(&numData,&follow) < 0) {
+	    opserr << "Error reading follower member loads flag" << endln;
+	    return 0;
+	  }
 	}
     }
 
-    return new CorotCrdTransf2d(tag,jntOffsetI,jntOffsetJ);
+    return new CorotCrdTransf2d(tag,jntOffsetI,jntOffsetJ, follow);
 }
 
 
 // constructor:
 CorotCrdTransf2d::CorotCrdTransf2d(int tag, 
                                    const Vector &rigJntOffsetI,
-                                   const Vector &rigJntOffsetJ):
+                                   const Vector &rigJntOffsetJ,
+				   bool follow):
 CrdTransf(tag, CRDTR_TAG_CorotCrdTransf2d),
 nodeIOffset(2), nodeJOffset(2), cosTheta(0), sinTheta(0),
 cosAlpha(0), sinAlpha(0),
 nodeIPtr(0), nodeJPtr(0), L(0), Ln(0), ub(3), ubcommit(3), ubpr(3),
-nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
+nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false), followMemberLoads(follow)
 {
     // check rigid joint offset for node I
     if (rigJntOffsetI.Size() != 2 )
@@ -137,7 +160,7 @@ CrdTransf(0, CRDTR_TAG_CorotCrdTransf2d),
 nodeIOffset(2), nodeJOffset(2), cosTheta(0), sinTheta(0),
 cosAlpha(0), sinAlpha(0),
 nodeIPtr(0), nodeJPtr(0), L(0), Ln(0), ub(3), ubcommit(3), ubpr(3),
-nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
+nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false), followMemberLoads(false)
 {
     
 }
@@ -552,17 +575,19 @@ CorotCrdTransf2d::getGlobalResistingForce(const Vector &pb, const Vector &p0)
     pl.addMatrixTransposeVector(0.0, Tbl, pb, 1.0);    // pl = Tbl ^ pb;
     
     // add end forces due to element p0 loads
-    // This assumes member loads are in local system
-    pl(0) += p0(0);
-    pl(1) += p0(1);
-    pl(4) += p0(2);
-
-    /*     // This assumes member loads are in basic system
-    pl(0) += p0(0)*cosAlpha - p0(1)*sinAlpha;
-    pl(1) += p0(0)*sinAlpha + p0(1)*cosAlpha;
-    pl(3) -= p0(2)*sinAlpha;
-    pl(4) += p0(2)*cosAlpha;
-    */
+    if (!followMemberLoads) {
+      // This assumes member loads are in local system
+      pl(0) += p0(0);
+      pl(1) += p0(1);
+      pl(4) += p0(2);
+    }
+    else {
+      // This assumes member loads are in basic system
+      pl(0) += p0(0)*cosAlpha - p0(1)*sinAlpha;
+      pl(1) += p0(0)*sinAlpha + p0(1)*cosAlpha;
+      pl(3) -= p0(2)*sinAlpha;
+      pl(4) += p0(2)*cosAlpha;
+    }
 
     // transform resisting forces  from local to global coordinates
     //this->compTransfMatrixLocalGlobal(Tlg);     // OPTIMIZE LATER
@@ -998,7 +1023,7 @@ CrdTransf *
 CorotCrdTransf2d::getCopy2d(void)
 {
     // create a new instance of CorotCrdTransf2d 
-    CorotCrdTransf2d *theCopy = new CorotCrdTransf2d (this->getTag(), nodeIOffset, nodeJOffset);
+  CorotCrdTransf2d *theCopy = new CorotCrdTransf2d (this->getTag(), nodeIOffset, nodeJOffset, followMemberLoads);
     
     if (!theCopy)
     {
@@ -1024,8 +1049,9 @@ CorotCrdTransf2d::getCopy2d(void)
 int 
 CorotCrdTransf2d::sendSelf(int cTag, Channel &theChannel)
 {
-    static Vector data(14);
+    static Vector data(15);
     data(13) = this->getTag();
+    data(14) = followMemberLoads ? 1.0 : 0.0;
     data(0) = ubcommit(0);
     data(1) = ubcommit(1);
     data(2) = ubcommit(2);
@@ -1065,13 +1091,14 @@ CorotCrdTransf2d::sendSelf(int cTag, Channel &theChannel)
 int 
 CorotCrdTransf2d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-    static Vector data(14);
+    static Vector data(15);
     if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
         opserr << " CorotCrdTransf2d::recvSelf() - data could not be received\n" ;
         return -1;
     }
     
     this->setTag((int)data(13));
+    followMemberLoads = (data(14) > 0.0) ? true : false;
     ubcommit(0) = data(0);
     ubcommit(1) = data(1);
     ubcommit(2) = data(2);
