@@ -92,6 +92,9 @@ class Bidirectional : public SectionForceDeformation
 	double eP_n[2];
 	double eP_n1[2];
 
+        double q_n[2];
+        double q_n1[2];
+
 	double alpha_n;
 	double alpha_n1;
 	
