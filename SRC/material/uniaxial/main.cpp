@@ -26,7 +26,11 @@
 #include "Vector.h"
 #include "ID.h"
 #include "Matrix.h"
+#include <cmath>
 
+#include <Domain.h>
+#include <Node.h>
+#include <Truss.h>
 
 #include <HardeningMaterial.h>
 #include <HardeningMaterial2.h>
@@ -52,6 +56,82 @@ OPS_Stream *opserrPtr = &sserr;
 using namespace std;
 
 int main()
+{
+  Domain *theDomain = new Domain();
+
+  Node *node1 = new Node(1, 1, 0.0);
+  Node *node2 = new Node(2, 1, 1.0);
+  theDomain->addNode(node1);
+  theDomain->addNode(node2);  
+  
+  const double Fy0 = 60.0;
+  const double E0 = 29000.0;
+  const double Hk0 = 500.0;
+  const double Hi0 = 0.0;
+
+  UniaxialMaterial *theMaterial = new HardeningMaterial2(0, E0, Fy0, Hi0, Hk0);
+
+  double A = 1.0;
+  
+  Truss *truss = new Truss(1, 1, 1, 2, *theMaterial, A);  
+  theDomain->addElement(truss);
+  
+  double E = E0;
+  double Fy = Fy0;
+  double Hk = Hk0;
+  double Hi = Hi0;
+  
+  double time = 0.0;
+  double tfinish = 10.0;
+  int Nsteps = 2;
+  double dt = tfinish / Nsteps;
+
+  double P = 0.0;
+  double Pmax = 1.05*Fy0*A;
+  double dP = Pmax / Nsteps;
+
+  Vector Pres(2);
+  Matrix K(2,2);
+  double U = 0.0;
+  int maxIter = 10;
+  
+  // Time loop
+  for (int i = 1; i <= Nsteps; i++) {
+
+    theDomain->update();
+
+    P = i*dP; // External load
+    Pres = truss->getResistingForce();
+    double R = P-Pres(1);
+
+    int iter = 0;
+    // Newton loop
+    while (iter < maxIter && fabs(R) > 1e-8) {
+      K = truss->getTangentStiff();
+      double dU = R / K(1,1);
+      U += dU;
+      node2->setTrialDisp(U, 0);
+      theDomain->update();
+      Pres = truss->getResistingForce();
+      R = P-Pres(1);
+      opserr << U << ' ' << R << endln;
+      iter++;
+    }
+    opserr << "Finish step " << i << " in " << iter << " iterations" << endln;
+    if (iter < maxIter)
+      theDomain->commit();
+  }
+
+  opserr << *theDomain;
+
+  delete theMaterial;
+  delete theDomain;
+
+  return 0;
+}
+
+  
+int main2()
 {
   const double Fy0 = 60.0;
   //const double E0 = 29000.0;
