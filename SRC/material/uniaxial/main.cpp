@@ -32,6 +32,7 @@
 #include <Node.h>
 #include <Truss.h>
 
+#include <ElasticMaterial.h>
 #include <HardeningMaterial.h>
 #include <HardeningMaterial2.h>
 #include <Concrete02.h>
@@ -69,7 +70,8 @@ int main()
   const double Hk0 = 500.0;
   const double Hi0 = 0.0;
 
-  UniaxialMaterial *theMaterial = new HardeningMaterial2(0, E0, Fy0, Hi0, Hk0);
+  UniaxialMaterial *theMaterial = new HardeningMaterial(0, E0, Fy0, Hi0, Hk0);
+  //UniaxialMaterial *theMaterial = new ElasticMaterial(0, E0);
 
   double A = 1.0;
   
@@ -80,6 +82,10 @@ int main()
   double Fy = Fy0;
   double Hk = Hk0;
   double Hi = Hi0;
+
+  const char *argv[2] = {"material", "E"};
+  Parameter *param = new Parameter(1, truss, argv, 2);
+  theDomain->addParameter(param);
   
   double time = 0.0;
   double tfinish = 10.0;
@@ -87,9 +93,12 @@ int main()
   double dt = tfinish / Nsteps;
 
   double P = 0.0;
-  double Pmax = 1.05*Fy0*A;
+  double Pmax = 1.0*Fy0*A;
   double dP = Pmax / Nsteps;
 
+  double Py = Fy0*A;
+  double L = 1.0;
+  
   Vector Pres(2);
   Matrix K(2,2);
   double U = 0.0;
@@ -118,11 +127,21 @@ int main()
       iter++;
     }
     opserr << "Finish step " << i << " in " << iter << " iterations" << endln;
+
+    truss->activateParameter(1);
+    opserr << "P = " << Pres;
+    const Vector &dPrdh = truss->getResistingForceSensitivity(0);
+    opserr << "dPr/dh = " << dPrdh;
+    opserr << "dU/dh = " << -dPrdh(1) / K(1,1) << endln;
+    opserr << -Py*L/(E*E*A) << endln; 
+    truss->commitSensitivity(0,1);
+
     if (iter < maxIter)
       theDomain->commit();
+
   }
 
-  opserr << *theDomain;
+  //opserr << *theDomain;
 
   delete theMaterial;
   delete theDomain;
