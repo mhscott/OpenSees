@@ -42,7 +42,7 @@ class NodalLoad : public Load
   public:
     NodalLoad(int classTag);
     NodalLoad(int tag, int node, int classTag);
-    NodalLoad(int tag, int node, const Vector &load, bool isLoadConstant = false);
+  NodalLoad(int tag, int node, const Vector &load, bool isLoadConstant = false, bool isFollower = false);
     ~NodalLoad();
 
     virtual void setDomain(Domain *newDomain);
@@ -75,6 +75,7 @@ class NodalLoad : public Load
     Node *myNodePtr;    // pointer to Node object on which load acts
     Vector *load;       // the reference load - pointer to new copy or 0
     bool  konstant;     // true if load is load factor independent
+  bool follower; // true if load direction follows nodal rotations
     // AddingSensitivity:BEGIN /////////////////////////////////////
     int parameterID;
     static Vector gradientVector;

@@ -37,6 +37,7 @@
 #include <Parameter.h>
 #include <string>
 #include <elementAPI.h>
+#include <cmath>
 
 // AddingSensitivity:BEGIN /////////////////////////////////////
 Vector NodalLoad::gradientVector(1);
@@ -44,7 +45,7 @@ Vector NodalLoad::gradientVector(1);
 
 NodalLoad::NodalLoad(int theClasTag)
 :Load(0,theClasTag), 
- myNode(0), myNodePtr(0), load(0), konstant(false)
+ myNode(0), myNodePtr(0), load(0), konstant(false), follower(false)
 {
     // constructor for a FEM_ObjectBroker
   // AddingSensitivity:BEGIN /////////////////////////////////////
@@ -54,16 +55,16 @@ NodalLoad::NodalLoad(int theClasTag)
 
 NodalLoad::NodalLoad(int tag, int node, int theClassTag)
 :Load(tag,theClassTag), 
- myNode(node), myNodePtr(0), load(0), konstant(false)
+ myNode(node), myNodePtr(0), load(0), konstant(false), follower(false)
 {
   // AddingSensitivity:BEGIN /////////////////////////////////////
   parameterID = 0;
   // AddingSensitivity:END ///////////////////////////////////////
 }
 
-NodalLoad::NodalLoad(int tag, int node, const Vector &theLoad, bool isLoadConstant)
+NodalLoad::NodalLoad(int tag, int node, const Vector &theLoad, bool isLoadConstant, bool isFollower)
 :Load(tag, LOAD_TAG_NodalLoad), 
- myNode(node), myNodePtr(0), load(0), konstant(isLoadConstant)
+ myNode(node), myNodePtr(0), load(0), konstant(isLoadConstant), follower(isFollower)
 {
     load = new Vector(theLoad);    
 
@@ -132,11 +133,28 @@ NodalLoad::applyLoad(double loadFactor)
       }
     }
 
+    Vector followerLoad(*load);
+    if (follower) {
+      const Vector &u = myNodePtr->getTrialDisp();
+      if ((myNodePtr->getCrds()).Size() == 2 && u.Size() == 3) {
+	double cosa = cos(u(2)); double sina = sin(u(2));
+	followerLoad(0) = (*load)(0)*cosa - (*load)(1)*sina;
+	followerLoad(1) = (*load)(0)*sina + (*load)(1)*cosa;
+      } else if ((myNodePtr->getCrds()).Size() == 3 && u.Size() == 6) {
+	double cosa = cos(u(5)); double sina = sin(u(5));
+	double cosb = cos(u(4)); double sinb = sin(u(4));
+	double cosc = cos(u(3)); double sinc = sin(u(3));
+	followerLoad(0) = (*load)(0)*cosa*cosb + (*load)(1)*(cosa*sinb*sinc-sina*cosc) + (*load)(2)*(cosa*sinb*cosc+sina*sinc);
+	followerLoad(1) = (*load)(0)*sina*cosb + (*load)(1)*(sina*sinb*sinc+cosa*cosc) + (*load)(2)*(sina*sinb*cosc-cosa*sinc);
+	followerLoad(2) = (*load)(0)*(-sinb)   + (*load)(1)*(cosb*sinc)                + (*load)(2)*(cosb*cosc);
+      }
+    }
+
     // add the load times the loadfactor to nodal unbalanced load
     if (konstant == false)
-	myNodePtr->addUnbalancedLoad(*load,loadFactor);
+	myNodePtr->addUnbalancedLoad(followerLoad,loadFactor);
     else
-	myNodePtr->addUnbalancedLoad(*load,1.0);	
+	myNodePtr->addUnbalancedLoad(followerLoad,1.0);	
     
     //    opserr << "loadFactor: " << loadFactor << *myNodePtr;
 }
@@ -173,7 +191,7 @@ int
 NodalLoad::sendSelf(int cTag, Channel &theChannel)
 {
     int dataTag = this->getDbTag();
-    ID data(5);
+    ID data(6);
     data(0) = this->getTag();    
     data(1) = myNode;
     if (load != 0)
@@ -182,6 +200,7 @@ NodalLoad::sendSelf(int cTag, Channel &theChannel)
 	data(2) = 0;
     data(3) = konstant;
     data(4) = this->getLoadPatternTag();
+    data(5) = follower;
     
     int result = theChannel.sendID(dataTag, cTag, data);
     if (result < 0) {
@@ -216,6 +235,7 @@ NodalLoad::recvSelf(int cTag, Channel &theChannel,
     myNode = data(1);
     int loadSize = data(2);
     konstant = (data(3) != 0);
+    follower = (data(5) != 0);    
     this->setLoadPatternTag(data(4));
     if (loadSize != 0) {
 	load = new Vector(data(2));

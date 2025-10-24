@@ -145,7 +145,39 @@ int OPS_NodalLoad()
 	return -1;
     }
 
-    int ndf = OPS_GetNumRemainingInputArgs()-1;
+    // get options first
+    bool isLoadConst = false;
+    bool isFollower = false;    
+    bool userPattern = false;
+    int loadPatternTag = 0;
+    int numOptionalArgs = 0;
+    int numArgs = OPS_GetNumRemainingInputArgs();    
+    while(OPS_GetNumRemainingInputArgs() > 0) {
+	const char* type = OPS_GetString();
+	if(strcmp(type,"-const") == 0) {
+	  numOptionalArgs++;
+	  isLoadConst = true;
+	}
+	else if(strcmp(type,"-follow") == 0 || strcmp(type,"-follower") == 0) {
+	  numOptionalArgs++;
+	  isFollower = true;
+	} else if(strcmp(type,"-pattern") == 0) {
+	  numOptionalArgs++;
+	  int numData = 1;
+	  if(OPS_GetIntInput(&numData, &loadPatternTag) < 0) {
+	    return -1;
+	  }
+	  userPattern = true;
+	  numOptionalArgs++;	  
+	}
+    }
+
+    if (numArgs > 0) {
+      OPS_ResetCurrentInputArg(-numArgs);
+    }
+    numArgs = numArgs - numOptionalArgs;
+    
+    int ndf = numArgs-1;
     if(ndf < 1) {
 	opserr<<"insufficient number of args\n";
 	return -1;
@@ -166,23 +198,6 @@ int OPS_NodalLoad()
 	return -1;
     }
 
-    // get options
-    bool isLoadConst = false;
-    bool userPattern = false;
-    int loadPatternTag = 0;
-    while(OPS_GetNumRemainingInputArgs() > 0) {
-	const char* type = OPS_GetString();
-	if(strcmp(type,"-const") == 0) {
-	    isLoadConst = true;
-	} else if(strcmp(type,"-pattern") == 0) {
-	    int numData = 1;
-	    if(OPS_GetIntInput(&numData, &loadPatternTag) < 0) {
-		return -1;
-	    }
-	    userPattern = true;
-	}
-    }
-
     // get the current pattern tag
     LoadPattern* currPattern = theActiveLoadPattern;
     if(userPattern == false) {
@@ -195,7 +210,7 @@ int OPS_NodalLoad()
 
     // create the load
     static int nodeLoadTag = 0;
-    NodalLoad* theLoad = new NodalLoad(nodeLoadTag++, ndtag, forces, isLoadConst);
+    NodalLoad* theLoad = new NodalLoad(nodeLoadTag++, ndtag, forces, isLoadConst, isFollower);
     if(theLoad == 0) return -1;
 
     // add load to domain
