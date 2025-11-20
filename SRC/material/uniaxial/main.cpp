@@ -56,7 +56,7 @@ OPS_Stream *opserrPtr = &sserr;
 
 using namespace std;
 
-int main()
+int main2()
 {
   Domain *theDomain = new Domain();
 
@@ -150,7 +150,7 @@ int main()
 }
 
   
-int main2()
+int main()
 {
   const double Fy0 = 60.0;
   //const double E0 = 29000.0;
@@ -175,14 +175,14 @@ int main2()
   double Fr = Fr0;  
   
   UniaxialMaterial *theMaterial = 0;
-  //theMaterial = new HardeningMaterial2(0, E, Fy, Hi, Hk);
+  theMaterial = new HardeningMaterial2(0, E, Fy, Hi, Hk);
   //theMaterial = new Concrete02(0, 4, 0.002, 2, 0.006);
   //theMaterial = new Concrete02IS(0, 3600, 4, 0.002, 2, 0.006);
   //theMaterial = new Concrete04(0, 4, 0.002, 1, 3600);    
   // theMaterial = new ViscousDamper(0, E, C, 0.3,
   //				  0.0, 1, 1e-6, 1e-10, 15);
-  theMaterial = new BilinearOilDamper(0, E, C, Fr, 0.05,
-				      0.3, 2, 1e-6, 1e-10, 10);  
+  //theMaterial = new BilinearOilDamper(0, E, C, Fr, 0.05,
+  //				      0.3, 2, 1e-6, 1e-10, 10);  
 				  
   double epsy = Fy/E;
   double epsmax = 3*epsy;
@@ -194,8 +194,8 @@ int main2()
   int pid2;
   //argv[0] = "E"; pid2 = 1; h0 = E0;
   //argv[0] = "Fr"; pid2 = 3; h0 = Fr0;  
-  argv[0] = "C"; pid2 = 2; h0 = C0;  
-  //argv[0] = "Fy"; pid2 = 2; h0 = Fy0;
+  //argv[0] = "C"; pid2 = 2; h0 = C0;  
+  argv[0] = "Fy"; pid2 = 2; h0 = Fy0;
   //  argv[0] = "Hk"; pid2 = 4; h0 = Hk0;
   //argv[0] = "fc"; pid2 = 1; h0 = -4;
 
@@ -308,9 +308,11 @@ int main2()
     double sig2 = theMaterial->getStress();
     theMaterial->getTrialHistoryVariables(hstvP2);
 
+    // 11/14/2025 -- this has to be called!
     theMaterial->commitState();
-    
+
     mixed[i] = (sig2-sig)/dh;
+    //mixed[i] = theMaterial->getStressSensitivity(0, true);
 
     i++;
   }
