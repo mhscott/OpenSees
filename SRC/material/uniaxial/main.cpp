@@ -56,7 +56,7 @@ OPS_Stream *opserrPtr = &sserr;
 
 using namespace std;
 
-int main2()
+int main()
 {
   Domain *theDomain = new Domain();
 
@@ -150,7 +150,7 @@ int main2()
 }
 
   
-int main()
+int main2()
 {
   const double Fy0 = 60.0;
   //const double E0 = 29000.0;
