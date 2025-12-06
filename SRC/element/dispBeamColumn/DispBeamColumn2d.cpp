@@ -24,7 +24,7 @@
 
 // Written: MHS
 // Created: Feb 2001
-//
+//****
 // Description: This file contains the class definition for DispBeamColumn2d.
 
 #include <DispBeamColumn2d.h>
