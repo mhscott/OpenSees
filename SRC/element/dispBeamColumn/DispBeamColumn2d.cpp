@@ -24,7 +24,7 @@
 
 // Written: MHS
 // Created: Feb 2001
-//****
+//
 // Description: This file contains the class definition for DispBeamColumn2d.
 
 #include <DispBeamColumn2d.h>
@@ -54,6 +54,10 @@
 Matrix DispBeamColumn2d::K(6,6);
 Vector DispBeamColumn2d::P(6);
 double DispBeamColumn2d::workArea[100];
+
+Matrix DispBeamColumn2d::Kd(6, 6);
+Vector DispBeamColumn2d::Pd(6);
+double DispBeamColumn2d::workArea2[100];
 
 void* OPS_DispBeamColumn2d()
 {
@@ -637,12 +641,15 @@ int
 DispBeamColumn2d::update(void)
 {
   int err = 0;
+  int err2 = 0;
 
   // Update the transformation
   crdTransf->update();
   
   // Get basic deformations
   const Vector &v = crdTransf->getBasicTrialDisp();
+  // Get basic velocities
+  const Vector& vt = crdTransf->getBasicTrialVel();
   
   double L = crdTransf->getInitialLength();
   double oneOverL = 1.0/L;
@@ -656,11 +663,19 @@ DispBeamColumn2d::update(void)
     
     int order = theSections[i]->getOrder();
     const ID &code = theSections[i]->getType();
-    
+
+    int order2 = theSections[i]->getOrder();
+    //defining section deformation rates
+    Vector et(workArea2, order2);
+
     Vector e(workArea, order);
     
     //double xi6 = 6.0*pts(i,0);
     double xi6 = 6.0*xi[i];
+
+    et(0) = oneOverL * vt(0);
+    et(1) = oneOverL * ((xi6 - 4.0) * vt(1) + (xi6 - 2.0) * vt(2));
+    err2 += theSections[i]->setTrialSectionDeformationRate(et);
     
     int j;
     for (j = 0; j < order; j++) {
@@ -681,6 +696,11 @@ DispBeamColumn2d::update(void)
   if (err != 0) {
     opserr << "DispBeamColumn2d::update() - failed setTrialSectionDeformations()\n";
     return err;
+  }
+
+  if (err2 != 0) {
+      opserr << "DispBeamColumn2d::update() - failed setTrialSectionDeformationsRates()\n";
+      return err2;
   }
 
   return 0;
@@ -756,6 +776,101 @@ DispBeamColumn2d::getBasicStiff(Matrix &kb, int initial)
   }
 }
 
+void
+DispBeamColumn2d::getBasicDampingMatrix(Matrix& kbd, int initial)
+{
+    // Zero for integral
+    kbd.Zero();
+
+    double L = crdTransf->getInitialLength();
+    double oneOverL = 1.0 / L;
+
+    double xi[maxNumSections];
+    beamInt->getSectionLocations(numSections, L, xi);
+    double wt[maxNumSections];
+    beamInt->getSectionWeights(numSections, L, wt);
+
+    // Loop over the integration points
+    for (int i = 0; i < numSections; i++) {
+
+        int order = theSections[i]->getOrder();
+        const ID& code = theSections[i]->getType();
+
+        Matrix ka(workArea2, order, 3);
+        ka.Zero();
+
+        double xi6 = 6.0 * xi[i];
+
+        // Get the section tangent damping matrix 
+        const Matrix& ksd = (initial) ? theSections[i]->getInitialTangentDamping() : theSections[i]->getSectionTangentDamping();
+
+
+        // Perform numerical integration
+
+        double wti = wt[i];
+        double tmp;
+        int j, k;
+
+        /*
+        Ht = { V1  0
+               0   V2
+               0   V3}
+
+        ks = {k0 k1
+              k1 k3}
+
+        H = {V1  0   0
+             0   V2  V3}
+         k0 = ksd (0,0)
+         k1 = ksd(1,0) = ksd (0,1)
+         k3 = ksd (1,1)
+
+        HT@Ks@H = {V1^2k0    V1V2k1   V1V3k1
+                   V1V2k1    V2^2k3   V2V3k3
+                   V1V3k1    V2V3k3   V3^2K3}
+        */
+
+        double k0 = ksd(0, 0);
+        double k1 = ksd(1, 0);
+        double k3 = ksd(1, 1);
+
+        double v1 = oneOverL;
+
+        //x1 in opensees is between 0 and 1 then it must be multiplied by L
+        // v2 = (6.0 * xi[i]*L)/(L**2) - 4 / L;
+        double v2 = ((6.0 * xi[i]) / (L)) - 4 / L;
+        // v2 = (6.0 * xi[i]*L)/(L**2)
+        double v3 = ((6.0 * xi[i]) / (L)) - 2 / L;
+
+        kbd(0, 0) += v1 * v1 * k0 * wti * L; //the weight point is multiplied by 0.5 in the legendre beam integration then there is not need to add it here
+        kbd(0, 1) += v1 * v2 * k1 * wti * L;
+        kbd(0, 2) += v1 * v3 * k1 * wti * L;
+        kbd(1, 1) += v2 * v2 * k3 * wti * L;
+        kbd(1, 2) += v2 * v3 * k3 * wti * L;
+        kbd(2, 2) += v3 * v3 * k3 * wti * L;
+
+    }
+    kbd(1, 0) = kbd(0, 1);
+    kbd(2, 0) = kbd(0, 2);
+    kbd(2, 1) = kbd(1, 2);
+
+}
+
+const Matrix&
+DispBeamColumn2d::getDamp() {
+
+
+    K = this->Element::getDamp();
+
+
+    K.addMatrix(1.0, this->getTangentDampingMatrix(), 1);
+
+
+    return K;
+
+
+}
+
 const Matrix&
 DispBeamColumn2d::getTangentStiff()
 {
@@ -818,6 +933,50 @@ DispBeamColumn2d::getTangentStiff()
 }
 
 const Matrix&
+DispBeamColumn2d::getTangentDampingMatrix()
+{
+    static Matrix kbd(3, 3);
+    this->getBasicDampingMatrix(kbd);
+    // Zero for integral
+    qd.Zero();
+    double L = crdTransf->getInitialLength();
+    double oneOverL = 1.0 / L;
+
+    //const Matrix &pts = quadRule.getIntegrPointCoords(numSections);
+    //const Vector &wts = quadRule.getIntegrPointWeights(numSections);
+    double xi[maxNumSections];
+    beamInt->getSectionLocations(numSections, L, xi);
+    double wt[maxNumSections];
+    beamInt->getSectionWeights(numSections, L, wt);
+
+    // Loop over the integration points
+    for (int i = 0; i < numSections; i++) {
+
+        int order = theSections[i]->getOrder();
+        const ID& code = theSections[i]->getType();
+
+        //double xi6 = 6.0*pts(i,0);
+        double xi6 = 6.0 * xi[i];
+
+        // Get section damping stress resultant
+        const Vector& sd = theSections[i]->getStressResultantDamping();
+
+        double sid;
+
+        sid = sd(0) * wt[i];
+        qd(0) += sid;
+        sid = sd(1) * wt[i];
+        qd(1) += (xi6 - 4.0) * sid;
+        qd(2) += (xi6 - 2.0) * sid;
+
+    }
+    qd.Zero();
+    // Transform to global stiffness
+    Kd = crdTransf->getGlobalStiffMatrix(kbd, qd);
+    return Kd;
+}
+
+const Matrix&
 DispBeamColumn2d::getInitialStiff()
 {
   static Matrix kb(3,3);
@@ -828,6 +987,17 @@ DispBeamColumn2d::getInitialStiff()
   K = crdTransf->getInitialGlobalStiffMatrix(kb);
 
   return K;
+}
+const Matrix&
+DispBeamColumn2d::getInitialDampingMatrix()
+{
+    static Matrix kbd(3, 3);
+    this->getBasicDampingMatrix(kbd, 1);
+
+    // Transform to global stiffness
+    Kd = crdTransf->getInitialGlobalStiffMatrix(kbd);
+
+    return Kd;
 }
 
 const Matrix&
@@ -1060,6 +1230,53 @@ DispBeamColumn2d::getResistingForce()
     P.addVector(1.0, Q, -1.0);
   
   return P;
+}
+
+const Vector&
+DispBeamColumn2d::getResistingForceDamping(void) {
+    double L = crdTransf->getInitialLength();
+    double oneOverL = 1.0 / L;
+    //const Matrix &pts = quadRule.getIntegrPointCoords(numSections);
+    //const Vector &wts = quadRule.getIntegrPointWeights(numSections);  
+    double xi[maxNumSections];
+    beamInt->getSectionLocations(numSections, L, xi);
+    double wt[maxNumSections];
+    beamInt->getSectionWeights(numSections, L, wt);
+
+    // Zero for integration
+    qd.Zero();
+
+    // Loop over the integration points
+    for (int i = 0; i < numSections; i++) {
+
+        int order = theSections[i]->getOrder();
+        const ID& code = theSections[i]->getType();
+
+        //double xi6 = 6.0*pts(i,0);
+        double xi6 = 6.0 * xi[i];
+
+        // Get section damping stress resultant
+        const Vector& sd = theSections[i]->getStressResultantDamping();
+
+        // Perform numerical integration on internal force
+        //q.addMatrixTransposeVector(1.0, *B, s, wts(i));
+
+        double sid;
+        sid = sd(0) * wt[i];
+        qd(0) += sid;
+        sid = sd(1) * wt[i];
+        qd(1) += (xi6 - 4.0) * sid;
+        qd(2) += (xi6 - 2.0) * sid;
+
+    }
+    // Vector for reactions in basic system
+    Vector p0Vecd(3);
+    // Vector*******************************************************
+    Pd = crdTransf->getGlobalResistingForce(qd, p0Vecd);
+    // Subtract other external nodal loads ... P_res = P_int - P_ext
+    //if (rho != 0)
+    //    P.addVector(1.0, Q, -1.0);
+    return Pd;
 }
 
 const Vector &
@@ -1716,6 +1933,82 @@ DispBeamColumn2d::setResponse(const char **argv, int argc,
     theResponse = new ElementResponse(this, 10, 0.0);
   }
 
+  // global damping forces - Using fiber damping
+  else if (strcmp(argv[0], "globalDampingForceFD") == 0 || strcmp(argv[0], "globalDampingForcesFD") == 0) {
+
+      output.tag("ResponseType", "Pxd_1");
+      output.tag("ResponseType", "Pyd_1");
+      output.tag("ResponseType", "Mzd_1");
+      output.tag("ResponseType", "Pxd_2");
+      output.tag("ResponseType", "Pyd_2");
+      output.tag("ResponseType", "Mzd_2");
+      theResponse = new ElementResponse(this, 421, Vector(6));
+  }
+
+  // local damping forces - Using fiber damping
+  else if (strcmp(argv[0], "localDampingForceFD") == 0 || strcmp(argv[0], "localDampingForcesFD") == 0) {
+
+      output.tag("ResponseType", "N1d");
+      output.tag("ResponseType", "V1d");
+      output.tag("ResponseType", "M1d");
+      output.tag("ResponseType", "N2d");
+      output.tag("ResponseType", "V2d");
+      output.tag("ResponseType", "M2d");
+
+      theResponse = new ElementResponse(this, 422, Vector(6));
+      }
+
+      // basic damping forces - Using fiber damping 
+  else if (strcmp(argv[0], "basicDampingForceFD") == 0 || strcmp(argv[0], "basicDampingForcesFD") == 0) {
+          output.tag("ResponseType", "Nd");
+          output.tag("ResponseType", "M1d");
+          output.tag("ResponseType", "M2d");
+          theResponse = new ElementResponse(this, 423, Vector(3));
+          }
+
+          // global Material forces - When using fiber damping
+  else if (strcmp(argv[0], "globalMaterialForceFD") == 0 || strcmp(argv[0], "globalMaterialForcesFD") == 0) {
+
+              output.tag("ResponseType", "Pxm_1");
+              output.tag("ResponseType", "Pym_1");
+              output.tag("ResponseType", "Mzm_1");
+              output.tag("ResponseType", "Pxm_2");
+              output.tag("ResponseType", "Pym_2");
+              output.tag("ResponseType", "Mzm_2");
+              theResponse = new ElementResponse(this, 424, Vector(6));
+              }
+
+              // local Material forces - Using fiber damping
+  else if (strcmp(argv[0], "localMaterialForceFD") == 0 || strcmp(argv[0], "localMaterialForcesFD") == 0) {
+
+                  output.tag("ResponseType", "N1m");
+                  output.tag("ResponseType", "V1m");
+                  output.tag("ResponseType", "M1m");
+                  output.tag("ResponseType", "N2m");
+                  output.tag("ResponseType", "V2m");
+                  output.tag("ResponseType", "M2m");
+                  theResponse = new ElementResponse(this, 425, Vector(6));
+                  }
+
+                  // basic Material forces - Using fiber damping 
+  else if (strcmp(argv[0], "basicMaterialForceFD") == 0 || strcmp(argv[0], "basicMaterialForcesFD") == 0) {
+                      output.tag("ResponseType", "Nm");
+                      output.tag("ResponseType", "M1m");
+                      output.tag("ResponseType", "M2m");
+                      theResponse = new ElementResponse(this, 426, Vector(3));
+                      }
+
+                      // chord rotation - FiberDamping
+  else if (strcmp(argv[0], "chordRotationRate") == 0 || strcmp(argv[0], "chordDeformationRate") == 0
+      || strcmp(argv[0], "basicDeformationRate") == 0) {
+
+      output.tag("ResponseType", "epst");
+      output.tag("ResponseType", "theta1t");
+      output.tag("ResponseType", "theta2t");
+
+      theResponse = new ElementResponse(this, 427, Vector(3));
+      }
+
   if (theResponse == 0)
     theResponse = crdTransf->setResponse(argv, argc, output);
   
@@ -1731,6 +2024,7 @@ int
 DispBeamColumn2d::getResponse(int responseID, Information &eleInfo)
 {
   double V;
+  double Vd;
   double L = crdTransf->getInitialLength();
 
   if (responseID == 1)
@@ -1885,6 +2179,64 @@ DispBeamColumn2d::getResponse(int responseID, Information &eleInfo)
 	  }
 	  return eleInfo.setDouble(energy);
   }
+
+  else if (responseID == 421) {
+
+
+      return eleInfo.setVector(this->getResistingForceDamping());
+      }
+  else if (responseID == 422) {
+          this->getResistingForceDamping();
+          Pd(3) = qd(0);
+          Pd(0) = -qd(0);
+          Pd(2) = qd(1);
+          Pd(5) = qd(2);
+          Vd = (qd(1) + qd(2)) / L;
+          Pd(1) = Vd;
+          Pd(4) = -Vd;
+          return eleInfo.setVector(Pd);
+          }
+  else if (responseID == 423) {
+              return eleInfo.setVector(qd);
+              }
+  else if (responseID == 424) {
+                  Vector Pga(6);
+                  Vector Pda(6);
+                  Vector Pm(6);
+                  Pga = this->getResistingForce();
+                  Pda = this->getResistingForceDamping();
+                  Pm = Pga - Pda;
+                  return eleInfo.setVector(Pm);
+                  }
+  else if (responseID == 425) {
+                      this->getResistingForceDamping();
+
+                      P(3) = q(0);
+                      P(0) = -q(0) + p0[0];
+                      P(2) = q(1);
+                      P(5) = q(2);
+                      V = (q(1) + q(2)) / L;
+                      P(1) = V + p0[1];
+                      P(4) = -V + p0[2];
+
+                      Pd(3) = qd(0);
+                      Pd(0) = -qd(0);
+                      Pd(2) = qd(1);
+                      Pd(5) = qd(2);
+                      Vd = (qd(1) + qd(2)) / L;
+                      Pd(1) = Vd;
+                      Pd(4) = -Vd;
+                      return eleInfo.setVector(P - Pd);
+                      }
+
+  else if (responseID == 426) {
+                          this->getResistingForceDamping();
+                          return eleInfo.setVector(q - qd);
+                          }
+                          // Chord rotation rates
+  else if (responseID == 427) {
+                              return eleInfo.setVector(crdTransf->getBasicTrialVel());
+                              }
 
   else
     return Element::getResponse(responseID, eleInfo);

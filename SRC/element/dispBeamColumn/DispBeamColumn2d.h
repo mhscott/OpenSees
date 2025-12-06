@@ -86,7 +86,15 @@ class DispBeamColumn2d : public Element
 
     const Vector &getResistingForce(void);
     const Vector &getDampingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+    const Vector &getResistingForceIncInertia(void);   
+
+    // get resisting force from damping defined at the fiber level 
+
+    const Vector& getResistingForceDamping(void);
+    const Matrix& getTangentDampingMatrix(void);
+    const Matrix& getInitialDampingMatrix(void);
+    // Override the getDamp() method to include fiber-level damping
+    const Matrix& getDamp() override;
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
@@ -114,6 +122,7 @@ class DispBeamColumn2d : public Element
     
   private:
     void getBasicStiff(Matrix &kb, int initial = 0);
+    void getBasicDampingMatrix(Matrix& kbd, int initald = 0);
 
 	int numSections;
 	SectionForceDeformation** theSections; // pointer to the ND material objects
@@ -126,11 +135,15 @@ class DispBeamColumn2d : public Element
 
     static Matrix K;		// Element stiffness, damping, and mass Matrix
     static Vector P;		// Element resisting force vector
+    static Vector Pd;       // Element resisting damping force vector
+    static Matrix Kd;		// Element viscocity/damping matrix
+
 
     Vector Q;      // Applied nodal loads
     Vector q;      // Basic force
     double q0[3];  // Fixed end forces in basic system
     double p0[3];  // Reactions in basic system
+    Vector qd;     //
 
     double rho;	   // Mass density per unit length
     int cMass;     // consistent mass flag
@@ -140,7 +153,7 @@ class DispBeamColumn2d : public Element
     enum {maxNumSections = 20};
 
     static double workArea[];
-
+    static double workArea2[];
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     int parameterID;
     // AddingSensitivity:END ///////////////////////////////////////////
