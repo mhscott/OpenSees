@@ -62,6 +62,14 @@ class FiberSection2d : public SectionForceDeformation
     const Matrix &getSectionTangent(void);
     const Matrix &getInitialTangent(void);
 
+    // Adding fiber level damping:
+    int   setTrialSectionDeformationRate(const Vector& deformsRate);
+    const Vector& getSectionDeformationRate(void) override;
+    virtual const Vector& getStressResultantDamping(void) override;
+    virtual const Matrix& getSectionTangentDamping(void) override;
+    const Matrix& getInitialTangentDamping(void) override;
+    //
+
     int   commitState(void);
     int   revertToLastCommit(void);    
     int   revertToStart(void);
@@ -101,6 +109,9 @@ class FiberSection2d : public SectionForceDeformation
     double   *matData;               // data for the materials [yloc and area]
     double   kData[4];               // data for ks matrix 
     double   sData[2];               // data for s vector 
+
+    double kdData[4];
+    double sdData[2];               // data for s vector 
     
     double QzBar, ABar, yBar;       // Section centroid
     bool computeCentroid;
@@ -112,6 +123,10 @@ class FiberSection2d : public SectionForceDeformation
     Vector e;          // trial section deformations 
     Vector *s;         // section resisting forces  (axial force, bending moment)
     Matrix *ks;        // section stiffness
+
+    Vector et;          // trial section deformations rate
+    Vector* sd;         // section resisting damping forces 
+    Matrix* ksd;        // section viscocity
 
 // AddingSensitivity:BEGIN //////////////////////////////////////////
     Vector dedh; // MHS hack

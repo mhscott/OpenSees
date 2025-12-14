@@ -67,6 +67,8 @@ class UniaxialMaterial : public Material
     virtual double getTangent (void) = 0;
     virtual double getInitialTangent (void) = 0;
     virtual double getDampTangent (void);
+    virtual double getInitialTangentDamping(void);
+
     virtual double getRho(void);
     
     virtual int commitState (void) = 0;
@@ -92,6 +94,8 @@ class UniaxialMaterial : public Material
     // AddingSensitivity:END ///////////////////////////////////////////
 	//by SAJalali
 	virtual double getEnergy(void) { return 0; }
+    // adding Damping:BEGIN //////////////////////////////////////////  
+    virtual double getStressDamping(void);
 
  protected:
     

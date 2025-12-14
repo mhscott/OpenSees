@@ -385,7 +385,7 @@ DispBeamColumn2d::DispBeamColumn2d(int tag, int nd1, int nd2,
 :Element (tag, ELE_TAG_DispBeamColumn2d), 
  numSections(numSec), theSections(0), crdTransf(0), beamInt(0),
   connectedExternalNodes(2),
-  Q(6), q(3), rho(r), cMass(cm), parameterID(0), theDamping(0)
+  Q(6), q(3), rho(r), cMass(cm), parameterID(0), theDamping(0), qd(3)
 {
   // Allocate arrays of pointers to SectionForceDeformations
   theSections = new SectionForceDeformation *[numSections];

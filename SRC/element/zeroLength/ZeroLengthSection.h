@@ -78,6 +78,7 @@ class ZeroLengthSection : public Element
     // public methods to obtain stiffness, mass, damping and residual information    
     const Matrix &getTangentStiff(void);
     const Matrix &getDamp(void);
+    const Matrix& getDampTangent(void);
     const Matrix &getInitialStiff(void);
 
     void zeroLoad(void);	
@@ -85,7 +86,9 @@ class ZeroLengthSection : public Element
     int addInertiaLoadToUnbalance(const Vector &accel);    
 
     const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+    const Vector &getResistingForceIncInertia(void);      
+
+    const Vector& getResistingForceDamping(void);
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
@@ -120,9 +123,13 @@ class ZeroLengthSection : public Element
 	
     Matrix *A;	// Transformation matrix ... e = A*(u2-u1)
     Vector *v;	// Section deformation vector, the element basic deformations
-    
+    Vector* vdot;// Section deformation rate vector
+
     Matrix *K;	// Pointer to element stiffness matrix
     Vector *P;	// Pointer to element force vector
+
+    Matrix* Kd;  // Pointer to element damping matrix
+    Vector* Pd;  // Pointer to element damping forces
     
     Node *theNodes[2];
     
@@ -132,6 +139,10 @@ class ZeroLengthSection : public Element
     // Class wide matrices for return
     static Matrix K6;
     static Matrix K12;
+
+    // Class wide matrices for return
+    static Matrix K6d;
+    static Matrix K12d;
     
     // Class wide vectors for return
     static Vector P6;

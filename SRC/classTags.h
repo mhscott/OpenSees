@@ -321,6 +321,8 @@
 #define MAT_TAG_APDMD                           712
 #define MAT_TAG_APDFMD                          713
 
+#define MAT_TAG_FiberDamping 1623 // Fiber Damping 25/09/2024 Jose Fdo. Baena Urrea :) 
+
 // GNG material - J.Cook UCanterbury
 #define MAT_TAG_GNG 7001
 #define MAT_TAG_Ratchet 7002

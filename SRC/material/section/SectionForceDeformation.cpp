@@ -735,7 +735,12 @@ SectionForceDeformation::setResponse(const char **argv, int argc,
   else if (strcmp(argv[0],"flexibility") == 0) {
     theResponse =  new MaterialResponse(this, 13, this->getSectionFlexibility());
   }
-  
+  else if (strcmp(argv[0], "deformationRates") == 0) {
+      theResponse = new MaterialResponse(this, 14, this->getSectionDeformationRate());
+  }
+  else if (strcmp(argv[0], "dampingForces") == 0) {
+      theResponse = new MaterialResponse(this, 15, this->getStressResultantDamping());
+  }
 
   output.endTag(); // SectionOutput
   return theResponse;
@@ -936,4 +941,58 @@ const Vector& SectionForceDeformation::getThermalElong(void)
     opserr << "SectionForceDeformation::getThermalElong() - should not be called\n";
     errRes.resize(this->getStressResultant().Size());
     return errRes;
+}
+//---- AddingDamping:BEGIN ////////////////////////////////////////
+
+const Vector&
+SectionForceDeformation::getStressResultantDamping()
+{
+    if (sDefault == 0)
+        sDefault = new Vector(this->getOrder());
+    return *sDefault;
+}
+
+int
+SectionForceDeformation::setTrialSectionDeformationRate(const Vector&)
+{
+    opserr << "SectionForceDeformation::setTrialSectionDeformationRate (strainRates) - should not be called\n";
+    return -1;
+}
+
+const Vector&
+SectionForceDeformation::getSectionDeformationRate()
+{
+    if (sDefault == 0)
+        sDefault = new Vector(this->getOrder());
+    return *sDefault;
+}
+
+const Matrix&
+SectionForceDeformation::getSectionTangentDamping()
+{
+    int order = this->getOrder();
+    if (fDefault == 0) {
+        fDefault = new Matrix(order, order);
+        if (fDefault == 0) {
+            opserr << "SectionForceDeformation::getSectionTangentDamping -- failed to allocate matrix\n";
+            exit(-1);
+        }
+    }
+    fDefault->Zero();
+    return *fDefault;
+}
+
+const Matrix&
+SectionForceDeformation::getInitialTangentDamping()
+{
+    int order = this->getOrder();
+    if (fDefault == 0) {
+        fDefault = new Matrix(order, order);
+        if (fDefault == 0) {
+            opserr << "SectionForceDeformation::getInitialTangentDamping -- failed to allocate matrix\n";
+            exit(-1);
+        }
+    }
+    fDefault->Zero();
+    return *fDefault;
 }

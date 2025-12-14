@@ -63,6 +63,16 @@ class SectionAggregator : public SectionForceDeformation
     const char *getClassType(void) const {return "SectionAggregator";};
 
     int   setTrialSectionDeformation(const Vector &deforms); 
+
+    // Adding fiber damping: BEGIN /
+    int   setTrialSectionDeformationRate(const Vector& deformsRate);
+
+    const Vector& getSectionDeformationRate(void);
+    virtual const Vector& getStressResultantDamping(void);
+    virtual const Matrix& getSectionTangentDamping(void);
+    
+    // Adding damping: END /
+
     const Vector &getSectionDeformation(void);
 
     const Vector &getStressResultant(void);
@@ -119,9 +129,16 @@ class SectionAggregator : public SectionForceDeformation
     Matrix *fs;   // Storage for section flexibility
     ID     *theCode;     // Storage for section type information
    
+    Vector* et;    // Storage for section deformation rates
+    Vector* sd;    // Storage for damping stress resultants
+    Matrix* ksd;   // Storage for section  viscosity
+    Matrix* fsd;   // Storage for section  fluidity
+    Vector etAux; // auxiliar vector for strain deformations rates
+
     int otherDbTag;
 
     static double workArea[];
+    static double workArea2[];
     static int codeArea[];
 
 // AddingSensitivity:BEGIN //////////////////////////////////////////

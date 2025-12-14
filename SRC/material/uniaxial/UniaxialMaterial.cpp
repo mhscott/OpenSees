@@ -442,4 +442,17 @@ UniaxialMaterial::getInitialTangent (void)
 	return 0.0;
 }
 
-// AddingSensitivity:END //////////////////////////////////////////
+// default operation for damping stress is zero 
+double
+UniaxialMaterial::getStressDamping(void)
+{
+    return 0.0;
+}
+double
+UniaxialMaterial::getInitialTangentDamping(void)
+{
+    opserr << "UniaxialMaterial::getInitialTangentDamping() -- this method " << endln
+        << " is not implemented for the selected material. " << endln;
+
+    return 0.0;
+}

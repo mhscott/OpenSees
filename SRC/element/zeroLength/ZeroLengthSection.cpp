@@ -47,6 +47,9 @@
 Matrix ZeroLengthSection::K6(6,6);
 Matrix ZeroLengthSection::K12(12,12);
 
+Matrix ZeroLengthSection::K6d(6, 6);
+Matrix ZeroLengthSection::K12d(12, 12);
+
 Vector ZeroLengthSection::P6(6);
 Vector ZeroLengthSection::P12(12);
 
@@ -132,7 +135,7 @@ ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2,
   connectedExternalNodes(2),
   dimension(dim), numDOF(0), 
   transformation(3,3), useRayleighDamping(doRayleigh),A(0), v(0), K(0), P(0),
-  theSection(0), order(0)
+  theSection(0), order(0), vdot(0), Pd(0), Kd(0)
 {
 	// Obtain copy of section model
 	theSection = sec.getCopy();
@@ -154,7 +157,7 @@ Element(0, ELE_TAG_ZeroLengthSection),
 connectedExternalNodes(2),
 dimension(0), numDOF(0), 
 transformation(3,3), A(0), v(0), K(0), P(0),
-theSection(0), order(0)
+theSection(0), order(0), vdot(0), Pd(0), Kd(0)
 {
 
 }
@@ -170,6 +173,8 @@ ZeroLengthSection::~ZeroLengthSection()
 		delete A;
 	if (v != 0)
 		delete v;
+	if (vdot != 0)
+		delete vdot;
 }
 
 int
@@ -285,6 +290,14 @@ ZeroLengthSection::update()		// MSN: added to allow error identification in setT
 	// Compute section deformation vector
 	this->computeSectionDefs();
 
+	// set trial section deformation rate
+	if (theSection->setTrialSectionDeformationRate(*vdot) < 0) {
+		opserr << "WARNING! ZeroLengthSection::update() - element: " << this->getTag() << " failed in setTrialSectionDeformationRate\n";
+		return -1;
+	}
+
+
+
 	// Set trial section deformation
 	if (theSection->setTrialSectionDeformation(*v) < 0) {
 		opserr << "WARNING! ZeroLengthSection::update() - element: " << this->getTag() << " failed in setTrialSectionDeformation\n";
@@ -340,14 +353,44 @@ ZeroLengthSection::getTangentStiff(void)
 	return *K;
 }
 
+//added tangent damping matrix
+const Matrix&
+ZeroLengthSection::getDampTangent(void)
+{
+	
+	const Matrix& kbd = theSection->getSectionTangentDamping();
+	// Compute element damping matrix ... K = A^*kb*A
+	Kd->addMatrixTripleProduct(0.0, *A, kbd, 1.0);
+	return *Kd;
+}
+
+
 const Matrix &
 ZeroLengthSection::getDamp()
-{	
-  if (useRayleighDamping == 1)
-    return this->Element::getDamp();
+{
+	if (numDOF == 6) {
+		K6d = this->getDampTangent();
 
-  K->Zero();
-  return *K;
+		if (useRayleighDamping == 1) {
+
+			K6d.addMatrix(1.0, this->Element::getDamp(), 1);
+		}
+
+		return K6d;
+	}
+	else {
+		K12d = this->getDampTangent();
+
+		if (useRayleighDamping == 1) {
+
+			K12d.addMatrix(1.0, this->Element::getDamp(), 1);
+		}
+
+		return K12d;
+	}
+
+	
+
 }
 
 
@@ -416,6 +459,18 @@ ZeroLengthSection::getResistingForceIncInertia()
     return *P;
 }
 
+
+const Vector&
+ZeroLengthSection::getResistingForceDamping()
+{
+	// Get section damping stress resultants , the element basic damping forces
+	const Vector& qd = theSection->getStressResultantDamping();
+
+	// Compute element damping resisting forces 
+	Pd->addMatrixTransposeVector(0.0, *A, qd, 1.0);
+
+	return *Pd;
+}
 
 int
 ZeroLengthSection::sendSelf(int commitTag, Channel &theChannel)
@@ -532,9 +587,21 @@ ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 		  exit(-1);
 		}
 
+		// Allocate section deformation rate vector
+		if (vdot != 0)
+			delete vdot;
+
+		vdot = new Vector(order);
+
+		if (vdot == 0) {
+			opserr << "ZeroLengthSection::recvSelf -- failed to allocate deformation rate Vector\n";
+			exit(-1);
+		}
+
 		if (numDOF == 6) {
 			P = &P6;
 			K = &K6;
+			
 		}
 		else {
 			P = &P12;
@@ -831,6 +898,12 @@ ZeroLengthSection::setTransformation(void)
 		delete v;
 
 	v = new Vector(order);
+	// Allocate section deformation rate vector
+
+	if (vdot != 0)
+		delete vdot;
+
+	vdot = new Vector(order);
 
 	// Get the section code
 	const ID &code = theSection->getType();
@@ -926,16 +999,32 @@ ZeroLengthSection::computeSectionDefs(void)
 	// Compute differential displacements
 	Vector diff = u2 - u1;
 
+	// Get nodal velocities
+	const Vector& v1 = theNodes[0]->getTrialVel();
+	const Vector& v2 = theNodes[1]->getTrialVel();
+
+	// Compute differential velocities
+	Vector diffv = v2 - v1;
+
 	// Set some references to make the syntax nicer
 	Vector &def = *v;
+
+	Vector& defdot = *vdot;
+
 	const Matrix &tran = *A;
 
+	defdot.Zero();
 	def.Zero();
 
 	// Compute element basic deformations ... v = A*(u2-u1)
-	for (int i = 0; i < order; i++)
-		for (int j = 0; j < numDOF/2; j++)
-			def(i) += -diff(j)*tran(i,j);
+	for (int i = 0; i < order; i++) {
+		for (int j = 0; j < numDOF / 2; j++) {
+			def(i) += -diff(j) * tran(i, j);
+			defdot(i) += -diffv(j) * tran(i, j);
+		}
+
+
+	}
 }
 
 int

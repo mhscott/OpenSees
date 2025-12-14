@@ -76,7 +76,7 @@ FiberSection2d::FiberSection2d(int tag, int num, Fiber **fibers, bool compCentro
   SectionForceDeformation(tag, SEC_TAG_FiberSection2d),
   numFibers(num), sizeFibers(num), theMaterials(0), matData(0),
   QzBar(0.0), ABar(0.0), yBar(0.0), computeCentroid(compCentroid),
-  sectionIntegr(0), e(2), s(0), ks(0), dedh(2)
+  sectionIntegr(0), e(2), s(0), ks(0), dedh(2), et(2), sd(0), ksd(0)
 
 {
   if (numFibers > 0) {
@@ -127,6 +127,17 @@ FiberSection2d::FiberSection2d(int tag, int num, Fiber **fibers, bool compCentro
   kData[2] = 0.0;
   kData[3] = 0.0;
 
+  sd = new Vector(sdData, 2);
+  ksd = new Matrix(kdData, 2, 2);
+
+  sdData[0] = 0.0;
+  sdData[1] = 0.0;
+
+  kdData[0] = 0.0;
+  kdData[1] = 0.0;
+  kdData[2] = 0.0;
+  kdData[3] = 0.0;
+
   code(0) = SECTION_RESPONSE_P;
   code(1) = SECTION_RESPONSE_MZ;
 }
@@ -136,7 +147,7 @@ FiberSection2d::FiberSection2d(int tag, int num, bool compCentroid):
   SectionForceDeformation(tag, SEC_TAG_FiberSection2d),
   numFibers(0), sizeFibers(num), theMaterials(0), matData(0),
   QzBar(0.0), ABar(0.0), yBar(0.0), computeCentroid(compCentroid),
-  sectionIntegr(0), e(2), s(0), ks(0), dedh(2)
+  sectionIntegr(0), e(2), s(0), ks(0), dedh(2),  et(2), sd(0), ksd(0)
 {
     if(sizeFibers > 0) {
 	theMaterials = new UniaxialMaterial *[sizeFibers];
@@ -171,6 +182,17 @@ FiberSection2d::FiberSection2d(int tag, int num, bool compCentroid):
     kData[2] = 0.0;
     kData[3] = 0.0;
 
+    sd = new Vector(sdData, 2);
+    ksd = new Matrix(kdData, 2, 2);
+
+    sdData[0] = 0.0;
+    sdData[1] = 0.0;
+
+    kdData[0] = 0.0;
+    kdData[1] = 0.0;
+    kdData[2] = 0.0;
+    kdData[3] = 0.0;
+
     code(0) = SECTION_RESPONSE_P;
     code(1) = SECTION_RESPONSE_MZ;
 }
@@ -180,7 +202,7 @@ FiberSection2d::FiberSection2d(int tag, int num, UniaxialMaterial **mats,
   SectionForceDeformation(tag, SEC_TAG_FiberSection2d),
   numFibers(num), sizeFibers(num), theMaterials(0), matData(0),
   QzBar(0.0), ABar(0.0), yBar(0.0), computeCentroid(compCentroid),
-  sectionIntegr(0), e(2), s(0), ks(0), dedh(2)
+  sectionIntegr(0), e(2), s(0), ks(0), dedh(2), et(2), sd(0), ksd(0)
 {
   if (numFibers != 0) {
     theMaterials = new UniaxialMaterial *[numFibers];
@@ -235,6 +257,17 @@ FiberSection2d::FiberSection2d(int tag, int num, UniaxialMaterial **mats,
   kData[1] = 0.0;
   kData[2] = 0.0;
   kData[3] = 0.0;
+
+  sd = new Vector(sdData, 2);
+  ksd = new Matrix(kdData, 2, 2);
+
+  sdData[0] = 0.0;
+  sdData[1] = 0.0;
+
+  kdData[0] = 0.0;
+  kdData[1] = 0.0;
+  kdData[2] = 0.0;
+  kdData[3] = 0.0;
   
   code(0) = SECTION_RESPONSE_P;
   code(1) = SECTION_RESPONSE_MZ;
@@ -245,7 +278,7 @@ FiberSection2d::FiberSection2d():
   SectionForceDeformation(0, SEC_TAG_FiberSection2d),
   numFibers(0), sizeFibers(0), theMaterials(0), matData(0),
   QzBar(0.0), ABar(0.0), yBar(0.0), computeCentroid(true),
-  sectionIntegr(0), e(2), s(0), ks(0), dedh(2)
+  sectionIntegr(0), e(2), s(0), ks(0), dedh(2), et(2), ksd(0), sd(0)
 {
   s = new Vector(sData, 2);
   ks = new Matrix(kData, 2, 2);
@@ -257,6 +290,16 @@ FiberSection2d::FiberSection2d():
   kData[1] = 0.0;
   kData[2] = 0.0;
   kData[3] = 0.0;
+
+  sd = new Vector(sdData, 2);
+  ksd = new Matrix(kdData, 2, 2);
+
+  sdData[0] = 0.0;
+  sdData[1] = 0.0;
+  kdData[0] = 0.0;
+  kdData[1] = 0.0;
+  kdData[2] = 0.0;
+  kdData[3] = 0.0;
 
   code(0) = SECTION_RESPONSE_P;
   code(1) = SECTION_RESPONSE_MZ;
@@ -350,6 +393,12 @@ FiberSection2d::~FiberSection2d()
   if (ks != 0)
     delete ks;
 
+  if (sd != 0)
+      delete sd;
+
+  if (ksd != 0)
+      delete ksd;
+
   if (sectionIntegr != 0)
     delete sectionIntegr;
 }
@@ -364,8 +413,16 @@ FiberSection2d::setTrialSectionDeformation (const Vector &deforms)
   kData[0] = 0.0; kData[1] = 0.0; kData[2] = 0.0; kData[3] = 0.0;
   sData[0] = 0.0; sData[1] = 0.0;
 
+
+  kdData[0] = 0.0; kdData[1] = 0.0; kdData[2] = 0.0; kdData[3] = 0.0;
+  sdData[0] = 0.0; sdData[1] = 0.0;
+
   double d0 = deforms(0);
   double d1 = deforms(1);
+
+
+  double d0t = et(0);
+  double d1t = et(1);
 
   static double fiberLocs[10000];
   static double fiberArea[10000];
@@ -389,7 +446,14 @@ FiberSection2d::setTrialSectionDeformation (const Vector &deforms)
     // determine material strain and set it
     double strain = d0 - y*d1;
     double tangent, stress;
-    res += theMat->setTrial(strain, stress, tangent);
+
+    double strainRate = d0t - y * d1t;
+    double tangentDamping, stressDamping;
+    double stressMaterial;
+
+    res += theMat->setTrial(strain, stress, tangent, strainRate);
+
+
 
     double ks0 = tangent * A;
     double ks1 = ks0 * -y;
@@ -400,17 +464,56 @@ FiberSection2d::setTrialSectionDeformation (const Vector &deforms)
     double fs0 = stress * A;
     sData[0] += fs0;
     sData[1] += fs0 * -y;
+
+    stressDamping = theMat->getStressDamping();
+
+    stressMaterial = stress - stressDamping;
+
+    tangentDamping = theMat->getDampTangent();
+
+
+
+    double ksd0 = tangentDamping * A;
+    double ksd1 = ksd0 * -y;
+
+    kdData[0] += ksd0;
+    kdData[1] += ksd1;
+    kdData[3] += ksd1 * -y;
+
+    double fsd0 = stressDamping * A;
+    sdData[0] += fsd0;
+    sdData[1] += fsd0 * -y;
   }
 
   kData[2] = kData[1];
+  kdData[2] = kdData[1];
 
   return res;
 }
+
+
+int
+
+FiberSection2d::setTrialSectionDeformationRate(const Vector& deformsRate)
+{
+    int res = 0;
+    et = deformsRate;
+    return res;
+}
+
+
 
 const Vector&
 FiberSection2d::getSectionDeformation(void)
 {
   return e;
+}
+
+
+const Vector&
+FiberSection2d::getSectionDeformationRate(void)
+{
+    return et;
 }
 
 const Matrix&
@@ -452,6 +555,59 @@ FiberSection2d::getInitialTangent(void)
 
   return kInitialMatrix;
 }
+
+const Matrix&
+
+FiberSection2d::getInitialTangentDamping(void)
+
+{
+
+    static double kInitialD[4];
+    static Matrix kInitialMatrixD(kInitialD, 2, 2);
+    kInitialD[0] = 0.0; kInitialD[1] = 0.0; kInitialD[2] = 0.0; kInitialD[3] = 0.0;
+
+    static double fiberLocs[10000];
+    static double fiberArea[10000];
+    if (sectionIntegr != 0) {
+        sectionIntegr->getFiberLocations(numFibers, fiberLocs);
+        sectionIntegr->getFiberWeights(numFibers, fiberArea);
+    }
+    else {
+        for (int i = 0; i < numFibers; i++) {
+            fiberLocs[i] = matData[2 * i];
+            fiberArea[i] = matData[2 * i + 1];
+        }
+    }
+
+    for (int i = 0; i < numFibers; i++) {
+        UniaxialMaterial* theMat = theMaterials[i];
+        double y = fiberLocs[i] - yBar;
+        double A = fiberArea[i];
+        double tangent = theMat->getInitialTangentDamping();
+        double ksd0 = tangent * A;
+        double ksd1 = ksd0 * -y;
+        kInitialD[0] += ksd0;
+        kInitialD[1] += ksd1;
+        kInitialD[3] += ksd1 * -y;
+    }
+    kInitialD[2] = kInitialD[1];
+    return kInitialMatrixD;
+}
+
+
+const Vector&
+FiberSection2d::getStressResultantDamping(void)
+
+{
+    return *sd;
+}
+const Matrix&
+FiberSection2d::getSectionTangentDamping(void)
+{
+    return *ksd;
+}
+
+
 
 const Matrix&
 FiberSection2d::getSectionTangent(void)
@@ -554,6 +710,11 @@ FiberSection2d::revertToLastCommit(void)
 
   kData[0] = 0.0; kData[1] = 0.0; kData[2] = 0.0; kData[3] = 0.0;
   sData[0] = 0.0; sData[1] = 0.0;
+
+
+  kdData[0] = 0.0; kdData[1] = 0.0; kdData[2] = 0.0; kdData[3] = 0.0;
+
+  sdData[0] = 0.0; sdData[1] = 0.0;
   
   static double fiberLocs[10000];
   static double fiberArea[10000];
@@ -589,10 +750,23 @@ FiberSection2d::revertToLastCommit(void)
     double fs0 = stress * A;
     sData[0] = fs0;
     sData[1] = fs0 * -y;
+
+    double tangentDamping, stressDamping;
+    stressDamping = theMat->getStressDamping();
+    tangentDamping = theMat->getDampTangent();
+    double ksd0 = tangentDamping * A;
+    double ksd1 = ksd0 * -y;
+    kdData[0] += ksd0;
+    kdData[1] += ksd1;
+    kdData[3] += ksd1 * -y;
+
+    double fsd0 = stressDamping * A;
+    sdData[0] += fsd0;
+    sdData[1] += fsd0 * -y;
   }
 
   kData[2] = kData[1];
-
+  kdData[2] = kdData[1];
   return err;
 }
 
@@ -604,6 +778,9 @@ FiberSection2d::revertToStart(void)
 
   kData[0] = 0.0; kData[1] = 0.0; kData[2] = 0.0; kData[3] = 0.0;
   sData[0] = 0.0; sData[1] = 0.0;
+
+  kdData[0] = 0.0; kdData[1] = 0.0; kdData[2] = 0.0; kdData[3] = 0.0;
+  sdData[0] = 0.0; sdData[1] = 0.0;
   
   static double fiberLocs[10000];
   static double fiberArea[10000];
@@ -639,8 +816,24 @@ FiberSection2d::revertToStart(void)
     double fs0 = stress * A;
     sData[0] = fs0;
     sData[1] = fs0 * -y;
-  }
 
+    double tangentDamping, stressDamping;
+    stressDamping = theMat->getStressDamping();
+    tangentDamping = theMat->getDampTangent();
+
+    double ksd0 = tangentDamping * A;
+    double ksd1 = ksd0 * -y;
+
+    kdData[0] += ksd0;
+    kdData[1] += ksd1;
+    kdData[3] += ksd1 * -y;
+
+    double fsd0 = stressDamping * A;
+    sdData[0] += fsd0;
+    sdData[1] += fsd0 * -y;
+
+  }
+  kdData[2] = kdData[1];
   kData[2] = kData[1];
 
   return err;
@@ -1090,7 +1283,39 @@ FiberSection2d::setResponse(const char **argv, int argc,
   }
   else if (strcmp(argv[0],"centroid") == 0) 
     theResponse = new MaterialResponse(this, 20, Vector(2));
-  
+    //byJoseBaena
+  else if (strcmp(argv[0], "DeformationRate") == 0) {
+      theResponse = new MaterialResponse(this, 100, Vector(2));
+  }
+  else if (strcmp(argv[0], "DampingForce") == 0) {
+      // Return a response for the stress resultant damping
+      theResponse = new MaterialResponse(this, 101, Vector(2));
+    }
+  else if (strcmp(argv[0], "MaterialForce") == 0) {
+      // Return a response for the stress resultant material
+      theResponse = new MaterialResponse(this, 102, Vector(2));
+    }
+
+  else if (strcmp(argv[0], "fiberData3") == 0) {
+      int numData = numFibers * 9;
+      for (int j = 0; j < numFibers; j++) {
+          output.tag("FiberOutput");
+          output.attr("yLoc", matData[2 * j]);
+          output.attr("zLoc", 0.0);
+          output.attr("area", matData[2 * j + 1]);
+          output.tag("ResponseType", "yCoord");
+          output.tag("ResponseType", "zCoord");
+          output.tag("ResponseType", "area");
+          output.tag("ResponseType", "stress");
+          output.tag("ResponseType", "strain");
+          output.tag("ResponseType", "Mstress");
+          output.tag("ResponseType", "Dstress");
+          output.tag("ResponseType", "strainRate");
+          output.endTag();
+      }
+      Vector theResponseData(numData);
+      theResponse = new MaterialResponse(this, 555, theResponseData);
+      }
   if (theResponse == 0)
     return SectionForceDeformation::setResponse(argv, argc, output);
 
@@ -1162,6 +1387,38 @@ FiberSection2d::getResponse(int responseID, Information &sectInfo)
     centroid(0) = yBar;
     centroid(1) = 0.0;
     return sectInfo.setVector(centroid);
+  }
+  else if (responseID == 100) {
+      return sectInfo.setVector(this->getSectionDeformationRate());
+  }
+
+  else if (responseID == 101) {
+      return sectInfo.setVector(this->getStressResultantDamping());
+  }
+  else if (responseID == 102) {
+      Vector sm(2);
+      this->getStressResultantDamping();
+      sm = *s - *sd;
+      return sectInfo.setVector(sm);
+  }
+  else if (responseID == 555) {
+      int numData = 9 * numFibers;
+      Vector data(numData);
+      int count = 0;
+      for (int j = 0; j < numFibers; j++) {
+          data(count) = matData[2 * j]; // y
+          data(count + 1) = 0.0; // z
+          data(count + 2) = matData[2 * j + 1]; // A
+          data(count + 3) = (double)theMaterials[j]->getTag();
+          data(count + 4) = theMaterials[j]->getStress();
+          data(count + 5) = theMaterials[j]->getStrain();
+          data(count + 6) = theMaterials[j]->getStress() - theMaterials[j]->getStressDamping();
+          data(count + 7) = theMaterials[j]->getStressDamping();
+          data(count + 8) = theMaterials[j]->getStrainRate();
+          count += 9;
+      }
+      return sectInfo.setVector(data);
+
   }
   
   return SectionForceDeformation::getResponse(responseID, sectInfo);

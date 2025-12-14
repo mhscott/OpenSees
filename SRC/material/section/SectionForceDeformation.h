@@ -126,6 +126,14 @@ class SectionForceDeformation : public Material
   virtual const Vector& getThermalElong(void);
   virtual double getEnergy() const { return 0; };		//by SAJalali
 
+  // AddingFiberDamping:BEGIN //////////////////////////////////////////
+  virtual int setTrialSectionDeformationRate(const Vector&);
+  virtual const Vector& getSectionDeformationRate(void);
+  virtual const Vector& getStressResultantDamping(void);
+  virtual const Matrix& getSectionTangentDamping(void);
+  virtual const Matrix& getInitialTangentDamping(void);
+  // AddingDamping:END //////////////////////////////////////////
+
  protected:
   Matrix *fDefault;	// Default flexibility matrix
   Vector *sDefault;

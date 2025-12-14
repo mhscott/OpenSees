@@ -382,10 +382,10 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\pyUCLA.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
-	<ClCompile Include="..\..\..\SRC\material\uniaxial\QbSandCPT.cpp">
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\QbSandCPT.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
-	<ClCompile Include="..\..\..\SRC\material\uniaxial\TzSandCPT.cpp">
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\TzSandCPT.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\fedeas\FedeasBond1Material.cpp">
@@ -1574,6 +1574,9 @@
     <ClCompile Include="..\..\..\SRC\material\section\PipeSection.cpp">
       <Filter>section</Filter>
     </ClCompile>
+    <ClCompile Include="FiberDamping.cpp">
+      <Filter>uniaxial</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\AxialSp.h">
@@ -1828,10 +1831,10 @@
     <ClInclude Include="..\..\..\SRC\material\uniaxial\pyUCLA.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
-	<ClInclude Include="..\..\..\SRC\material\uniaxial\QbSandCPT.h">
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\QbSandCPT.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
-	<ClInclude Include="..\..\..\SRC\material\uniaxial\TzSandCPT.h">
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\TzSandCPT.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\fedeas\FedeasBond1Material.h">
@@ -2861,6 +2864,8 @@
     <ClInclude Include="..\..\..\SRC\material\nD\MinMaxNDMaterial.h">
       <Filter>nD</Filter>
     </ClInclude>
+    <ClInclude Include="FiberDamping.h">
+      <Filter>uniaxial</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
-

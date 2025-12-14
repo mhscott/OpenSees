@@ -209,11 +209,12 @@ void* OPS_UniaxialSection()
   return new SectionAggregator(data[0], 1, theMats, codeID);
 }
 
-#define maxOrder 10
+#define maxOrder 20
 
 // Assumes section order is less than or equal to maxOrder.
 // Can increase if needed!!!
 double SectionAggregator::workArea[2*maxOrder*(maxOrder+1)];
+double SectionAggregator::workArea2[2 * maxOrder * (maxOrder + 1)];
 int    SectionAggregator::codeArea[maxOrder];
 
 // constructors:
@@ -223,7 +224,7 @@ SectionAggregator::SectionAggregator (int tag, SectionForceDeformation &theSec,
   SectionForceDeformation(tag, SEC_TAG_Aggregator), 
   theSection(0), theAdditions(0), matCodes(0), numMats(numAdds),
   e(0), s(0), ks(0), fs(0), theCode(0),
-  otherDbTag(0)
+  otherDbTag(0), et(0), sd(0), ksd(0), fsd(0), etAux(0)
 {
     theSection = theSec.getCopy();
     
@@ -274,6 +275,11 @@ SectionAggregator::SectionAggregator (int tag, SectionForceDeformation &theSec,
     fs = new Matrix(&workArea[maxOrder*(maxOrder+2)], order, order);
     matCodes = new ID(addCodes);
 
+    et = new Vector(workArea2, order);
+    sd = new Vector(&workArea2[maxOrder], order);
+    ksd = new Matrix(&workArea2[2 * maxOrder], order, order);
+    fsd = new Matrix(&workArea2[maxOrder * (maxOrder + 2)], order, order);
+
     if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0) {
       opserr << "SectionAggregator::SectionAggregator   " << tag << " -- out of memory\n";
       exit(-1);
@@ -286,7 +292,7 @@ SectionAggregator::SectionAggregator (int tag, int numAdds,
   SectionForceDeformation(tag, SEC_TAG_Aggregator), 
   theSection(0), theAdditions(0), matCodes(0), numMats(numAdds),
   e(0), s(0), ks(0), fs(0), theCode(0),
-  otherDbTag(0)
+  otherDbTag(0), et(0), sd(0), ksd(0), fsd(0), etAux(0)
 {
   if (!theAdds) {
     opserr << "SectionAggregator::SectionAggregator  " << tag << " -- null uniaxial material array passed\n";
@@ -331,7 +337,12 @@ SectionAggregator::SectionAggregator (int tag, int numAdds,
     fs = new Matrix(&workArea[maxOrder*(maxOrder+2)], order, order);
     matCodes = new ID(addCodes);
 
-    if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0) {
+    et = new Vector(workArea2, order);
+    sd = new Vector(&workArea2[maxOrder], order);
+    ksd = new Matrix(&workArea2[2 * maxOrder], order, order);
+    fsd = new Matrix(&workArea2[maxOrder * (maxOrder + 2)], order, order);
+
+    if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0 || et == 0 || sd == 0 || ksd == 0 || fsd == 0) {
       opserr << "SectionAggregator::SectionAggregator   " << tag << " -- out of memory\n";
       exit(-1);
     }
@@ -342,7 +353,7 @@ SectionAggregator::SectionAggregator (int tag, SectionForceDeformation &theSec,
   SectionForceDeformation(tag, SEC_TAG_Aggregator),
   theSection(0), theAdditions(0), matCodes(0), numMats(1),
   e(0), s(0), ks(0), fs(0), theCode(0),
-  otherDbTag(0)
+  otherDbTag(0), et(0), sd(0), ksd(0), fsd(0), etAux(0)
 {
   theSection = theSec.getCopy();
 
@@ -375,8 +386,13 @@ SectionAggregator::SectionAggregator (int tag, SectionForceDeformation &theSec,
   s = new Vector(&workArea[maxOrder], order);
   ks = new Matrix(&workArea[2*maxOrder], order, order);
   fs = new Matrix(&workArea[maxOrder*(maxOrder+2)], order, order);
+
+  et = new Vector(workArea2, order);
+  sd = new Vector(&workArea2[maxOrder], order);
+  ksd = new Matrix(&workArea2[2 * maxOrder], order, order);
+  fsd = new Matrix(&workArea2[maxOrder * (maxOrder + 2)], order, order);
   
-  if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0) {
+  if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0 || et == 0 || sd == 0 || ksd == 0 || fsd == 0) {
     opserr << "SectionAggregator::SectionAggregator   " << tag << " -- out of memory\n";
     exit(-1);
   }
@@ -428,15 +444,23 @@ int SectionAggregator::setTrialSectionDeformation (const Vector &def)
 {
   int ret = 0;
   int i = 0;
+  int rett = 0;
 
   int theSectionOrder = 0;
 
   if (theSection) {
     theSectionOrder = theSection->getOrder();
     Vector v(workArea, theSectionOrder);
+    Vector vt(workArea2, theSectionOrder);
     
-    for (i = 0; i < theSectionOrder; i++)
-      v(i) = def(i);
+    for (i = 0; i < theSectionOrder; i++) {
+
+
+        v(i) = def(i);
+        vt(i) = etAux(i);
+    }
+
+    rett = theSection->setTrialSectionDeformationRate(vt);
     
     ret = theSection->setTrialSectionDeformation(v);
   }
@@ -444,10 +468,22 @@ int SectionAggregator::setTrialSectionDeformation (const Vector &def)
   int order = theSectionOrder + numMats;
   
   for ( ; i < order; i++)
-    ret += theAdditions[i-theSectionOrder]->setTrialStrain(def(i));
+    ret += theAdditions[i-theSectionOrder]->setTrialStrain(def(i), etAux(i));
   
   return ret;
 }
+
+int SectionAggregator::setTrialSectionDeformationRate(const Vector& defRate)
+{
+    int ret = 0;
+    int i = 0;
+
+    etAux = defRate;
+
+
+
+    return ret;
+ }
 
 const Vector &
 SectionAggregator::getSectionDeformation(void)
@@ -1300,3 +1336,81 @@ SectionAggregator::getdedh(void)
 {
   return dedh;
 }
+///adding fiber damping ///
+
+const Vector&
+SectionAggregator::getSectionDeformationRate(void)
+{
+    int i = 0;
+
+    int theSectionOrder = 0;
+
+    if (theSection) {
+        const Vector& eSec = theSection->getSectionDeformationRate();
+        theSectionOrder = theSection->getOrder();
+
+        for (i = 0; i < theSectionOrder; i++)
+            (*et)(i) = eSec(i);
+    }
+
+    int order = theSectionOrder + numMats;
+
+    for (; i < order; i++)
+        (*et)(i) = theAdditions[i - theSectionOrder]->getStrainRate();
+    return *et;
+}
+
+const Vector&
+SectionAggregator::getStressResultantDamping(void)
+{
+    int i = 0;
+
+    int theSectionOrder = 0;
+
+    if (theSection) {
+        const Vector& sSec = theSection->getStressResultantDamping();
+        theSectionOrder = theSection->getOrder();
+
+        for (i = 0; i < theSectionOrder; i++)
+            (*sd)(i) = sSec(i);
+    }
+
+    int order = theSectionOrder + numMats;
+
+    for (; i < order; i++)
+        (*sd)(i) = theAdditions[i - theSectionOrder]->getStressDamping();
+
+
+    return *sd;
+}
+
+
+const Matrix&
+SectionAggregator::getSectionTangentDamping(void)
+{
+    int i = 0;
+
+    int theSectionOrder = 0;
+
+    // Zero before assembly
+    ksd->Zero();
+
+    if (theSection) {
+        const Matrix& kSec = theSection->getSectionTangentDamping();
+        theSectionOrder = theSection->getOrder();
+
+        for (i = 0; i < theSectionOrder; i++)
+            for (int j = 0; j < theSectionOrder; j++)
+                (*ksd)(i, j) = kSec(i, j);
+    }
+
+    int order = theSectionOrder + numMats;
+
+    for (; i < order; i++)
+        (*ksd)(i, i) = theAdditions[i - theSectionOrder]->getDampTangent();
+
+    return *ksd;
+}
+
+///added by jose - end///
+
