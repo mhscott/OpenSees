@@ -354,45 +354,32 @@ ZeroLengthSection::getTangentStiff(void)
 }
 
 //added tangent damping matrix
-const Matrix&
-ZeroLengthSection::getDampTangent(void)
+const Matrix& ZeroLengthSection::getDampTangent(void)
 {
-	
-	const Matrix& kbd = theSection->getSectionTangentDamping();
-	// Compute element damping matrix ... K = A^*kb*A
-	Kd->addMatrixTripleProduct(0.0, *A, kbd, 1.0);
-	return *Kd;
+	const Matrix& kbd = theSection->getSectionTangent();
+
+	// Kd = A^T * kbd * A
+	//Kd->addMatrixTripleProduct(0.0, A, kbd, 1.0);
+
+	return kbd;
 }
 
-
-const Matrix &
-ZeroLengthSection::getDamp()
+// Compute total damping matrix
+const Matrix& ZeroLengthSection::getDamp()
 {
-	if (numDOF == 6) {
-		K6d = this->getDampTangent();
+	// Choose the appropriate damping matrix storage based on DOF
+	Matrix& K = (numDOF == 6) ? K6d : K12d;
 
-		if (useRayleighDamping == 1) {
+	// Initialize with tangent damping
+	K = this->getDampTangent();
 
-			K6d.addMatrix(1.0, this->Element::getDamp(), 1);
-		}
-
-		return K6d;
-	}
-	else {
-		K12d = this->getDampTangent();
-
-		if (useRayleighDamping == 1) {
-
-			K12d.addMatrix(1.0, this->Element::getDamp(), 1);
-		}
-
-		return K12d;
+	// Add Rayleigh damping if enabled
+	if (useRayleighDamping) {
+		K.addMatrix(1.0, this->Element::getDamp(), 1);
 	}
 
-	
-
+	return K;
 }
-
 
 
 const Matrix &
