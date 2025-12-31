@@ -67,8 +67,8 @@ HardeningMaterial2::~HardeningMaterial2()
 int 
 HardeningMaterial2::setTrialStrain (double strain, double strainRate)
 {
-  if (fabs(Tstrain-strain) < DBL_EPSILON)
-    return 0;
+  //  if (fabs(Tstrain-strain) < DBL_EPSILON)
+  //return 0;
   
   // Set total strain
   Tstrain = strain;
@@ -474,6 +474,7 @@ HardeningMaterial2::Print(OPS_Stream &s, int flag)
   s << "  eta: " << eta << endln;
 }
 
+/*
 double
 HardeningMaterial2::getStressSensitivity(int gradIndex, bool conditional)
 {
@@ -503,3 +504,4 @@ HardeningMaterial2::commitSensitivity(double strainGradient,
 
   return this->setStrainGradient(gradIndex, strainGradient);
 }
+*/

@@ -63,14 +63,24 @@ class HardeningMaterial2 : public UniaxialMaterial
   
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int parameterID, Information &info);
+
+  int getActiveParameter(double &param) {if (parameterID == 1) param = E; return parameterID;}
   
   // AddingSensitivity:BEGIN //////////////////////////////////////////
   int activateParameter(int parameterID);
+  /*
   double getStressSensitivity(int gradNumber, bool conditional);
   double getInitialTangentSensitivity(int gradNumber);
   int commitSensitivity(double strainGradient, int gradNumber, int numGrads);
+  */
   // AddingSensitivity:END ///////////////////////////////////////////
-  
+
+  int getNumHistoryVariables(void) {return 3;}
+  int getTrialHistoryVariables(double *hstv) {hstv[0] = TplasticStrain; hstv[1] = TbackStress; hstv[2] = Thardening; return 0;}
+  int setTrialHistoryVariables(const double *hstv) {TplasticStrain = hstv[0]; TbackStress = hstv[1]; Thardening = hstv[2]; return 0;}
+  int getCommittedHistoryVariables(double *hstv) {hstv[0] = CplasticStrain; hstv[1] = CbackStress; hstv[2] = Chardening; return 0;}
+  int setCommittedHistoryVariables(const double *hstv) {CplasticStrain = hstv[0]; CbackStress = hstv[1]; Chardening = hstv[2]; return 0;}  
+    
  protected:
   
  private:
