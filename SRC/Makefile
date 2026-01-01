@@ -775,6 +775,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/Neoprene.o \
 	$(FE)/material/uniaxial/ASD_SMA_3K.o \
 	$(FE)/material/uniaxial/ASDConcrete1DMaterial.o \
+	$(FE)/material/uniaxial/ASDSteel1DMaterial.o \
 	$(FE)/material/uniaxial/Concrete01.o \
 	$(FE)/material/uniaxial/Concrete02.o \
 	$(FE)/material/uniaxial/Concrete02IS.o \
@@ -886,6 +887,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/TDConcreteMC10.o \
 	$(FE)/material/uniaxial/TDConcreteMC10NL.o \
 	$(FE)/material/uniaxial/CreepMaterial.o \
+	$(FE)/material/uniaxial/CreepShrinkageACI209.o \
 	$(FE)/material/uniaxial/DegradingPinchedBW.o \
 	$(FE)/material/uniaxial/HystereticPoly.o \
 	$(FE)/material/uniaxial/HystereticSmooth.o \
@@ -1005,6 +1007,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/nD/UWmaterials/J2CyclicBoundingSurfacePlaneStrain.o \
 	$(FE)/material/nD/UWmaterials/PM4Sand.o \
 	$(FE)/material/nD/UWmaterials/PM4Silt.o \
+	$(FE)/material/nD/UWmaterials/LinearElasticGGmax.o \
 	$(FE)/material/nD/UANDESmaterials/SAniSandMS.o \
 	$(FE)/material/nD/UANDESmaterials/SAniSandMS3D.o \
 	$(FE)/material/nD/UANDESmaterials/SAniSandMSPlaneStrain.o \
@@ -1155,6 +1158,8 @@ SECTION_LIBS = $(FE)/material/section/SectionForceDeformation.o \
 	$(FE)/material/section/integration/RCSectionIntegration.o \
 	$(FE)/material/section/integration/RCCircularSectionIntegration.o \
 	$(FE)/material/section/integration/RCTunnelSectionIntegration.o \
+	$(FE)/material/section/integration/MVLEMSectionIntegration.o \
+	$(FE)/material/section/integration/SFIMVLEMSectionIntegration.o \
 	$(FE)/material/section/integration/WideFlangeSectionIntegration.o \
 	$(FE)/material/section/integration/RCTBeamSectionIntegration.o \
 	$(FE)/material/section/integration/TubeSectionIntegration.o \
@@ -1271,7 +1276,9 @@ SequentialSysOfEqn_LIBS =	$(FE)/system_of_eqn/linearSOE/LinearSOE.o \
 	$(HOME)/benny-sparse/benny_symbolic.o \
 	$(HOME)/benny-sparse/benny_numeric.o \
 	$(FE)/system_of_eqn/eigenSOE/FullGenEigenSOE.o \
-	$(FE)/system_of_eqn/eigenSOE/FullGenEigenSolver.o
+	$(FE)/system_of_eqn/eigenSOE/FullGenEigenSolver.o \
+	$(FE)/system_of_eqn/eigenSOE/SymmGeneralizedEigenSOE.o \
+	$(FE)/system_of_eqn/eigenSOE/SymmGeneralizedEigenSolver.o
 
 ifeq ($(PROGRAMMING_MODE), PARALLEL_INTERPRETERS)
 SysOfEqn_LIBS = $(SequentialSysOfEqn_LIBS) \
@@ -1329,6 +1336,7 @@ DOMAIN_LIBS =  $(FE)/domain/component/DomainComponent.o \
 	$(FE)/domain/load/Beam2dPointLoad.o \
 	$(FE)/domain/load/Beam2dTempLoad.o \
 	$(FE)/domain/load/Beam2dThermalAction.o \
+    $(FE)/domain/load/BeamUniformMoment.o \
 	$(FE)/domain/load/NodalThermalAction.o \
 	$(FE)/domain/load/ThermalActionWrapper.o \
 	$(FE)/domain/load/Beam3dThermalAction.o \

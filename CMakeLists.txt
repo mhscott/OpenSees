@@ -287,6 +287,8 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/OTHER/ARPACK")
 set (ARPACK_LIBRARIES ARPACK)
 add_subdirectory("${PROJECT_SOURCE_DIR}/OTHER/CSPARSE")
 set (CSPARSE_LIBRARIES CSPARSE)
+add_subdirectory("${PROJECT_SOURCE_DIR}/OTHER/ITPACK")
+set (ITPACK_LIBRARIES ITPACK)
 add_subdirectory("${PROJECT_SOURCE_DIR}/OTHER/tetgen1.4.3")
 set (TETGEN_LIBRARIES tet)
 add_subdirectory("${PROJECT_SOURCE_DIR}/OTHER/Triangle")
@@ -377,7 +379,14 @@ if(MKL_FOUND)
      set (SCALAPACK_LIBRARIES ${MKL_LIBRARIES})
   endif()
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set (MKL_LPATH ${MKL_ROOT}/lib/intel64)
+     if(EXISTS "${MKL_ROOT}/lib/mkl_core.lib")
+      set(MKL_LPATH "${MKL_ROOT}/lib")
+    elseif(EXISTS "${MKL_ROOT}/lib/intel64/mkl_core.lib")
+      set(MKL_LPATH "${MKL_ROOT}/lib/intel64")
+    else()
+      message(FATAL_ERROR "MKL libraries not found in expected locations")
+    endif()
+
     set (SCALAPACK_LIBRARIES "${MKL_LPATH}/mkl_scalapack_ilp64.lib;${MKL_LPATH}/mkl_intel_ilp64.lib;${MKL_LPATH}/mkl_sequential.lib;${MKL_LPATH}/mkl_core.lib;${MKL_LPATH}/mkl_blacs_intelmpi_ilp64.lib")
   endif()
 
@@ -406,7 +415,7 @@ target_link_libraries(OPS_Numerics INTERFACE
        ${TETGEN_LIBRARIES}
        ${TRIANGLE_LIBRARIES}
        ${AMD_LIBRARIES}
-       ${AMD_LIBRARIES}
+       ${ITPACK_LIBRARIES}
        ${LAPACK_LIBRARIES}
        ${EIGENAPI_LIBRARIES}
 )
