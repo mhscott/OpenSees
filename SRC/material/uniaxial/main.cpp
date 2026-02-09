@@ -41,8 +41,8 @@
 #include <ViscousDamper.h>
 #include <BilinearOilDamper.h>
 
-#include <Bidirectional.h>
-#include <Elliptical2.h>
+//#include <Bidirectional.h>
+//#include <Elliptical2.h>
 
 #include <Parameter.h>
 #include <Information.h>
@@ -215,7 +215,7 @@ int main()
 
   double eps[Nsteps];
   for (int i = 0; i < Nsteps; i++) {
-    eps[i] = epsmax*i/Nsteps;
+    //eps[i] = epsmax*i/Nsteps;
     eps[i] = epsmax*sin(i*0.01);
   }
 
@@ -287,7 +287,6 @@ int main()
     theMaterial->setTrialHistoryVariables(hstvP);
     */
     theMaterial->setTrialStrain(eps[i],epsdot);
-
     /*
     double sig = theMaterial->getStress();
     theMaterial->getTrialHistoryVariables(hstvP);
@@ -302,10 +301,10 @@ int main()
     theMaterial->getTrialHistoryVariables(hstvP2);
 
     // 11/14/2025 -- this has to be called!
-    //theMaterial->commitState();
+    theMaterial->commitState();
 
     mixed[i] = (sig2-sig)/dh;
-    */
+    */  
     mixed[i] = theMaterial->getStressSensitivity(0, true);
 
     i++;
