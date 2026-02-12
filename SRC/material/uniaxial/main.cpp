@@ -237,7 +237,7 @@ int main()
 
   theMaterial->revertToStart();  
   
-  double dh = 0.001*h0;
+  double dh = 1e-5*h0;
   double h = h0 + dh;
 
   Information info;
@@ -276,36 +276,41 @@ int main()
   
   double mixed[Nsteps];
 
+  bool useUniaxial = true;
+  //  useUniaxial = false;
+  
   i = 0;
   while (i < Nsteps) {
     double epsdot = 0.0;
 
-    /*
-    info.theDouble = h0;
-    theMaterial->updateParameter(pid2, info);
-    theMaterial->setCommittedHistoryVariables(hstvP);
-    theMaterial->setTrialHistoryVariables(hstvP);
-    */
+    if (!useUniaxial) {
+      info.theDouble = h0;
+      theMaterial->updateParameter(pid2, info);
+      theMaterial->setCommittedHistoryVariables(hstvP);
+      theMaterial->setTrialHistoryVariables(hstvP);
+    }
     theMaterial->setTrialStrain(eps[i],epsdot);
-    /*
     double sig = theMaterial->getStress();
-    theMaterial->getTrialHistoryVariables(hstvP);
-
-    info.theDouble = h;
-    theMaterial->updateParameter(pid2, info);
-    theMaterial->setCommittedHistoryVariables(hstvP2);
-    theMaterial->setTrialHistoryVariables(hstvP2);
-    theMaterial->setTrialStrain(eps[i],epsdot);
-
-    double sig2 = theMaterial->getStress();
-    theMaterial->getTrialHistoryVariables(hstvP2);
-
-    // 11/14/2025 -- this has to be called!
     theMaterial->commitState();
+      
+    if (!useUniaxial) {
+      theMaterial->getTrialHistoryVariables(hstvP);
 
-    mixed[i] = (sig2-sig)/dh;
-    */  
-    mixed[i] = theMaterial->getStressSensitivity(0, true);
+      info.theDouble = h;
+      theMaterial->updateParameter(pid2, info);
+      theMaterial->setCommittedHistoryVariables(hstvP2);
+      theMaterial->setTrialHistoryVariables(hstvP2);
+      theMaterial->setTrialStrain(eps[i],epsdot);
+      
+      double sig2 = theMaterial->getStress();
+      theMaterial->getTrialHistoryVariables(hstvP2);
+      
+      mixed[i] = (sig2-sig)/dh;
+
+      //theMaterial->commitState();
+    } 
+    else
+      mixed[i] = theMaterial->getStressSensitivity(0, true);
 
     i++;
   }
