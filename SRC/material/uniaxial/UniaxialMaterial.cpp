@@ -433,6 +433,11 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
   double sig2 = this->getStress();
   this->getTrialHistoryVariables(hstvP2);
 
+  //this->commitState();
+
+  info.theDouble = h0;
+  this->updateParameter(paramID, info);
+  
   return (sig2-sig)/dh;
 }
 
