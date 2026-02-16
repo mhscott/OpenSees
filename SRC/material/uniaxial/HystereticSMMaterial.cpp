@@ -14,7 +14,6 @@
 ** Developed by:                                                      **
 **   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
 **   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
 // $Revision: 1.1 $
@@ -55,6 +54,9 @@
 // degraded unloading stiffness based on maximum ductility.  This
 // is a modified implementation of Hyster2.f90 by Filippou.
 // with 3 arguments, it reverts back to hysteretic
+
+
+
 
 
 #include <stdlib.h>
@@ -120,7 +122,6 @@ OPS_HystereticSMMaterial(void)
     int loc = 2;
 
     double beta = 0;
-    double rotY = 1;
 
 
     // Read the optional arguments first
@@ -544,7 +545,7 @@ HystereticSMMaterial::HystereticSMMaterial(int tag, const Vector& posEnvIN, cons
 
     if (nrotYArray == 1) {
         rotYp = rotYArray[0];
-        rotYn = rotYArray[0];
+        rotYn = -rotYArray[0];
     }
     else if (nrotYArray == 0) {
         rotYp = 0;
@@ -857,16 +858,33 @@ HystereticSMMaterial::HystereticSMMaterial(int tag, const Vector& posEnvIN, cons
     mom2p_ref = mom2p;  mom3p_ref = mom3p;  mom4p_ref = mom4p;
     mom5p_ref = mom5p;  mom6p_ref = mom6p;  mom7p_ref = mom7p;
 
+    rot1p_ref = rot1p;
     rot2p_ref = rot2p;  rot3p_ref = rot3p;  rot4p_ref = rot4p;
     rot5p_ref = rot5p;  rot6p_ref = rot6p;  rot7p_ref = rot7p;
 
     mom2n_ref = mom2n;  mom3n_ref = mom3n;  mom4n_ref = mom4n;
     mom5n_ref = mom5n;  mom6n_ref = mom6n;  mom7n_ref = mom7n;
 
+    rot1n_ref = rot1n;
     rot2n_ref = rot2n;  rot3n_ref = rot3n;  rot4n_ref = rot4n;
     rot5n_ref = rot5n;  rot6n_ref = rot6n;  rot7n_ref = rot7n;
 
+    // -- elastic-material properties (if placed in series, they have the same moment)
+    if (rotYp > 0) {
+        KeP = mom1p / rotYp;   // > 0
+    }
+    else {
+        KeP = mom1p / rot1p;   // > 0
+    }
+    if (rotYn < 0) {
+        KeN = mom1n / rotYn;   // > 0 (neg/neg)
+    }
+    else {
+        KeN = mom1n / rot1n;   // > 0 (neg/neg)
+    }
 
+    damfc1Mag = fabs(damfc1);
+    ductBothSides = (damfc1 < 0.0);
 
 
     // Compute slopes + Eup/Eun
@@ -1091,51 +1109,112 @@ HystereticSMMaterial::getTangent(void)
     return Ttangent;
 }
 
+double HystereticSMMaterial::damDuctPos(double tiny)
+{
+    if (CrotMax <= rot1p) return 0.0;
+
+    if (CrotMax > CrotMaxDuctUsed) TrotMaxDuctUsed = CrotMax;
+    else                           TrotMaxDuctUsed = CrotMaxDuctUsed;
+
+    double Den = rot1p + rotYp;
+    if (fabs(Den) < tiny) Den = (Den < 0.0 ? -tiny : tiny);
+
+    if (TrotMaxDuctUsed <= rot1p) return 0.0;
+
+    return damfc1Mag * (TrotMaxDuctUsed - rot1p) / fabs(Den);
+}
+
+double HystereticSMMaterial::damDuctNeg(double tiny)
+{
+    if (CrotMin >= rot1n) return 0.0;
+
+    if (CrotMin < CrotMinDuctUsed) TrotMinDuctUsed = CrotMin;
+    else                           TrotMinDuctUsed = CrotMinDuctUsed;
+
+    double Den = rot1n + rotYn;
+    if (fabs(Den) < tiny) Den = (Den < 0.0 ? -tiny : tiny);
+
+    if (TrotMinDuctUsed >= rot1n) return 0.0;
+
+    return damfc1Mag * (rot1n - TrotMinDuctUsed) / fabs(Den);
+}
+
+
 void
 HystereticSMMaterial::positiveIncrement(double dStrain)
 {
-    double damAdjHere = 0;
-    const double denomN = fabs(rot1n + rotYn);
-    const double denomSafeN = (denomN > 1e-12) ? denomN : 1e-12;
-    double kn = pow(fabs(CrotMin) / denomSafeN, beta); // adding elastic component to ductility calc
+
+
+    double NumerN = CrotMin;
+    double DenomN = rot1n;
+    if (CrotMin < rot1n) {          // exceeded negative yield
+        DenomN += rotYn;            // add elastic component (negative)
+    }
+    double NumerP = CrotMax;
+    double DenomP = rot1p;
+    if (CrotMax > rot1p) {          // exceeded positive yield
+        DenomP += rotYp;            // add elastic component (positive)
+    }
+
+    const double tiny = 1e-14;
+    if (fabs(DenomN) < tiny) DenomN = (DenomN < 0.0 ? -tiny : tiny);
+    if (fabs(DenomP) < tiny) DenomP = (DenomP < 0.0 ? -tiny : tiny);
+
+    double kn = pow(fabs(NumerN / DenomN), beta);
     kn = (kn < 1.0) ? 1.0 : 1.0 / kn;
-    const double denomP = fabs(rot1p + rotYp);
-    const double denomSafeP = (denomP > 1e-12) ? denomP : 1e-12;
-    double kp = pow(fabs(CrotMax) / denomSafeP, beta); // adding elastic component to ductility calc
+    double kp = pow(fabs(NumerP / DenomP), beta);
     kp = (kp < 1.0) ? 1.0 : 1.0 / kp;
+
+
+    double damAdjHere = 0;
+
 
     if (TloadIndicator == 2) {
         TloadIndicator = 1;
         if (Cstress <= 0.0) {
+
+            // Recompute kn using TOTAL rotation (plastic + elastic-in-series),
+            // using the stress at the reversal (sign-consistent here).
+            double NumerNtot = CrotMin;
+            if (rotYn != 0.0) NumerNtot += Cstress / KeN;   // Cstress <= 0, KeN > 0 -> adds negative elastic rot
+            double DenomNtot = rot1n + rotYn;
+
+            if (fabs(DenomNtot) < tiny) DenomNtot = (DenomNtot < 0.0 ? -tiny : tiny);
+
+            kn = pow(fabs(NumerNtot / DenomNtot), beta);
+            kn = (kn < 1.0) ? 1.0 : 1.0 / kn;
+
+            // Now kn is updated and can be used everywhere below
             TrotNu = Cstrain - Cstress / (Eun * kn);
+
+
+
             double energy = CenergyD - 0.5 * Cstress / (Eun * kn) * Cstress;
+            if (energy < 0.0) energy = 0.0;
             double damfc = 0.0;
-            if (CrotMin < rot1n) {
-                // --- energy part (can grow every reversal) ---
-                const double damEnergy = damfc2 * energy / energyA;
+            // --- energy part (can grow every reversal) ---
+            double damEnergy = 0.0;
+            if (energyA > 0.0) damEnergy = damfc2 * energy / energyA;
                 
-                // --- update the ductility-peak tracker ONLY if a new peak is reached ---
-                // (remember: CrotMin is plastic rotation; rotYn is ONLY for normalization)
-                if (CrotMin < CrotMinDuctUsed) {
-                    TrotMinDuctUsed = CrotMin;
-                }
-                else {
-                    TrotMinDuctUsed = CrotMinDuctUsed;
-                }
-                // --- ductility part: incremental ductility above yield (damage = 0 at first yield) ---
-                double damDuct = 0.0;
-                if (TrotMinDuctUsed < rot1n) {
-                    // incremental plastic beyond yield, normalized by "yield + elastic component"
-                    damDuct = damfc1 * (rot1n - TrotMinDuctUsed) / denomSafeN;
-                }
+            //// --- ductility part: incremental ductility above yield (damage = 0 at first yield) ---
+            double damDuct = 0.0;
+            if (!ductBothSides) {
+                damDuct = damDuctPos(tiny);                 // same-direction only
+            }
+            else {
+                damDuct = damDuctPos(tiny) + damDuctNeg(tiny); // both-sides mode
+            }
+            
 
-                damfc = damEnergy + damDuct;
+            damfc = damEnergy + damDuct;
 
-                //damfc = damfc2 * energy / energyA;
-                //// use incremental ductility: mu−1, then damage = 0 at mu=1 by construction, and you start accumulating ductility-driven damage only after you exceed yield.
-                //damfc += damfc1 * (rot1n - CrotMin) / fabs(rot1n + rotYn); // adding elastic component to ductility calc for damage factor
+            if (damfc < 0.0) damfc = 0.0;
+            if (damfc > 1.0e6) damfc = 1.0e6;  // or some sane upper bound
+
+            if (damfc > 0) {
                 if (degEnvp != 0) {
                     damAdjHere = 1.0 - fabs(degEnvp) * damfc;
+                    if (damAdjHere > 1) damAdjHere = 1;
                     if (damAdjHere < 1e-9) damAdjHere = 1e-9;
                     mom2p = damAdjHere * mom2p_ref;
                     mom3p = damAdjHere * mom3p_ref;
@@ -1144,12 +1223,12 @@ HystereticSMMaterial::positiveIncrement(double dStrain)
                     mom6p = damAdjHere * mom6p_ref;
                     mom7p = damAdjHere * mom7p_ref;
                     if (degEnvp > 0) {
-                        rot2p = damAdjHere * rot2p_ref;
-                        rot3p = damAdjHere * rot3p_ref;
-                        rot4p = damAdjHere * rot4p_ref;
-                        rot5p = damAdjHere * rot5p_ref;
-                        rot6p = damAdjHere * rot6p_ref;
-                        rot7p = damAdjHere * rot7p_ref;
+                        rot2p = rot1p_ref + damAdjHere * (rot2p_ref - rot1p_ref);
+                        rot3p = rot1p_ref + damAdjHere * (rot3p_ref - rot1p_ref);
+                        rot4p = rot1p_ref + damAdjHere * (rot4p_ref - rot1p_ref);
+                        rot5p = rot1p_ref + damAdjHere * (rot5p_ref - rot1p_ref);
+                        rot6p = rot1p_ref + damAdjHere * (rot6p_ref - rot1p_ref);
+                        rot7p = rot1p_ref + damAdjHere * (rot7p_ref - rot1p_ref);
                     }
                     else {
                         // keep deformation locations fixed
@@ -1158,8 +1237,14 @@ HystereticSMMaterial::positiveIncrement(double dStrain)
                     }
                     this->setEnvelope();
                 }
+                
             }
-            TrotMax = CrotMax * (1.0 + damfc);
+            if (damfc < CdamfcPeak) damfc = CdamfcPeak;
+            double ratio = (1.0 + damfc) / (1.0 + CdamfcPeak);
+            TrotMax = CrotMax * ratio;
+            TdamfcPeak = damfc;
+
+            //TrotMax = CrotMax * (1.0 + damfc);
         }
     }
 
@@ -1174,16 +1259,13 @@ HystereticSMMaterial::positiveIncrement(double dStrain)
     double rotlim = negEnvlpRotlim(CrotMin);
     double rotrel = (rotlim > TrotNu) ? rotlim : TrotNu;
 
-    // rotrel = TrotNu;
-    // if (negEnvlpStress(CrotMin) >= 0.0)
-    //    rotrel = rotlim;
-
-    //	double rotmp1 = rotrel + pinchY*(TrotMax-rotrel);
 
     double rotmp2 = TrotMax - (1.0 - pinchY) * maxmom / (Eup * kp);
-    //double rotmp2 = TrotMax-(1-pinchY)*maxmom/Eup;
-    //	double rotch = rotmp1 + (rotmp2-rotmp1)*pinchX;
     double rotch = rotrel + (rotmp2 - rotrel) * pinchX;                   // changed on 7/11/2006
+
+    //opserr << "Eup,maxmom,kp: " << Eup << "," << maxmom << "," << kp << endln;
+    //opserr << "rotmp2,rotch,0: " << rotmp2 << "," << rotch << "," << 0 << endln;
+
 
     double tmpmo1;
     double tmpmo2;
@@ -1234,49 +1316,84 @@ void
 HystereticSMMaterial::negativeIncrement(double dStrain)
 {
 
-    //double rot1p_tot = rot1p + rotYp;
-    //double rot1n_tot = rot1n + rotYn;
+
+    double NumerN = CrotMin;
+    double DenomN = rot1n;
+    if (CrotMin < rot1n) {          // exceeded negative yield
+        DenomN += rotYn;            // add elastic component (negative)
+    }
+    double NumerP = CrotMax;
+    double DenomP = rot1p;
+    if (CrotMax > rot1p) {          // exceeded positive yield
+        DenomP += rotYp;            // add elastic component (positive)
+    }
+
+    const double tiny = 1e-14;
+    if (fabs(DenomN) < tiny) DenomN = (DenomN < 0.0 ? -tiny : tiny);
+    if (fabs(DenomP) < tiny) DenomP = (DenomP < 0.0 ? -tiny : tiny);
+
+    double kn = pow(fabs(NumerN / DenomN), beta);
+    kn = (kn < 1.0) ? 1.0 : 1.0 / kn;
+    double kp = pow(fabs(NumerP / DenomP), beta);
+    kp = (kp < 1.0) ? 1.0 : 1.0 / kp;
 
 
     double damAdjHere = 0;
-    const double denomN = fabs(rot1n + rotYn);
-    const double denomSafeN = (denomN > 1e-12) ? denomN : 1e-12;
-    double kn = pow(fabs(CrotMin) / denomSafeN, beta); // adding elastic component to ductility calc
-    kn = (kn < 1.0) ? 1.0 : 1.0 / kn;
-    const double denomP = fabs(rot1p + rotYp);
-    const double denomSafeP = (denomP > 1e-12) ? denomP : 1e-12;
-    double kp = pow(fabs(CrotMax) / denomSafeP, beta); // adding elastic component to ductility calc
-    kp = (kp < 1.0) ? 1.0 : 1.0 / kp;
+
 
     if (TloadIndicator == 1) {
         TloadIndicator = 2;
         if (Cstress >= 0.0) {
+            //TrotPu = Cstrain - Cstress / (Eup * kp);
+
+
+            // Recompute kp using TOTAL rotation (plastic + elastic-in-series),
+            // using the stress at the reversal (sign-consistent here).
+            double NumerPtot = CrotMax;
+            if (rotYp != 0.0) NumerPtot += Cstress / KeP;   
+            double DenomPtot = rot1p + rotYp;
+
+            if (fabs(DenomPtot) < tiny) DenomPtot = (DenomPtot < 0.0 ? -tiny : tiny);
+
+            kp = pow(fabs(NumerPtot / DenomPtot), beta);
+            kp = (kp < 1.0) ? 1.0 : 1.0 / kp;
+
+            // Now kp is updated and can be used everywhere below
             TrotPu = Cstrain - Cstress / (Eup * kp);
+
+
+
             double energy = CenergyD - 0.5 * Cstress / (Eup * kp) * Cstress;
+            if (energy < 0.0) energy = 0.0;
             double damfc = 0.0;
-            if (CrotMax > rot1p) {
-                // use incremental ductility: mu−1, then damage = 0 at mu=1 by construction, and you start accumulating ductility-driven damage only after you exceed yield.
-                // update ductility component ONLY if peak increased
-                // --- update ductility peak ONLY if a new peak is reached ---
-                if (CrotMax > CrotMaxDuctUsed) {
-                    TrotMaxDuctUsed = CrotMax;
-                }
-                else {
-                    TrotMaxDuctUsed = CrotMaxDuctUsed;
-                }
 
-                // --- energy part ---
-                const double damEnergy = damfc2 * energy / energyA;
+            // --- energy part ---
+            //const double damEnergy = damfc2 * energy / energyA;
+            double damEnergy = 0.0;
+            if (energyA > 0.0) damEnergy = damfc2 * energy / energyA;
 
-                // --- ductility part: incremental beyond yield ---
-                double damDuct = 0.0;
-                if (TrotMaxDuctUsed > rot1p) {
-                    damDuct = damfc1 * (TrotMaxDuctUsed - rot1p) / denomSafeP;
-                }
 
-                damfc = damEnergy + damDuct;
+            //// --- ductility part: incremental beyond yield ---
+            double damDuct = 0.0;
+            if (!ductBothSides) {
+                damDuct = damDuctNeg(tiny);
+            }
+            else {
+                damDuct = damDuctPos(tiny) + damDuctNeg(tiny);
+            }
+
+
+
+            damfc = damEnergy + damDuct;
+
+            if (damfc < 0.0) damfc = 0.0;
+            if (damfc > 1.0e6) damfc = 1.0e6;  // or some sane upper bound
+
+            if (damfc > 0) {
+
                 if (degEnvn != 0) {
                     damAdjHere = 1.0 - fabs(degEnvn) * damfc;
+                    if (damAdjHere >  1) damAdjHere = 1;
                     if (damAdjHere < 1e-9) damAdjHere = 1e-9;
                     mom2n = damAdjHere * mom2n_ref;
                     mom3n = damAdjHere * mom3n_ref;
@@ -1285,12 +1402,12 @@ HystereticSMMaterial::negativeIncrement(double dStrain)
                     mom6n = damAdjHere * mom6n_ref;
                     mom7n = damAdjHere * mom7n_ref;
                     if (degEnvn > 0) {
-                        rot2n = damAdjHere * rot2n_ref;
-                        rot3n = damAdjHere * rot3n_ref;
-                        rot4n = damAdjHere * rot4n_ref;
-                        rot5n = damAdjHere * rot5n_ref;
-                        rot6n = damAdjHere * rot6n_ref;
-                        rot7n = damAdjHere * rot7n_ref;
+                        rot2n = rot1n_ref + damAdjHere * (rot2n_ref - rot1n_ref);
+                        rot3n = rot1n_ref + damAdjHere * (rot3n_ref - rot1n_ref);
+                        rot4n = rot1n_ref + damAdjHere * (rot4n_ref - rot1n_ref);
+                        rot5n = rot1n_ref + damAdjHere * (rot5n_ref - rot1n_ref);
+                        rot6n = rot1n_ref + damAdjHere * (rot6n_ref - rot1n_ref);
+                        rot7n = rot1n_ref + damAdjHere * (rot7n_ref - rot1n_ref);
                     }
                     else {
                         rot2n = rot2n_ref; rot3n = rot3n_ref; rot4n = rot4n_ref;
@@ -1300,8 +1417,12 @@ HystereticSMMaterial::negativeIncrement(double dStrain)
                     this->setEnvelope();
                 }
             }
+            if (damfc < CdamfcPeak) damfc = CdamfcPeak;
+            double ratio = (1.0 + damfc) / (1.0 + CdamfcPeak);
+            TrotMin = CrotMin * ratio;
+            TdamfcPeak = damfc;
 
-            TrotMin = CrotMin * (1.0 + damfc);
+            //TrotMin = CrotMin * (1.0 + damfc);
         }
     }
 
@@ -1371,6 +1492,8 @@ HystereticSMMaterial::negativeIncrement(double dStrain)
 
 }
 
+
+
 int
 HystereticSMMaterial::commitState(void)
 {
@@ -1387,6 +1510,10 @@ HystereticSMMaterial::commitState(void)
 
     CrotMinDuctUsed = TrotMinDuctUsed;
     CrotMaxDuctUsed = TrotMaxDuctUsed;
+
+    CdamfcPeak = TdamfcPeak;
+
+
 
     return 0;
 }
@@ -1407,6 +1534,10 @@ HystereticSMMaterial::revertToLastCommit(void)
 
     TrotMinDuctUsed = CrotMinDuctUsed;
     TrotMaxDuctUsed = CrotMaxDuctUsed;
+
+    TdamfcPeak = CdamfcPeak;
+
+
 
     return 0;
 }
@@ -1434,6 +1565,8 @@ HystereticSMMaterial::revertToStart(void)
     TrotMaxDuctUsed = CrotMaxDuctUsed;
     TrotMinDuctUsed = CrotMinDuctUsed;
 
+    CdamfcPeak = 0.0;
+    TdamfcPeak = 0.0;
 
 
     return 0;

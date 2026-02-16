@@ -88,8 +88,8 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include <TransientIntegrator.h>
 #include <PFEMSolver.h>
 #include <PFEMLinSOE.h>
-#include <SparsePythonFactory.h>
-#include <SparsePythonEigenFactory.h>
+//#include <SparsePythonFactory.h>
+//#include <SparsePythonEigenFactory.h>
 #include <Accelerator.h>
 #include <KrylovAccelerator.h>
 #include <AcceleratedNewton.h>
@@ -1481,14 +1481,14 @@ int OPS_System()
 	}
 
 
-    } else if (strcmp(type,"PythonSparse") == 0) {
+    //} else if (strcmp(type,"PythonSparse") == 0) {
 
-        LinearSOE *pythonSOE = static_cast<LinearSOE *>(OPS_SparsePythonSolver());
-        if (pythonSOE == nullptr) {
-            return -1;
-        }
+    //    LinearSOE *pythonSOE = static_cast<LinearSOE *>(OPS_SparsePythonSolver());
+    //    if (pythonSOE == nullptr) {
+    //        return -1;
+    //    }
 
-        theSOE = pythonSOE;
+    //    theSOE = pythonSOE;
 
     } else if ((strcmp(type,"SparseGeneral") == 0) ||
 	       (strcmp(type,"SuperLU") == 0) ||
@@ -2165,14 +2165,14 @@ int OPS_eigenAnalysis()
             warning_displayed = true;
 		}
         typeSolver = EigenSOE_TAGS_FullGenEigenSOE;
-    }
+    //}
 
-    else if (strcmp(type,"PythonSparse") == 0) {
-        pythonSparseEigen = true;
-        typeSolver = EigenSOE_TAGS_SparsePythonCompressedEigenSOE;
-        // will be updated to the actual type of the eigen solver
-        // after the EigenSOE is created
-        break;
+    //else if (strcmp(type,"PythonSparse") == 0) {
+    //    pythonSparseEigen = true;
+    //    typeSolver = EigenSOE_TAGS_SparsePythonCompressedEigenSOE;
+    //    // will be updated to the actual type of the eigen solver
+    //    // after the EigenSOE is created
+    //    break;
 
     } else {
         opserr << "eigen - unknown option specified " << type
@@ -2194,14 +2194,14 @@ int OPS_eigenAnalysis()
     }
     cmds->setNumEigen(numEigen);
 
-    if (pythonSparseEigen) {
-        void *eigenSOEPtr = OPS_SparsePythonEigenSolver();
-        if (eigenSOEPtr == 0) {
-            return -1;
-        }
-        providedEigenSOE = static_cast<EigenSOE *>(eigenSOEPtr);
-        typeSolver = providedEigenSOE->getClassTag();
-    }
+    //if (pythonSparseEigen) {
+    //    void *eigenSOEPtr = OPS_SparsePythonEigenSolver();
+    //    if (eigenSOEPtr == 0) {
+    //        return -1;
+    //    }
+    //    providedEigenSOE = static_cast<EigenSOE *>(eigenSOEPtr);
+    //    typeSolver = providedEigenSOE->getClassTag();
+    //}
 
     // set eigen soe
     if (cmds->eigen(typeSolver,shift,generalizedAlgo,findSmallest, providedEigenSOE) < 0) {
