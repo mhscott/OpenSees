@@ -200,6 +200,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\SRC\domain\component\LoadFactorParameter.cpp" />
+    <ClCompile Include="..\..\..\SRC\domain\constraints\EQ_Constraint.cpp" />
+    <ClCompile Include="..\..\..\SRC\domain\domain\single\SingleDomEQ_Iter.cpp" />
     <ClCompile Include="..\..\..\SRC\domain\IGA\gaussQuadrature.cpp" />
     <ClCompile Include="..\..\..\SRC\domain\IGA\IGAFollowerLoad.cpp" />
     <ClCompile Include="..\..\..\SRC\domain\IGA\IGASurfacePatch.cpp" />

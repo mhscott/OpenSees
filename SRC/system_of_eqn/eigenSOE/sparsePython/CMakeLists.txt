@@ -1,4 +1,4 @@
-target_sources(OPS_SysOfEqn
+target_sources(OPS_SysOfEqnPython
   PRIVATE
     SparsePythonCompressedEigenSOE.cpp
     SparsePythonCompressedEigenSolver.cpp

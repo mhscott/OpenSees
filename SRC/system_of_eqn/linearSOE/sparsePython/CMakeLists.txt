@@ -1,4 +1,4 @@
-target_sources(OPS_SysOfEqn
+target_sources(OPS_SysOfEqnPython
   PRIVATE
     SparsePythonCompressedLinSOE.cpp
     SparsePythonCompressedLinSolver.cpp
@@ -16,5 +16,5 @@ target_sources(OPS_SysOfEqn
 )
 
 find_package(Python3 COMPONENTS Development REQUIRED)
-target_link_libraries(OPS_SysOfEqn PRIVATE Python3::Python)
+target_link_libraries(OPS_SysOfEqnPython PRIVATE Python3::Python)
 

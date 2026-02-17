@@ -124,33 +124,66 @@ endif()
 find_package(ZLIB REQUIRED)
 find_package(HDF5 REQUIRED)
 find_package(TCL REQUIRED)
-find_package(Eigen3 REQUIRED)
 
+if(TARGET tcl::tcl)
+	  
+    message(STATUS "Found tcl::tcl target")
+    include_directories(${TCL_INCLUDE_DIR})
+    if (TCL_INCLUDE_DIR)
+        find_file(TCL_INIT_FILE init.tcl
+    	    PATHS 
+            "${TCL_INCLUDE_DIR}/../lib"
+            "${TCL_INCLUDE_DIR}/../lib/tcl8.6"
+            NO_DEFAULT_PATH
+    	)
+     endif()
 
-if(TARGET TCL::TCL)
-
-    set(TCL_LIBRARIES TCL::TCL)
-    # 1. Get the library location safely
-    get_target_property(TCL_LIB_PATH TCL::TCL IMPORTED_LOCATION)
-    if(NOT TCL_LIB_PATH)
-        get_target_property(TCL_LIB_PATH TCL::TCL IMPORTED_LOCATION_RELEASE)
+    if(TCL_INIT_FILE)
+        message(STATUS "Confirmed TCL_INIT_FILE at: ${TCL_INIT_FILE}")
+    else()
+        message(WARNING "init.tcl not found automatically. Check your Tcl installation structure.")
     endif()
 
-    # 2. Get the directory containing the library
-    get_filename_component(TCL_LIB_DIR "${TCL_LIB_PATH}" DIRECTORY)
+  else()
+  
+    # This is where Stampede3 usually lands. 
+    # We manually create the lowercase target so the linker is happy.
+    if(TCL_FOUND AND NOT TARGET tcl::tcl)
+        add_library(tcl::tcl UNKNOWN IMPORTED)
+        set_target_properties(tcl::tcl PROPERTIES
+            IMPORTED_LOCATION "${TCL_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${TCL_INCLUDE_PATH}"
+        )
+    endif()
 
-    # 3. Construct the path and FORCE it to be absolute
-    # This resolves the ".." correctly before the install command sees it
+    set(TCL_LIBRARIES tcl::tcl)
+    include_directories(${TCL_INCLUDE_PATH})
+    
+    # Use the actual library path found to find init.tcl
+    get_filename_component(TCL_LIB_DIR "${TCL_LIBRARY}" DIRECTORY)
     get_filename_component(TCL_INIT_FILE "${TCL_LIB_DIR}/tcl8.6/init.tcl" ABSOLUTE)
-    
-else()
 
-    # Fallbacck
-    include_directories(${TCL_INCLUDE_DIR})
-    set(TCL_LIBRARIES ${TCL_LIBRARIES})
-    get_filename_component(TCL_INIT_FILE "${TCL_INCLUDE_PATH}/../lib/tcl8.6/init.tcl" ABSOLUTE)
-    
+    message(STATUS "2 TCL_INIT_FILE at ${TCL_INIT_FILE}")
 endif()
+
+message(STATUS "3 TCL_INIT_FILE at ${TCL_INIT_FILE}")
+
+
+find_package(Eigen3 REQUIRED)
+
+if(TARGET Eigen3::Eigen)
+    # This pulls the include directory directly from the target object
+    get_target_property(EIGEN_INC Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+    include_directories(${EIGEN_INC})
+endif()
+ 
+#if(Eigen3_FOUND)
+#$   message(STATUS "OPS >>> FOUND EIGEN at ${Eigen3_INCLUDE_DIR}")  
+#   include_directories(${Eigen3_INCLUDE_DIR})
+#   add_compile_definitions(_EIGEN3)
+#else()
+#   message(STATUS "OPS >>> Could not find Eigen3")
+#endif()
 
 
 # define user-selectable options for end target
@@ -470,6 +503,7 @@ add_library(OPS_Utilities          OBJECT)
 add_library(OPS_ModelBuilder       OBJECT)
 add_library(OPS_Domain             OBJECT)
 add_library(OPS_SysOfEqn           OBJECT)
+add_library(OPS_SysOfEqnPython     OBJECT)
 #add_library(OPS_SysOfEqnSP        OBJECT)
 add_library(OPS_Analysis           OBJECT)
 add_library(OPS_ConvergenceTest    OBJECT)
@@ -790,6 +824,7 @@ target_include_directories(OpenSeesPy PUBLIC ${Python_INCLUDE_DIRS})
 
 target_link_libraries(OpenSeesPy
    OpenSeesLIB
+   OPS_SysOfEqnPython   
    OPS_Reliability
    OPS_Recorder
    OPS_Numerics
@@ -805,9 +840,14 @@ target_link_libraries(OpenSeesPy
 #
 
 install (TARGETS OpenSees DESTINATION bin)
-install(FILES "${TCL_INIT_FILE}"
-    DESTINATION lib/tcl8.6
-)
+if (TCL_INIT_FILE)
+   install(FILES "${TCL_INIT_FILE}"
+       DESTINATION lib/tcl8.6 
+   )
+endif()
+install(PROGRAMS $<TARGET_FILE:OpenSeesPy> 
+        DESTINATION bin 
+        RENAME opensees.so)
 
 
 # Set selected executable to be built by default
