@@ -186,7 +186,31 @@ endif()
 #endif()
 
 
+#
+# add git log tag
+#
+
+find_package(Git QUIET)
+
+if(GIT_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} log -1 --format=%H
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+else()
+    set(GIT_VERSION "unknown")
+endif()
+
+# Pass this to your code as a preprocessor definition
+add_definitions(-DOPENSEES_VERSION="${GIT_VERSION}")
+
+
+#
 # define user-selectable options for end target
+#
+
 set_property(CACHE OPS_FINAL_TARGET PROPERTY STRINGS
     G3 OpenSees OpenSeesMP OpenSeesSP OpenSeesPy)
 

@@ -16,5 +16,5 @@ target_sources(OPS_SysOfEqnPython
 )
 
 find_package(Python3 COMPONENTS Development REQUIRED)
-target_link_libraries(OPS_SysOfEqn PRIVATE Python3::Python)
+target_link_libraries(OPS_SysOfEqnPython PRIVATE Python3::Python)
 

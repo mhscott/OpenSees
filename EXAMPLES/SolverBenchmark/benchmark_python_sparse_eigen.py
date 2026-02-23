@@ -20,15 +20,27 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as sp_linalg
 
-# Import OpenSeesPy
+# Import OpenSeesPy: prefer local build, else installed openseespy
 SCRIPT_PATH = Path(__file__).resolve()
 FILENAME = SCRIPT_PATH.name
 SCRIPT_DIR = SCRIPT_PATH.parent
 REPO_ROOT = SCRIPT_PATH.parents[2]
-OPENSEESPY_BUILD = REPO_ROOT / "build"
-print(f"[{FILENAME}] Importing OpenSeesPy from: {OPENSEESPY_BUILD}")
-sys.path.append(str(OPENSEESPY_BUILD))
-import opensees as ops
+BUILD_CANDIDATES = (
+    REPO_ROOT / "build" / "Release",
+    REPO_ROOT / "build",
+)
+OPENSEESPY_BUILD = None
+for candidate in BUILD_CANDIDATES:
+    if (candidate / "opensees.so").exists():
+        OPENSEESPY_BUILD = candidate
+        break
+if OPENSEESPY_BUILD is not None:
+    print(f"[{FILENAME}] Importing OpenSeesPy from: {OPENSEESPY_BUILD}")
+    sys.path.insert(0, str(OPENSEESPY_BUILD))
+    import opensees as ops
+else:
+    print(f"[{FILENAME}] No local build found; using openseespy.opensees")
+    import openseespy.opensees as ops
 
 
 # -----------------------------------------------------------------------------
