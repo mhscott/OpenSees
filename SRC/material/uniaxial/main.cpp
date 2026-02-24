@@ -183,7 +183,14 @@ int main()
   //				  0.0, 1, 1e-6, 1e-10, 15);
   //theMaterial = new BilinearOilDamper(0, E, C, Fr, 0.05,
   //				      0.3, 2, 1e-6, 1e-10, 10);  
-				  
+
+  UniaxialMaterial *theDDMmaterial = 0;
+  theDDMmaterial = new HardeningMaterial(0, E, Fy, Hi, Hk);
+
+  const char *argvddm[1];
+  int pidddm;
+  argvddm[0] = "E"; pidddm = 2;
+  
   double epsy = Fy/E;
   double epsmax = 2*epsy;
 
@@ -263,6 +270,7 @@ int main()
   theMaterial->revertToStart();
 
   theMaterial->activateParameter(pid2);
+  theDDMmaterial->activateParameter(pidddm);
   
   int numHV = theMaterial->getNumHistoryVariables();
   
@@ -275,9 +283,10 @@ int main()
   }
   
   double mixed[Nsteps];
-
+  double ddm[Nsteps];
+  
   bool useUniaxial = true;
-  //  useUniaxial = false;
+  //useUniaxial = false;
   
   i = 0;
   while (i < Nsteps) {
@@ -286,9 +295,12 @@ int main()
     if (!useUniaxial) {
       info.theDouble = h0;
       theMaterial->updateParameter(pid2, info);
+      // 1.
       theMaterial->setCommittedHistoryVariables(hstvP);
       theMaterial->setTrialHistoryVariables(hstvP);
     }
+
+    // 2.
     theMaterial->setTrialStrain(eps[i],epsdot);
     double sig = theMaterial->getStress();
     theMaterial->commitState();
@@ -312,12 +324,17 @@ int main()
     else
       mixed[i] = theMaterial->getStressSensitivity(0, true);
 
+    theDDMmaterial->setTrialStrain(eps[i],epsdot);
+    ddm[i] = theDDMmaterial->getStressSensitivity(0, true);
+    theDDMmaterial->commitSensitivity(0, 0, 1);
+    theDDMmaterial->commitState();
+    
     i++;
   }
 
   for (int i = 0; i < Nsteps; i++) {
     //opserr << "sig: " << splot[i] << ", global: " << global[i] << ", mixed: " << mixed[i] << endln;
-    plot << splot[i] << ' ' << global[i] << ' ' << mixed[i] << endln;
+    plot << splot[i] << ' ' << global[i] << ' ' << mixed[i] << ' ' << ddm[i] << endln;
   }
   
 

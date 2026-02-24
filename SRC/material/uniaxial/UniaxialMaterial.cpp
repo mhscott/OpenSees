@@ -397,8 +397,8 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
 {
   double hstvP[10];
   double hstvP2[10];
-  this->getCommittedHistoryVariables(hstvP);
-  this->getCommittedHistoryVariables(hstvP2);
+  this->getTrialHistoryVariables(hstvP);
+  this->getTrialHistoryVariables(hstvP2);
 
   // Get active parameter and its value
   int paramID;
@@ -407,13 +407,15 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
   Information info;
   info.theDouble = h0;
   this->updateParameter(paramID, info);
-  
+
+  // 1.
   this->setCommittedHistoryVariables(hstvP);
   this->setTrialHistoryVariables(hstvP);
 
   // Force a new state determination
   double strain = this->getStrain();
   double strainRate = this->getStrainRate();
+  // 2.
   this->setTrialStrain(strain, strainRate);
   double sig = this->getStress();
   this->getTrialHistoryVariables(hstvP);
