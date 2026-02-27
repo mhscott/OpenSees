@@ -395,10 +395,10 @@ UniaxialMaterial::getResponse(int responseID, Information &matInfo)
 double
 UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
 {
-  double hstvP[10];
-  double hstvP2[10];
-  this->getTrialHistoryVariables(hstvP);
-  this->getTrialHistoryVariables(hstvP2);
+  //double hstvP[10];
+  //double hstvP2[10];
+  //this->getCommittedHistoryVariables(hstvP);
+  //this->getCommittedHistoryVariables(hstvP2);
 
   // Get active parameter and its value
   int paramID;
@@ -439,6 +439,9 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
 
   info.theDouble = h0;
   this->updateParameter(paramID, info);
+
+  // Compute finite difference between hstvP and hstvP2
+  // Compare to sensitivity of history variables from DDM
   
   return (sig2-sig)/dh;
 }

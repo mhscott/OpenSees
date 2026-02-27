@@ -103,6 +103,9 @@ class UniaxialMaterial : public Material
 	virtual int setCommittedHistoryVariables(const double *hstv) {opserr << "UM::setCHV" << endln; return 0;}		
  private:
 	double *sensHstv;
+
+  double hstvP[10];
+  double hstvP2[10];
 };
 
 extern bool OPS_addUniaxialMaterial(UniaxialMaterial *newComponent);
