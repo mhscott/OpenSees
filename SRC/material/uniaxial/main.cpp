@@ -284,6 +284,9 @@ int main()
   
   double mixed[Nsteps];
   double ddm[Nsteps];
+
+  double sigmixed[Nsteps];
+  double sigddm[Nsteps];
   
   bool useUniaxial = true;
   //useUniaxial = false;
@@ -300,11 +303,14 @@ int main()
       theMaterial->setTrialHistoryVariables(hstvP);
     }
 
-    // 2.
-    theMaterial->setTrialStrain(eps[i],epsdot);
-    double sig = theMaterial->getStress();
-    theMaterial->commitState();
-      
+    if (!useUniaxial) {
+      // 2.
+      theMaterial->setTrialStrain(eps[i],epsdot);
+      double sig = theMaterial->getStress();
+      sigmixed[i] = sig;
+      theMaterial->commitState();
+    }
+    
     if (!useUniaxial) {
       theMaterial->getTrialHistoryVariables(hstvP);
 
@@ -317,14 +323,19 @@ int main()
       double sig2 = theMaterial->getStress();
       theMaterial->getTrialHistoryVariables(hstvP2);
       
-      mixed[i] = (sig2-sig)/dh;
+      mixed[i] = (sig2-sigmixed[i])/dh;
 
       //theMaterial->commitState();
     } 
-    else
+    else {
       mixed[i] = theMaterial->getStressSensitivity(0, true);
+      theMaterial->setTrialStrain(eps[i],epsdot);
+      sigmixed[i] = theMaterial->getStress();
+      theMaterial->commitState();
+    }
 
     theDDMmaterial->setTrialStrain(eps[i],epsdot);
+    sigddm[i] = theDDMmaterial->getStress();
     ddm[i] = theDDMmaterial->getStressSensitivity(0, true);
     theDDMmaterial->commitSensitivity(0, 0, 1);
     theDDMmaterial->commitState();
@@ -334,7 +345,7 @@ int main()
 
   for (int i = 0; i < Nsteps; i++) {
     //opserr << "sig: " << splot[i] << ", global: " << global[i] << ", mixed: " << mixed[i] << endln;
-    plot << splot[i] << ' ' << global[i] << ' ' << mixed[i] << ' ' << ddm[i] << endln;
+    plot << splot[i] << ' ' << sigmixed[i] << ' ' << sigddm[i] << ' ' << global[i] << ' ' << mixed[i] << ' ' << ddm[i] << endln;
   }
   
 
