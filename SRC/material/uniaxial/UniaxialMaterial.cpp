@@ -391,14 +391,17 @@ UniaxialMaterial::getResponse(int responseID, Information &matInfo)
   }
 }
 
+#include <fstream>
+using namespace std;
+std::ofstream out_um_hybrid("out_um_hybrid.out");
 
 double
 UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
 {
-  //double hstvP[10];
-  //double hstvP2[10];
-  //this->getCommittedHistoryVariables(hstvP);
-  //this->getCommittedHistoryVariables(hstvP2);
+  double hstvP[10];
+  double hstvP2[10];
+  this->getCommittedHistoryVariables(hstvP);
+  this->getCommittedHistoryVariables(hstvP2);
 
   // Get active parameter and its value
   int paramID;
@@ -442,6 +445,11 @@ UniaxialMaterial::getStressSensitivity(int gradIndex, bool conditional)
 
   // Compute finite difference between hstvP and hstvP2
   // Compare to sensitivity of history variables from DDM
+  for (int i = 0; i < 3; i++) {
+    double depsdh = (hstvP2[i]-hstvP[i])/dh;
+    out_um_hybrid << depsdh << ' ';
+  }
+  out_um_hybrid << endln;
   
   return (sig2-sig)/dh;
 }
