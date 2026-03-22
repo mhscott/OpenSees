@@ -1272,9 +1272,9 @@ SequentialSysOfEqn_LIBS =	$(FE)/system_of_eqn/linearSOE/LinearSOE.o \
 	$(FE)/system_of_eqn/linearSOE/umfGEN/UmfpackGenLinSolver.o \
 	$(FE)/system_of_eqn/linearSOE/benny/BennySparseLinSOE.o \
 	$(FE)/system_of_eqn/linearSOE/benny/BennySparseLinSolver.o \
-	$(HOME)/benny-sparse/benny_sparse.o \
-	$(HOME)/benny-sparse/benny_symbolic.o \
-	$(HOME)/benny-sparse/benny_numeric.o \
+	$(FE)/system_of_eqn/linearSOE/benny/benny_sparse.o \
+	$(FE)/system_of_eqn/linearSOE/benny/benny_symbolic.o \
+	$(FE)/system_of_eqn/linearSOE/benny/benny_numeric.o \
 	$(FE)/system_of_eqn/linearSOE/sparsePython/SparsePythonCommon.o \
 	$(FE)/system_of_eqn/linearSOE/sparsePython/SparsePythonFactory.o \
 	$(FE)/system_of_eqn/linearSOE/sparsePython/SparsePythonCOOLinSOE.o \

@@ -1,6 +1,7 @@
 include ../../../../Makefile.def
 
-OBJS       = BennySparseLinSOE.o BennySparseLinSolver.o 
+OBJS       = BennySparseLinSOE.o BennySparseLinSolver.o \
+	benny_sparse.o benny_symbolic.o benny_numeric.o
 
 all:         $(OBJS)
 
