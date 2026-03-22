@@ -1,7 +1,7 @@
 #ifndef BennySparseLinSOE_h
 #define BennySparseLinSOE_h
 
-#include "/home/mhscott/benny-sparse/benny_sparse.hpp"
+#include "benny_sparse.hpp"
 
 #include <LinearSOE.h>
 
