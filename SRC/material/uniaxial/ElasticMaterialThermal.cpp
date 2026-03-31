@@ -113,7 +113,7 @@ double ElasticMaterialThermal::ConcRedFactors[12] = { 0.625, 0.4318 ,0.3036, 0.1
 
 ElasticMaterialThermal::ElasticMaterialThermal(int tag, double e, double alpha, double et, double eneg, int softindex)
 :UniaxialMaterial(tag,MAT_TAG_ElasticMaterialThermal),
- trialStrain(0.0), trialStrainRate(0.0), committedStrain(0.0), committedStrainRate(0.0),
+ trialStrain(0.0), trialStrainRate(0.0),
  Epos(e), eta(et),
  Alpha(alpha), E0(e), softIndex(softindex),
  ThermalElongation(0),Temp(0), parameterID(0)
@@ -136,7 +136,7 @@ ElasticMaterialThermal::ElasticMaterialThermal(int tag, double e, double alpha, 
 
 ElasticMaterialThermal::ElasticMaterialThermal()
 :UniaxialMaterial(0,MAT_TAG_ElasticMaterialThermal),
- trialStrain(0.0),  trialStrainRate(0.0), committedStrain(0.0), committedStrainRate(0.0),
+ trialStrain(0.0),  trialStrainRate(0.0),
  Epos(0.0),Eneg(0.0), eta(0.0),
  Alpha(0.0), E0(0.0), Eneg0(0.0), softIndex(0),
  ThermalElongation(0), Temp(0), parameterID(0)
@@ -210,8 +210,6 @@ ElasticMaterialThermal::getInitialTangent(void)
 int
 ElasticMaterialThermal::commitState(void)
 {
-	committedStrain = trialStrain;
-	committedStrainRate = trialStrainRate;
 	return 0;
 }
 
@@ -219,8 +217,6 @@ ElasticMaterialThermal::commitState(void)
 int
 ElasticMaterialThermal::revertToLastCommit(void)
 {
-	trialStrain = committedStrain;
-	trialStrainRate = committedStrainRate;
 	return 0;
 }
 
@@ -240,8 +236,6 @@ ElasticMaterialThermal::getCopy(void)
 	ElasticMaterialThermal *theCopy = new ElasticMaterialThermal(this->getTag(), Epos, Alpha, eta, Eneg, softIndex);
 	theCopy->trialStrain = trialStrain;
 	theCopy->trialStrainRate = trialStrainRate;
-	theCopy->committedStrain = committedStrain;
-	theCopy->committedStrainRate = committedStrainRate;
 	return theCopy;
 }
 
@@ -255,8 +249,6 @@ ElasticMaterialThermal::sendSelf(int cTag, Channel &theChannel)
 	data(1) = Epos;
 	data(2) = Eneg;
 	data(3) = eta;
-	data(4) = committedStrain;
-	data(5) = committedStrainRate;
 	res = theChannel.sendVector(this->getDbTag(), cTag, data);
 	if (res < 0)
 		opserr << "ElasticMaterialThermal::sendSelf() - failed to send data\n";
@@ -283,8 +275,6 @@ ElasticMaterialThermal::recvSelf(int cTag, Channel &theChannel,
 		Epos = data(1);
 		Eneg = data(2);
 		eta = data(3);
-		committedStrain = data(4);
-		committedStrainRate = data(5);
 		this->revertToLastCommit();
 	}
 
