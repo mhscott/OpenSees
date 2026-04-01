@@ -115,6 +115,7 @@ void* OPS_ConcreteD();
 void* OPS_FRPConfinedConcrete();
 void* OPS_ConcreteCM();
 void* OPS_Cast();
+void* OPS_FiberDamping();
 void* OPS_ViscousDamper();
 void* OPS_DamperMaterial();
 void* OPS_BilinearOilDamper();
@@ -376,6 +377,8 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(std::make_pair("Cast", &OPS_Cast));
   uniaxialMaterialsMap.insert(
       std::make_pair("CastFuse", &OPS_Cast));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("FiberDamping", &OPS_FiberDamping));  
   uniaxialMaterialsMap.insert(
       std::make_pair("ViscousDamper", &OPS_ViscousDamper));
   uniaxialMaterialsMap.insert(
