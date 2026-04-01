@@ -834,6 +834,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/EPPGapMaterial.o \
 	$(FE)/material/uniaxial/ViscousMaterial.o \
 	$(FE)/material/uniaxial/Maxwell.o \
+	$(FE)/material/uniaxial/FiberDamping.o \
 	$(FE)/material/uniaxial/ViscousDamper.o \
 	$(FE)/material/uniaxial/DamperMaterial.o \
 	$(FE)/material/uniaxial/BilinearOilDamper.o \
