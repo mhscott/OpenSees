@@ -171,6 +171,7 @@ OBJS       = UniaxialMaterial.o \
 	APDVFD.o \
 	QbSandCPT.o \
 	TzSandCPT.o \
+	FiberDamping.o \
     TclModelBuilderUniaxialMaterialCommand.o
 
 all:         $(OBJS)

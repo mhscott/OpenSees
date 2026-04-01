@@ -115,6 +115,7 @@ target_sources(OPS_Material
       EPPGapMaterial.cpp
       ElasticBDMaterial.cpp
       ElasticMaterialThermal.cpp
+      FiberDamping.cpp
       FRCC.cpp
       FRPConfinedConcrete.cpp
       FRPConfinedConcrete02.cpp
@@ -244,6 +245,7 @@ target_sources(OPS_Material
       EPPGapMaterial.h
       ElasticBDMaterial.h
       ElasticMaterialThermal.h
+      FiberDamping.h
       FRCC.h
       FRPConfinedConcrete.h
       FRPConfinedConcrete02.h
