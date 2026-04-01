@@ -1574,7 +1574,7 @@
     <ClCompile Include="..\..\..\SRC\material\section\PipeSection.cpp">
       <Filter>section</Filter>
     </ClCompile>
-    <ClCompile Include="FiberDamping.cpp">
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\FiberDamping.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2864,7 +2864,7 @@
     <ClInclude Include="..\..\..\SRC\material\nD\MinMaxNDMaterial.h">
       <Filter>nD</Filter>
     </ClInclude>
-    <ClInclude Include="FiberDamping.h">
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\FiberDamping.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
   </ItemGroup>

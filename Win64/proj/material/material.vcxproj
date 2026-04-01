@@ -674,7 +674,7 @@
     <ClCompile Include="..\..\..\SRC\material\yieldSurface\plasticHardeningMaterial\PlasticHardeningMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\yieldSurface\plasticHardeningMaterial\TclModelBuilderYSPlasticMaterialCommand.cpp" />
     <ClCompile Include="..\..\..\SRC\material\Material.cpp" />
-    <ClCompile Include="FiberDamping.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\uniaxialFiberDamping.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\material\nD\AcousticMedium.h" />
@@ -1106,7 +1106,7 @@
     <ClInclude Include="..\..\..\SRC\material\yieldSurface\plasticHardeningMaterial\NullPlasticMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\yieldSurface\plasticHardeningMaterial\PlasticHardeningMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\Material.h" />
-    <ClInclude Include="FiberDamping.h" />
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\FiberDamping.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
