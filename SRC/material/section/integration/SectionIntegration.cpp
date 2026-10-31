@@ -44,6 +44,13 @@ SectionIntegration::getFiberSectorials(int nFibers, double *omega)
 }
 
 void
+SectionIntegration::getFiberWarpingDerivatives(int nFibers, double *py, double *pz)
+{
+  for (int i = 0; i < nFibers; i++)
+    py[i] = pz[i] = 0.0;
+}
+
+void
 SectionIntegration::getLocationsDeriv(int nFibers, double *dyidh, double *dzidh)
 {
   for (int i = 0; i < nFibers; i++)
