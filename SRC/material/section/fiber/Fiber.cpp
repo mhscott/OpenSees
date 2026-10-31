@@ -55,6 +55,15 @@ Fiber::~Fiber()
     delete fDefault;
 }
 
+void
+Fiber::getWarpingDerivative(double &py, double &pz)
+{
+  py = 0.0;
+  pz = 0.0;
+
+  return;
+}
+
 Response*
 Fiber::setResponse(const char **argv, int argc, OPS_Stream &s)
 {
