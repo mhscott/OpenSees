@@ -112,6 +112,7 @@ void* OPS_ReinforcedConcreteLayeredMembraneSection();	// M. J. Nunez - UChile
 void* OPS_LayeredMembraneSection();	// M. J. Nunez - UChile
 void* OPS_ElasticMembraneSection();	// M. J. Nunez - UChile
 void* OPS_PipeSection();
+void* OPS_SuanPanSection();
 
 namespace {
     static FiberSection2d* theActiveFiberSection2d = 0;
@@ -292,6 +293,7 @@ namespace {
 	functionMap.insert(std::make_pair("HSS", &OPS_HSSSection));
 	functionMap.insert(std::make_pair("WFSection2d", &OPS_WFSection2d));	
 	functionMap.insert(std::make_pair("WSection2d", &OPS_WFSection2d));
+	functionMap.insert(std::make_pair("SuanPan", &OPS_SuanPanSection));	
 	functionMap.insert(std::make_pair("RCSection2d", &OPS_RCSection2d));
 	functionMap.insert(std::make_pair("RCTBeamSection2d", &OPS_RCTBeamSection2d));
 	functionMap.insert(std::make_pair("RCTBeamSectionUniMat2d", &OPS_RCTBeamSectionUniMat2d));
