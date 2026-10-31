@@ -945,6 +945,7 @@ MATERIAL_LIBS   =  $(FE)/material/Material.o \
 	$(FE)/material/uniaxial/QbSandCPT.o \
 	$(FE)/material/uniaxial/TzSandCPT.o \
 	$(FE)/material/uniaxial/FrictionSpringDamper.o \
+	$(FE)/material/uniaxial/GPCConcrete01.o \
 	$(FE)/material/nD/NDMaterial.o \
 	$(FE)/material/nD/PlaneStressLayeredMaterial.o \
 	$(FE)/material/nD/PlaneStressRebarMaterial.o \
@@ -1168,6 +1169,7 @@ SECTION_LIBS = $(FE)/material/section/SectionForceDeformation.o \
 	$(FE)/material/section/integration/RCTBeamSectionIntegration.o \
 	$(FE)/material/section/integration/TubeSectionIntegration.o \
 	$(FE)/material/section/integration/HSSSectionIntegration.o \
+	$(FE)/material/section/integration/SuanPanSectionIntegration.o \
 	$(FE)/material/section/repres/patch/Patch.o \
 	$(FE)/material/section/repres/patch/QuadPatch.o \
 	$(FE)/material/section/repres/patch/CircPatch.o \
