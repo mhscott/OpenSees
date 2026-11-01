@@ -165,27 +165,30 @@ SuanPanSectionIntegration::getFiberLocations(int nFibers, double *yi, double *zi
     return;
   }
 
-  if (y.size() < nFibers) {
+  int Ny = y.size();
+  if (Ny < nFibers) {
     opserr << "SuanPanSectionIntegration::getFiberLocations - yi " << nFibers
-	   << " requested, but only " << y.size() << " stored" << endln;
-    return;
+	   << " requested, but only " << Ny << " stored" << endln;
   }
   
-  for (int i = 0; i < nFibers; i++)
+  for (int i = 0; i < Ny; i++)
     yi[i] = y[i];
-
+  for (int i = Ny; i < nFibers; i++)
+    yi[i] = 0.0;  
   
   if (zi == 0)
     return;
 
-  if (z.size() < nFibers) {
+  int Nz = z.size();
+  if (Nz < nFibers) {
     opserr << "SuanPanSectionIntegration::getFiberLocations - zi " << nFibers
-	   << " requested, but only " << z.size() << " stored" << endln;
-    return;
+	   << " requested, but only " << Nz << " stored" << endln;
   }
   
-  for (int i = 0; i < nFibers; i++)
-    zi[i] = z[i];  
+  for (int i = 0; i < Nz; i++)
+    zi[i] = z[i];
+  for (int i = Nz; i < nFibers; i++)
+    zi[i] = 0.0;    
 }
 
 void
@@ -196,14 +199,16 @@ SuanPanSectionIntegration::getFiberWeights(int nFibers, double *wt)
     return;
   }
 
-  if (area.size() < nFibers) {
+  int Narea = area.size();
+  if (Narea < nFibers) {
     opserr << "SuanPanSectionIntegration::getFiberWeights - area " << nFibers
-	   << " requested, but only " << area.size() << " stored" << endln;
-    return;
+	   << " requested, but only " << Narea << " stored" << endln;
   }
   
-  for (int i = 0; i < nFibers; i++)
+  for (int i = 0; i < Narea; i++)
     wt[i] = area[i];
+  for (int i = Narea; i < nFibers; i++)
+    wt[i] = 0.0;  
 }
 
 void
@@ -214,14 +219,16 @@ SuanPanSectionIntegration::getFiberSectorials(int nFibers, double *o)
     return;
   }
 
-  if (omega.size() < nFibers) {
+  int Nomega = omega.size();
+  if (Nomega < nFibers) {
     opserr << "SuanPanSectionIntegration::getFiberSectorials - omega " << nFibers
-	   << " requested, but only " << omega.size() << " stored" << endln;
-    return;
+	   << " requested, but only " << Nomega << " stored" << endln;
   }
-  
-  for (int i = 0; i < nFibers; i++)
+
+  for (int i = 0; i < Nomega; i++)
     o[i] = omega[i];
+  for (int i = Nomega; i < nFibers; i++)
+    o[i] = 0.0;
 }
 
 void
@@ -232,26 +239,30 @@ SuanPanSectionIntegration::getFiberWarpingDerivatives(int nFibers, double *pyi, 
     return;
   }
 
-  if (py.size() < nFibers) {
+  int Npy = py.size();
+  if (Npy < nFibers) {
     opserr << "SuanPanSectionIntegration::getFiberWarpingDerivatives - pyi " << nFibers
-	   << " requested, but only " << py.size() << " stored" << endln;
-    return;
+	   << " requested, but only " << Npy << " stored" << endln;
   }
-  
-  for (int i = 0; i < nFibers; i++)
+
+  for (int i = 0; i < Npy; i++)
     pyi[i] = py[i];
+  for (int i = Npy; i < nFibers; i++)
+    pyi[i] = 0.0;
 
   if (pzi == 0)
     return;
 
-  if (pz.size() < nFibers) {
+  int Npz = pz.size();
+  if (Npz < nFibers) {
     opserr << "SuanPanSectionIntegration::getFiberWarpingDerivatives - pzi " << nFibers
-	   << " requested, but only " << pz.size() << " stored" << endln;
-    return;
+	   << " requested, but only " << Npz << " stored" << endln;
   }
   
-  for (int i = 0; i < nFibers; i++)
-    pzi[i] = pz[i];  
+  for (int i = 0; i < Npz; i++)
+    pzi[i] = pz[i];
+  for (int i = Npz; i < nFibers; i++)
+    pzi[i] = 0.0;  
 }
 
 SectionIntegration*
