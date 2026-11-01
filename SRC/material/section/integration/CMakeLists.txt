@@ -16,6 +16,7 @@ target_sources(OPS_Material
     MVLEMSectionIntegration.cpp
     SFIMVLEMSectionIntegration.cpp
     HSSSectionIntegration.cpp    
+    SuanPanSectionIntegration.cpp
     PUBLIC
     SectionIntegration.h 
     WideFlangeSectionIntegration.h 
@@ -27,6 +28,7 @@ target_sources(OPS_Material
     MVLEMSectionIntegration.h
     SFIMVLEMSectionIntegration.h
     HSSSectionIntegration.h    
+    SuanPanSectionIntegration.h
 )
 
 target_include_directories(OPS_Material PUBLIC ${CMAKE_CURRENT_LIST_DIR})

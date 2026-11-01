@@ -52,7 +52,8 @@ class NDFiber3d : public Fiber
   public:
     NDFiber3d ();   
     NDFiber3d (int tag, NDMaterial &theMat, double Area,
-	       double y, double z, double dvalue=1.0);
+	       double y, double z,
+	       double omega=0.0, double dody=0.0, double dodz=0.0);
     ~NDFiber3d();
 
     
@@ -77,8 +78,10 @@ class NDFiber3d : public Fiber
 	
     void getFiberLocation(double &y, double &z);
     NDMaterial *getNDMaterial(void) {return theMaterial;}
-    double getArea(void) {return area;};
-    
+    double getArea(void) {return area;}
+  double getSectorial(void) {return omega;}
+  void getWarpingDerivative(double &py, double &pz) {py=dwarpdy; pz=dwarpdz;}
+  
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
     int activateParameter(int parameterID);
@@ -94,7 +97,9 @@ class NDFiber3d : public Fiber
     double area;                          // area of the fiber
     double y;		// fiber location
     double z;
-    double dValue;
+  double omega; // sectorial
+  double dwarpdy; // Derivatives of warping function
+  double dwarpdz;
 
     static Matrix ks;       // static class wide matrix object for returns
     static Vector fs;	    // static class wide vector object for returns
