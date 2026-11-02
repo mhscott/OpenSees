@@ -166,6 +166,9 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Concrete01.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.cpp">
+      <Filter>uniaxial</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Concrete01WithSITC.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
@@ -883,6 +886,12 @@
     <ClCompile Include="..\..\..\SRC\material\section\integration\RCSectionIntegration.cpp">
       <Filter>section\integration</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\section\integration\MVLEMSectionIntegration.cpp">
+      <Filter>section\integration</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\section\integration\SFIMVLEMSectionIntegration.cpp">
+      <Filter>section\integration</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\section\integration\RCTBeamSectionIntegration.cpp">
       <Filter>section\integration</Filter>
     </ClCompile>
@@ -984,6 +993,9 @@
       <Filter>uniaxial</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\nD\FSAM.cpp">
+      <Filter>nD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\nD\FAM_CS.cpp">
       <Filter>nD</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete02.cpp">
@@ -1116,6 +1128,9 @@
       <Filter>nD\stressDensityModel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\GNGMaterial.cpp">
+      <Filter>uniaxial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\TensionOnlyMaterial.cpp">
@@ -1352,6 +1367,9 @@
     <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\PM4Silt.cpp">
       <Filter>nD\UWmaterials</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\LinearElasticGGmax.cpp">
+      <Filter>nD\UWmaterials</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\nD\UVCmultiaxial.cpp">
       <Filter>nD</Filter>
     </ClCompile>
@@ -1487,6 +1505,9 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FRCC.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\FrictionSpringDamper.cpp">
+      <Filter>uniaxial</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\CoulombDamperMaterial.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
@@ -1524,9 +1545,6 @@
       <Filter>uniaxial</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Ratchet.cpp">
-      <Filter>uniaxial</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\SRC\material\uniaxial\CreepMaterial.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\CreepShrinkageACI209.cpp">
@@ -1610,6 +1628,9 @@
       <Filter>uniaxial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\Concrete01.h">
+      <Filter>uniaxial</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\Concrete01WithSITC.h">
@@ -2378,6 +2399,9 @@
     <ClInclude Include="..\..\..\SRC\material\nD\FSAM.h">
       <Filter>nD</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\nD\FAM_CS.h">
+      <Filter>nD</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete02.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
@@ -2513,6 +2537,9 @@
     <ClInclude Include="..\..\..\SRC\material\uniaxial\GNGMaterial.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.h">
+      <Filter>uniaxial</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\TensionOnlyMaterial.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
@@ -2592,6 +2619,9 @@
       <Filter>uniaxial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\ExternalUniaxialMaterial.h">
+      <Filter>uniaxial</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\FrictionSpringDamper.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\nD\ExternalNDMaterial.h">
@@ -2735,6 +2765,9 @@
     <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\PM4Silt.h">
       <Filter>nD\UWmaterials</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\LinearElasticGGmax.h">
+      <Filter>nD\UWmaterials</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\nD\UVCmultiaxial.h">
       <Filter>nD</Filter>
     </ClInclude>
@@ -2851,3 +2884,4 @@
     </ClInclude>
   </ItemGroup>
 </Project>
+

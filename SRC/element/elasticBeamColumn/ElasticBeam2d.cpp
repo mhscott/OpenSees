@@ -33,6 +33,7 @@
 // connect to a node with 6-dof. 
 
 #include <ElasticBeam2d.h>
+#include <ElasticBeamCommon.h>
 #include <ElementalLoad.h>
 
 #include <Domain.h>
@@ -68,7 +69,7 @@ void *OPS_ElasticBeam2d(const ID &info) {
     int iData[3];
     bool section = false;
     int sectionTag = -1;
-    double data[3];
+    double data[5]; data[3] = -1.0; data[4] = -1.0;
     int transfTag;
     double mass = 0.0, alpha = 0.0, depth = 0.0;
     int dampingTag = 0;
@@ -133,9 +134,13 @@ void *OPS_ElasticBeam2d(const ID &info) {
 	  numOptionalArgs++;	  	  
 	}
       }
-      else if (type == "-cMass") {
+      else if (type == "-cMass" || type == "cMass") {
 	numOptionalArgs++;	
 	cMass = 1;
+      }
+      else if (type == "-lMass" || type == "lMass") {
+	numOptionalArgs++;	
+	cMass = 0;
       }
       else if (type == "-damp") {
 	numOptionalArgs++;	
@@ -183,15 +188,24 @@ to get element tag and node tags
 to get element data
     */
     if (info.Size() == 0 || info(0) == 1) {
-        if (numArgs > 3) {
-            // Read A, E, Iz
+        if (numArgs == 4) {
+            // Read A, E, Iz (and transf)
             numData = 3;
             if (OPS_GetDoubleInput(&numData, &data[0]) < 0) {
                 opserr << "WARNING failed to read doubles\n";
                 return 0;
             }
-        } else {
-            // Read a section tag
+        }
+	if (numArgs == 6) {
+            // Read A, E, Iz, G, Av (and transf)
+            numData = 5;
+            if (OPS_GetDoubleInput(&numData, &data[0]) < 0) {
+                opserr << "WARNING failed to read doubles\n";
+                return 0;
+            }
+        }
+	if (numArgs == 2) {	  
+            // Read a section tag (and transf)
             numData = 1;
             if (OPS_GetIntInput(&numData, &sectionTag) < 0) {
                 opserr << "WARNING sectionTag is not integer\n";
@@ -222,7 +236,7 @@ to get element data
         }
 
         Vector &mdata = meshdata[info(1)];
-        mdata.resize(11);
+        mdata.resize(13);
         mdata(0) = section;
         mdata(1) = sectionTag;
         mdata(2) = data[0];
@@ -234,6 +248,8 @@ to get element data
         mdata(8) = depth;
         mdata(9) = cMass;
         mdata(10) = release;
+	mdata(11) = data[3];
+	mdata(12) = data[4];	
         return &meshdata;
 
     } else if (info.Size() > 0 && info(0) == 2) {
@@ -247,12 +263,14 @@ to get element data
         }
 
         Vector &mdata = meshdata[info(1)];
-        mdata.resize(11);
+        mdata.resize(13);
         section = (bool) mdata(0);
         sectionTag = (int) mdata(1);
         data[0] = mdata(2);
         data[1] = mdata(3);
         data[2] = mdata(4);
+	data[3] = mdata(11);
+	data[4] = mdata(12);	
         transfTag = (int) mdata(5);
         mass = mdata(6);
         alpha = mdata(7);
@@ -283,7 +301,7 @@ to get element data
                                  *theSection, *theTransf, alpha,
                                  depth, mass, cMass, release, theDamping);
     } else {
-        return new ElasticBeam2d(iData[0], data[0], data[1], data[2],
+      return new ElasticBeam2d(iData[0], data[0], data[1], data[2], data[3], data[4],
                                  iData[1], iData[2], *theTransf,
                                  alpha, depth, mass, cMass, release, theDamping);
     }
@@ -379,7 +397,7 @@ int OPS_ElasticBeam2d(Domain& theDomain, const ID& elenodes, ID& eletags)
 
 ElasticBeam2d::ElasticBeam2d()
   :Element(0,ELE_TAG_ElasticBeam2d), 
-   A(0.0), E(0.0), I(0.0), alpha(0.0), d(0.0), rho(0.0), cMass(0), release(0),
+   A(0.0), E(0.0), I(0.0), G(0.0), Av(0.0), alpha(0.0), d(0.0), rho(0.0), cMass(0), release(0),
   Q(6), q(3), connectedExternalNodes(2), theCoordTransf(0),
   theDamping(0)
 {
@@ -402,7 +420,7 @@ ElasticBeam2d::ElasticBeam2d(int tag, double a, double e, double i,
 			     double Alpha, double depth, double r, int cm,
 			     int rel, Damping *damping)
   :Element(tag,ELE_TAG_ElasticBeam2d), 
-   A(a), E(e), I(i), alpha(Alpha), d(depth), rho(r), cMass(cm), release(rel),
+   A(a), E(e), I(i), G(-1), Av(-1), alpha(Alpha), d(depth), rho(r), cMass(cm), release(rel),
   Q(6), q(3), connectedExternalNodes(2), theCoordTransf(0),
   theDamping(0)
 {
@@ -413,7 +431,55 @@ ElasticBeam2d::ElasticBeam2d(int tag, double a, double e, double i,
     
   if (!theCoordTransf) {
     opserr << "ElasticBeam2d::ElasticBeam2d -- failed to get copy of coordinate transformation\n";
-    exit(01);
+    exit(-1);
+  }
+
+  // Make no release if input not 0, 1, 2, or 3
+  if (release < 0 || release > 3)
+    release = 0;
+  
+  if (damping)
+  {
+    theDamping =(*damping).getCopy();
+    
+    if (!theDamping) {
+      opserr << "ElasticBeam2d::ElasticBeam2d -- failed to get copy of damping\n";
+      //exit(-1); // this is not a fatal error...
+      theDamping = 0;
+    }
+  }
+
+  q0[0] = 0.0;
+  q0[1] = 0.0;
+  q0[2] = 0.0;
+
+  p0[0] = 0.0;
+  p0[1] = 0.0;
+  p0[2] = 0.0;
+
+  // set node pointers to NULL
+  theNodes[0] = 0;
+  theNodes[1] = 0;
+}
+
+ElasticBeam2d::ElasticBeam2d(int tag, double a, double e, double i,
+			     double g, double av,
+			     int Nd1, int Nd2, CrdTransf &coordTransf,
+			     double Alpha, double depth, double r, int cm,
+			     int rel, Damping *damping)
+  :Element(tag,ELE_TAG_ElasticBeam2d), 
+   A(a), E(e), I(i), G(g), Av(av), alpha(Alpha), d(depth), rho(r), cMass(cm), release(rel),
+  Q(6), q(3), connectedExternalNodes(2), theCoordTransf(0),
+  theDamping(0)
+{
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;
+    
+  theCoordTransf = coordTransf.getCopy2d();
+    
+  if (!theCoordTransf) {
+    opserr << "ElasticBeam2d::ElasticBeam2d -- failed to get copy of coordinate transformation\n";
+    exit(-1);
   }
 
   // Make no release if input not 0, 1, 2, or 3
@@ -447,7 +513,7 @@ ElasticBeam2d::ElasticBeam2d(int tag, double a, double e, double i,
 ElasticBeam2d::ElasticBeam2d(int tag, int Nd1, int Nd2, SectionForceDeformation &section,  
 			     CrdTransf &coordTransf, double Alpha, double depth, double r, int cm, int rel,
                  Damping *damping)
-  :Element(tag,ELE_TAG_ElasticBeam2d), A(0.0), E(1.0), I(0.0),
+  :Element(tag,ELE_TAG_ElasticBeam2d), A(0.0), E(1.0), I(0.0), G(-1.0), Av(-1.0),
    alpha(Alpha), d(depth), rho(r), cMass(cm), release(rel),
   Q(6), q(3), connectedExternalNodes(2), theCoordTransf(0),
   theDamping(0)
@@ -464,6 +530,19 @@ ElasticBeam2d::ElasticBeam2d(int tag, int Nd1, int Nd2, SectionForceDeformation 
     opserr << "ElasticBeam2d::ElasticBeam2d - E from section is zero, using E = 1" << endln;
     E = 1.0;
   }
+
+  // Try to find G in the section
+  argv[0] = {"G"};
+  argc = 1;
+  ok = section.setParameter(argv, argc, param);
+  if (ok >= 0)
+    G = param.getValue();
+
+  if (G <= 0.0) {
+	// This output gets annoying bc it's always there when you just want E,A,I
+    //opserr << "ElasticBeam2d::ElasticBeam2d - G from section is zero, using G = -1 (no shear)" << endln;
+    G = -1.0;
+  }  
   
   const Matrix &sectTangent = section.getInitialTangent();
   const ID &sectCode = section.getType();
@@ -476,6 +555,9 @@ ElasticBeam2d::ElasticBeam2d(int tag, int Nd1, int Nd2, SectionForceDeformation 
     case SECTION_RESPONSE_MZ:
       I = sectTangent(i,i)/E;
       break;
+    case SECTION_RESPONSE_VY:
+      Av = sectTangent(i,i)/G;
+      break;      
     default:
       break;
     }
@@ -681,6 +763,14 @@ ElasticBeam2d::getTangentStiff(void)
   if (release == 0) {
     double EIoverL2 = 2.0*I*EoverL;		// 2EI/L
     double EIoverL4 = 2.0*EIoverL2;		// 4EI/L
+    if (G > 0 && Av > 0.0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      double b = 1 - 6*E*I/(G*Av*L*L);
+      double B = 3*a/(4*a*a-b*b);
+      double C = 3*b/(4*a*a-b*b);
+      EIoverL4 *= B;
+      EIoverL2 *= C;
+    }
     q(1) = EIoverL4*v(1) + EIoverL2*v(2);
     q(2) = EIoverL2*v(1) + EIoverL4*v(2);
     kb(1,1) = kb(2,2) = EIoverL4;
@@ -689,12 +779,20 @@ ElasticBeam2d::getTangentStiff(void)
   if (release == 1) { // release I
     q(1) = 0.0;
     double EIoverL3 = 3.0*I*EoverL;
+    if (G > 0 && Av > 0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      EIoverL3 /= a;
+    }
     q(2) = EIoverL3*v(2);
     kb(2,2) = EIoverL3;
   }
   if (release == 2) { // release J
     q(2) = 0.0;
     double EIoverL3 = 3.0*I*EoverL;
+    if (G > 0 && Av > 0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      EIoverL3 /= a;
+    }    
     q(1) = EIoverL3*v(1);
     kb(1,1) = EIoverL3;
   }
@@ -724,14 +822,30 @@ ElasticBeam2d::getInitialStiff(void)
   if (release == 0) {
     double EIoverL2 = 2.0*I*EoverL;		// 2EI/L
     double EIoverL4 = 2.0*EIoverL2;		// 4EI/L
+    if (G > 0 && Av > 0.0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      double b = 1 - 6*E*I/(G*Av*L*L);
+      double B = 3*a/(4*a*a-b*b);
+      double C = 3*b/(4*a*a-b*b);
+      EIoverL4 *= B;
+      EIoverL2 *= C;
+    }    
     kb(1,1) = kb(2,2) = EIoverL4;
     kb(2,1) = kb(1,2) = EIoverL2;
   }
   if (release == 1) { // release I
     kb(2,2) = 3.0*I*EoverL;
+    if (G > 0 && Av > 0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      kb(2,2) /= a;
+    }    
   }
   if (release == 2) { // release J
     kb(1,1) = 3.0*I*EoverL;
+    if (G > 0 && Av > 0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      kb(1,1) /= a;
+    }   
   }
   
   if(theDamping) kb *= theDamping->getStiffnessMultiplier();  
@@ -812,20 +926,12 @@ ElasticBeam2d::addLoad(ElementalLoad *theLoad, double loadFactor)
 
     // Fixed end forces in basic system
     q0[0] -= 0.5*P;
-    if (release == 0) {
-      double M = V*L/6.0; // wt*L*L/12
-      q0[1] -= M;
-      q0[2] += M;
-    }
-    if (release == 1) {
-      q0[2] += wt*L*L/8;
-    }
-    if (release == 2) {
-      q0[1] -= wt*L*L/8;
-    }
-    if (release == 3) {
-      // Nothing to do
-    }
+    double M = V*L/6.0; // wt*L*L/12
+    double MI = -M;
+    double MJ = M;
+    elasticBeamEndMoments(MI, MJ, elasticBeamShearFactor(E, I, G, Av, L), release);
+    q0[1] += MI;
+    q0[2] += MJ;
   }
   else if (type == LOAD_TAG_BeamUniformMoment) {
     double mz = data(2)*loadFactor;  // About z
@@ -864,6 +970,7 @@ ElasticBeam2d::addLoad(ElementalLoad *theLoad, double loadFactor)
     double V1 = Fyt-V2;
     double M1 = (0.5*z1*ba2) + (wybma*ba3/(3.0*ba)) - (z1*ba3*2.0/(3.0*L)) - (wybma*ba4/(2.0*L*ba)) + (z1*ba4/(4.0*L2)) + (wybma*ba5/(5.0*L2*ba));
     double M2 = (-1.0*z1*ba3/(3.0*L)) - (wybma*ba4/(4.0*L*ba)) + (z1*ba4/(4.0*L2)) + (wybma*ba5/(5.0*L2*ba));
+    elasticBeamEndMoments(M1, M2, elasticBeamShearFactor(E, I, G, Av, L), release);
     double P = waa*ba + 0.5*(wab-waa)*ba;
     double PJ = (1.0/L)*(waa*ba*(a+0.5*ba)+0.5*(wab-waa)*ba*(a+(2.0/3.0)*ba));
 
@@ -902,21 +1009,11 @@ ElasticBeam2d::addLoad(ElementalLoad *theLoad, double loadFactor)
 
     // Fixed end forces in basic system
     q0[0] -= N*aOverL;
-    if (release == 0) {
-      double M1 = -a * b2 * P * L2;
-      double M2 = a2 * b * P * L2;
-      q0[1] += M1;
-      q0[2] += M2;
-    }
-    if (release == 1) {
-      q0[2] += 0.5*P*a*b*L2*(a+L);
-    }
-    if (release == 2) {
-      q0[1] -= 0.5*P*a*b*L2*(b+L);
-    }
-    if (release == 3) {
-      // Nothing to do
-    }    
+    double M1 = -a * b2 * P * L2;
+    double M2 = a2 * b * P * L2;
+    elasticBeamEndMoments(M1, M2, elasticBeamShearFactor(E, I, G, Av, L), release);
+    q0[1] += M1;
+    q0[2] += M2;
   }
   
   else if (type == LOAD_TAG_Beam2dTempLoad) {
@@ -928,22 +1025,28 @@ ElasticBeam2d::addLoad(ElementalLoad *theLoad, double loadFactor)
     // fixed end forces due to a linear thermal load
     double dT1 = Ttop1-Tbot1;
     double dT = (Ttop2-Tbot2)-(Ttop1-Tbot1);
-    double a = alpha/d;  // constant based on temp difference at top and bottom, 
-    // coefficient of thermal expansion and beam depth
-    double M1 = a*E*I*(-dT1+(4.0/3.0)*dT); //Fixed End Moment end 1
-    double M2 = a*E*I*(dT1+(5.0/3.0)*dT); //Fixed End Moment end 2
-    double F = alpha*(((Ttop2+Ttop1)/2+(Tbot2+Tbot1)/2)/2)*E*A; // Fixed End Axial Force
-    double M1M2divL =(M1+M2)/L; // Fixed End Shear
-    
-    // Reactions in basic system
-    p0[0] += 0;
-    p0[1] += M1M2divL;
-    p0[2] -= M1M2divL;
+    double M1 = 0.0; double M2 = 0.0;
+    if (d > 0.0) {
+      double a = alpha/d;  // constant based on temp difference at top and bottom, 
+      // coefficient of thermal expansion and beam depth
+      M1 = a*E*I*(-dT1+(4.0/3.0)*dT); //Fixed End Moment end 1
+      M2 = a*E*I*(dT1+(5.0/3.0)*dT); //Fixed End Moment end 2
+      double M1M2divL =(M1+M2)/L; // Fixed End Shear
+      
+      // Reactions in basic system
+      //p0[0] += 0;
+      p0[1] += M1M2divL;
+      p0[2] -= M1M2divL;
 
-    // Fixed end forces in basic system
+      // Fixed end forces in basic system
+      q0[1] += M1;
+      q0[2] += M2;      
+    }
+
+    double F = alpha*(((Ttop2+Ttop1)/2+(Tbot2+Tbot1)/2)/2)*E*A; // Fixed End Axial Force
+
+    // Fixed end axial force in basic system
     q0[0] -= F;
-    q0[1] += M1;
-    q0[2] += M2;
   }
 
   else {
@@ -1001,7 +1104,7 @@ ElasticBeam2d::getResistingForceIncInertia()
   if (theDamping) P += this->getDampingForce();
   
   // subtract external load P = P - Q
-  P.addVector(1.0, Q, -1.0);
+  //P.addVector(1.0, Q, -1.0);
   
   // add the damping forces if rayleigh damping
   if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
@@ -1054,15 +1157,33 @@ ElasticBeam2d::getResistingForce()
   if (release == 0) {
     double EIoverL2 = 2.0*I*EoverL;		// 2EI/L
     double EIoverL4 = 2.0*EIoverL2;		// 4EI/L
+    if (G > 0 && Av > 0.0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      double b = 1 - 6*E*I/(G*Av*L*L);
+      double B = 3*a/(4*a*a-b*b);
+      double C = 3*b/(4*a*a-b*b);
+      EIoverL4 *= B;
+      EIoverL2 *= C;
+    }    
     q(1) = EIoverL4*v(1) + EIoverL2*v(2);
     q(2) = EIoverL2*v(1) + EIoverL4*v(2);
   }
   if (release == 1) {
     q(1) = 0.0;
-    q(2) = 3.0*I*EoverL*v(2);
+    double EIoverL3 = 3.0*I*EoverL;
+    if (G > 0 && Av > 0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      EIoverL3 /= a;
+    }        
+    q(2) = EIoverL3*v(2);
   }
   if (release == 2) {
-    q(1) = 3.0*I*EoverL*v(1);
+    double EIoverL3 = 3.0*I*EoverL;
+    if (G > 0 && Av > 0) {
+      double a = 1 + 3*E*I/(G*Av*L*L);
+      EIoverL3 /= a;
+    }            
+    q(1) = EIoverL3*v(1);
     q(2) = 0.0;
   }
   if (release == 3) {
@@ -1099,11 +1220,13 @@ ElasticBeam2d::sendSelf(int cTag, Channel &theChannel)
 {
   int res = 0;
 
-    static Vector data(19);
+    static Vector data(21);
     
     data(0) = A;
     data(1) = E; 
-    data(2) = I; 
+    data(2) = I;
+    data(19) = G;
+    data(20) = Av;
     data(3) = rho;
     data(4) = cMass;
     data(5) = this->getTag();
@@ -1173,7 +1296,7 @@ ElasticBeam2d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBrok
 {
     int res = 0;
 	
-    static Vector data(19);
+    static Vector data(21);
 
     res += theChannel.recvVector(this->getDbTag(), cTag, data);
     if (res < 0) {
@@ -1183,7 +1306,9 @@ ElasticBeam2d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBrok
 
     A = data(0);
     E = data(1); 
-    I = data(2); 
+    I = data(2);
+    G = data(19);
+    Av = data(20);
     alpha = data(10);
     d = data(11);
 
@@ -1287,6 +1412,7 @@ ElasticBeam2d::Print(OPS_Stream &s, int flag)
     s << "\tConnected Nodes: " << connectedExternalNodes ;
     s << "\tCoordTransf: " << theCoordTransf->getTag() << endln;
     s << "\tmass density:  " << rho << ", cMass: " << cMass << endln;
+    s << "\talpha:  " << alpha << ", depth: " << d << endln;    
     s << "\trelease code:  " << release << endln;
     double P  = q(0);
     double M1 = q(1);
@@ -1635,6 +1761,16 @@ ElasticBeam2d::setParameter(const char **argv, int argc, Parameter &param)
     param.setValue(I);
     return param.addObject(3, this);
   }
+  // G of the beam interior
+  if (strcmp(argv[0],"G") == 0) {
+    param.setValue(G);
+    return param.addObject(6, this);
+  }
+  // Av of the beam interior
+  if (strcmp(argv[0],"Av") == 0) {
+    param.setValue(Av);
+    return param.addObject(7, this);
+  }  
   // mass per length
   if (strcmp(argv[0],"rho") == 0) {
     param.setValue(rho);
@@ -1673,6 +1809,12 @@ ElasticBeam2d::updateParameter (int parameterID, Information &info)
 	case 3:
 		I = info.theDouble;
 		return 0;
+	case 6:
+		G = info.theDouble;
+		return 0;
+	case 7:
+		Av = info.theDouble;
+		return 0;				
 	case 4:
 		rho = info.theDouble;
 		return 0;

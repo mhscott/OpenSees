@@ -86,6 +86,7 @@ target_sources(OPS_Material
       CableMaterial.cpp
       Cast.cpp
       Concrete01.cpp
+      GPCConcrete01.cpp
       Concrete01WithSITC.cpp
       Concrete02.cpp
       Concrete02IS.cpp
@@ -102,7 +103,6 @@ target_sources(OPS_Material
       ConcreteZBH_smoothed.cpp 
       ConfinedConcrete01.cpp
       ContinuumUniaxial.cpp
-      CreepMaterial.cpp
       CreepShrinkageACI209.cpp
       CubicSpline.cpp
       DamperMaterial.cpp
@@ -121,6 +121,7 @@ target_sources(OPS_Material
       FatigueMaterial.cpp
       #FedeasMaterial.cpp
       FlagShapeMaterial.cpp
+      FrictionSpringDamper.cpp
       GMG_CyclicReinforcedConcrete.cpp
       GNGMaterial.cpp
       HardeningMaterial.cpp
@@ -215,6 +216,7 @@ target_sources(OPS_Material
       CableMaterial.h
       Cast.h
       Concrete01.h
+      GPCConcrete01.h
       Concrete01WithSITC.h
       Concrete02.h
       Concrete02IS.h
@@ -231,7 +233,6 @@ target_sources(OPS_Material
       ConcreteZBH_smoothed.h
       ConfinedConcrete01.h
       ContinuumUniaxial.h
-      CreepMaterial.h
       CreepShrinkageACI209.h
       CubicSpline.h
       DamperMaterial.h
@@ -250,6 +251,7 @@ target_sources(OPS_Material
       FatigueMaterial.h
       #FedeasMaterial.h
       FlagShapeMaterial.h
+      FrictionSpringDamper.h
       GNGMaterial.h
       GMG_CyclicReinforcedConcrete.h
       HardeningMaterial.h

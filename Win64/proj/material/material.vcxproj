@@ -89,6 +89,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>.\..\..\lib\debug\material.lib</OutputFile>
@@ -119,6 +120,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>.\..\..\lib\debug\material.lib</OutputFile>
@@ -147,6 +149,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>.\..\..\lib\release\material.lib</OutputFile>
@@ -176,6 +179,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>.\..\..\lib\release\material.lib</OutputFile>
@@ -202,6 +206,7 @@
     <ClCompile Include="..\..\..\SRC\material\nD\ElasticPlaneStress.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\ExternalNDMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\FSAM.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\nD\FAM_CS.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\IncrementalElasticIsotropicThreeDimensional.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\J2BeamFiber2d.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\J2BeamFiber3d.cpp" />
@@ -239,6 +244,7 @@
     <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\ManzariDafaliasRO.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\PM4Sand.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\PM4Silt.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\LinearElasticGGmax.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\VonPapaDamage.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\BiaxialHysteretic.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\ASDCoupledHinge3D.cpp" />
@@ -254,6 +260,8 @@
     <ClCompile Include="..\..\..\SRC\material\section\integration\RCCircularSectionIntegration.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\integration\RCTunnelSectionIntegration.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\integration\TubeSectionIntegration.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\section\integration\MVLEMSectionIntegration.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\section\integration\SFIMVLEMSectionIntegration.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\LayeredMembraneSection\ElasticMembraneSection.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\LayeredMembraneSection\LayeredMembraneSection.cpp" />
     <ClCompile Include="..\..\..\SRC\material\section\LayeredMembraneSection\ReinforcedConcreteLayeredMembraneSection.cpp" />
@@ -296,6 +304,7 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\ASDConcrete1DMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\ASDSteel1DMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Concrete01.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Concrete01WithSITC.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Concrete02.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Concrete02IS.cpp" />
@@ -315,7 +324,6 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\ConfinedConcrete01.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\ContinuumUniaxial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\CoulombDamperMaterial.cpp" />
-    <ClCompile Include="..\..\..\SRC\material\uniaxial\CreepMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\CreepShrinkageACI209.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\CubicSpline.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\DamperMaterial.cpp" />
@@ -336,12 +344,14 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\ExternalUniaxialMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FlagShapeMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FRCC.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\FrictionSpringDamper.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FatigueMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FedeasMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete02.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\GMG_CyclicReinforcedConcrete.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\GNGMaterial.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\HardeningMaterial.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\HardeningMaterial2.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\Hertzdamp.cpp" />
@@ -685,6 +695,7 @@
     <ClInclude Include="..\..\..\SRC\material\nD\ElasticPlaneStress.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\ExternalNDMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\FSAM.h" />
+    <ClInclude Include="..\..\..\SRC\material\nD\FAM_CS.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\IncrementalElasticIsotropicThreeDimensional.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\J2BeamFiber2d.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\J2BeamFiber3d.h" />
@@ -719,6 +730,7 @@
     <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\ManzariDafaliasRO.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\PM4Sand.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\PM4Silt.h" />
+    <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\LinearElasticGGmax.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\VonPapaDamage.h" />
     <ClInclude Include="..\..\..\SRC\material\section\BiaxialHysteretic.h" />
     <ClInclude Include="..\..\..\SRC\material\section\ASDCoupledHinge3D.h" />
@@ -765,6 +777,7 @@
     <ClInclude Include="..\..\..\SRC\material\uniaxial\ASDConcrete1DMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\ASDSteel1DMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\Concrete01.h" />
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\Concrete01WithSITC.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\Concrete02.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\Concrete02IS.h" />
@@ -797,11 +810,13 @@
     <ClInclude Include="..\..\..\SRC\material\uniaxial\ElasticMultiLinear.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\ElasticPPMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\ExternalUniaxialMaterial.h" />
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\FrictionSpringDamper.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\FatigueMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\FedeasMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete02.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\GNGMaterial.h" />
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\GPCConcrete01.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\HardeningMaterial.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\HardeningMaterial2.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\HookGap.h" />
@@ -1106,3 +1121,4 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
+

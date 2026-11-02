@@ -96,6 +96,7 @@ void* OPS_Steel02Fatigue();
 void* OPS_Steel03();
 void* OPS_SPSW02();
 void* OPS_Concrete01();
+void* OPS_GPCConcrete01();
 void* OPS_Steel4();
 void* OPS_HystereticMaterial();
 void* OPS_HystereticSMMaterial();
@@ -186,9 +187,12 @@ void* OPS_pyUCLA();
 void* OPS_ElasticMaterialThermal();
 void* OPS_Steel01Thermal();
 void* OPS_Steel02Thermal();
+void* OPS_SteelECThermal();
+void* OPS_StainlessECThermal();
 void* OPS_ConcretewBeta();
 void* OPS_ConcreteSakaiKawashima();
 void* OPS_Concrete02Thermal();
+void* OPS_ConcreteECThermal();
 void* OPS_ResilienceLow();
 void* OPS_ResilienceMaterialHR();
 void* OPS_Elastic2Material();
@@ -214,6 +218,7 @@ void* OPS_FRCC();
 void* OPS_ConcreteZBH_original();
 void* OPS_ConcreteZBH_fitted();
 void* OPS_ConcreteZBH_smoothed();
+void* OPS_FrictionSpringDamper();
 
 void *OPS_ArctangentBackbone(void);
 void *OPS_ManderBackbone(void);
@@ -263,7 +268,6 @@ void* OPS_TDConcrete(void);
 void* OPS_TDConcreteNL(void);
 void* OPS_TDConcreteMC10(void);
 void* OPS_TDConcreteMC10NL(void);
-void* OPS_CreepMaterial(void);
 void* OPS_CreepShrinkageACI209(void);
 
 void* OPS_CoulombDamperMaterial();
@@ -327,6 +331,8 @@ static int setUpUniaxialMaterials(void) {
       std::make_pair("SPSW02", &OPS_SPSW02));
   uniaxialMaterialsMap.insert(
       std::make_pair("Concrete01", &OPS_Concrete01));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("GPCConcrete01", &OPS_GPCConcrete01));
   uniaxialMaterialsMap.insert(
       std::make_pair("Steel4", &OPS_Steel4));
   uniaxialMaterialsMap.insert(
@@ -539,11 +545,17 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("Steel02Thermal", &OPS_Steel02Thermal));
   uniaxialMaterialsMap.insert(
+      std::make_pair("SteelECThermal", &OPS_SteelECThermal));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("StainlessECThermal", &OPS_StainlessECThermal));  
+  uniaxialMaterialsMap.insert(			      
       std::make_pair("ConcretewBeta", &OPS_ConcretewBeta));
   uniaxialMaterialsMap.insert(std::make_pair(
       "ConcreteSakaiKawashima", &OPS_ConcreteSakaiKawashima));
   uniaxialMaterialsMap.insert(std::make_pair(
       "Concrete02Thermal", &OPS_Concrete02Thermal));
+  uniaxialMaterialsMap.insert(std::make_pair(
+      "ConcreteECThermal", &OPS_ConcreteECThermal));  
   uniaxialMaterialsMap.insert(
       std::make_pair("ResilienceLow", &OPS_ResilienceLow));
   uniaxialMaterialsMap.insert(std::make_pair(
@@ -625,8 +637,6 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("TDConcreteMC10NL", &OPS_TDConcreteMC10NL));
   uniaxialMaterialsMap.insert(
-      std::make_pair("Creep", &OPS_CreepMaterial));  
-  uniaxialMaterialsMap.insert(
       std::make_pair("CreepShrinkageACI209", &OPS_CreepShrinkageACI209));
   uniaxialMaterialsMap.insert(
       std::make_pair("CoulombDamper", &OPS_CoulombDamperMaterial));
@@ -646,6 +656,10 @@ static int setUpUniaxialMaterials(void) {
       std::make_pair("JankowskiImpact", &OPS_JankowskiImpact));
   uniaxialMaterialsMap.insert(
       std::make_pair("ViscoelasticGap", &OPS_ViscoelasticGap));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("FrictionSpringDamper", &OPS_FrictionSpringDamper));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("frictionSpringDamper", &OPS_FrictionSpringDamper));    
   uniaxialMaterialsMap.insert(std::make_pair("Masonry", &OPS_Masonry));
   uniaxialMaterialsMap.insert(std::make_pair("Masonryt", &OPS_Masonryt));
   uniaxialMaterialsMap.insert(std::make_pair("Trilinwp", &OPS_Trilinwp));
@@ -839,6 +853,51 @@ int OPS_setStrain() {
   material->commitState();
 
   return 0;
+}
+
+int OPS_setTrialStrain() {
+    if (OPS_GetNumRemainingInputArgs() < 1) {
+        opserr << "testUniaxialMaterial - You must provide a strain "
+            "value.\n";
+        return -1;
+    }
+
+    UniaxialMaterial* material = theTestingUniaxialMaterial;
+
+    if (material == 0) {
+        opserr << "setStrain WARNING no active UniaxialMaterial - "
+            "use testUniaxialMaterial command.\n";
+        return -1;
+    }
+
+    double strain;
+    int numData = 1;
+    if (OPS_GetDoubleInput(&numData, &strain) < 0) {
+        opserr << "invalid double value\n";
+        return -1;
+    }
+
+    double strainRate = 0.0;
+    if (OPS_GetNumRemainingInputArgs() > 0) {
+        if (OPS_GetDoubleInput(&numData, &strainRate) < 0) {
+            opserr << "invalid strain rate\n";
+            return -1;
+        }
+    }
+
+    material->setTrialStrain(strain, strainRate);
+    return 0;
+}
+
+int OPS_commitState() {
+    UniaxialMaterial* material = theTestingUniaxialMaterial;
+
+    if (material == 0) {
+        opserr << "setStrain WARNING no active UniaxialMaterial - "
+            "use testUniaxialMaterial command.\n";
+        return -1;
+    }
+    material->commitState();
 }
 
 int OPS_getStrain() {

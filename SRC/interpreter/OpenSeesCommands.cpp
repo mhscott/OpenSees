@@ -79,6 +79,8 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include <SymBandEigenSOE.h>
 #include <FullGenEigenSolver.h>
 #include <FullGenEigenSOE.h>
+#include <SymmGeneralizedEigenSolver.h>
+#include <SymmGeneralizedEigenSOE.h>
 #include <ArpackSOE.h>
 #include <LoadControl.h>
 #include <CTestPFEM.h>
@@ -86,6 +88,8 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include <TransientIntegrator.h>
 #include <PFEMSolver.h>
 #include <PFEMLinSOE.h>
+#include <SparsePythonFactory.h>
+#include <SparsePythonEigenFactory.h>
 #include <Accelerator.h>
 #include <KrylovAccelerator.h>
 #include <AcceleratedNewton.h>
@@ -259,7 +263,8 @@ OpenSeesCommands::setSOE(LinearSOE* soe)
 
 int
 OpenSeesCommands::eigen(int typeSolver, double shift,
-			bool generalizedAlgo, bool findSmallest)
+			bool generalizedAlgo, bool findSmallest,
+            EigenSOE *providedEigenSOE)
 {
     //
     // create a transient analysis if no analysis exists
@@ -270,6 +275,9 @@ OpenSeesCommands::eigen(int typeSolver, double shift,
 	    theAnalysisModel = new AnalysisModel();
 	if (theTest == 0)
 	    theTest = new CTestNormUnbalance(1.0e-6,25,0);
+	if (theAlgorithm != 0) {
+	    theAlgorithm->setConvergenceTest(theTest);
+	}
 	if (theAlgorithm == 0) {
 	    theAlgorithm = new NewtonRaphson(*theTest);
 	}
@@ -301,43 +309,61 @@ OpenSeesCommands::eigen(int typeSolver, double shift,
     }
 
     //
-    // create a new eigen system and solver
+    // create or assign an eigen system and solver
     //
-    if (theEigenSOE != 0) {
-	if (theEigenSOE->getClassTag() != typeSolver) {
-	    //	delete theEigenSOE;
-	    theEigenSOE = 0;
-	}
+    bool eigenSOEUpdated = false;
+
+    if (providedEigenSOE != 0) {
+        theEigenSOE = providedEigenSOE;
+        eigenSOEUpdated = true;
+    } else {
+        if (theEigenSOE != 0) {
+            if (theEigenSOE->getClassTag() != typeSolver) {
+                //	delete theEigenSOE;
+                theEigenSOE = 0;
+            }
+        }
+
+        if (theEigenSOE == 0) {
+
+            if (typeSolver == EigenSOE_TAGS_SymBandEigenSOE) {
+                SymBandEigenSolver *theEigenSolver = new SymBandEigenSolver();
+                theEigenSOE = new SymBandEigenSOE(*theEigenSolver, *theAnalysisModel);
+
+            } else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
+
+                FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
+                theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
+
+            } else if (typeSolver == EigenSOE_TAGS_SymmGeneralizedEigenSOE) {
+
+#ifdef _WIN32
+                opserr << "SymmGeneralizedEigenSolver not currently compiled for Windows" << endln;
+#else
+                SymmGeneralizedEigenSolver *theEigenSolver = new SymmGeneralizedEigenSolver();
+                theEigenSOE = new SymmGeneralizedEigenSOE(*theEigenSolver, *theAnalysisModel);
+#endif
+
+            } else {
+
+                theEigenSOE = new ArpackSOE(shift);
+
+            }
+
+            eigenSOEUpdated = true;
+        }
     }
 
-    if (theEigenSOE == 0) {
-
-	if (typeSolver == EigenSOE_TAGS_SymBandEigenSOE) {
-	    SymBandEigenSolver *theEigenSolver = new SymBandEigenSolver();
-	    theEigenSOE = new SymBandEigenSOE(*theEigenSolver, *theAnalysisModel);
-
-	} else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
-
-	    FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
-	    theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
-
-	} else {
-
-	    theEigenSOE = new ArpackSOE(shift);
-
-	}
-
-	//
-	// set the eigen soe in the system
-	//
-
-	if (theStaticAnalysis != 0) {
-	    theStaticAnalysis->setEigenSOE(*theEigenSOE);
-	} else if (theTransientAnalysis != 0) {
-	    theTransientAnalysis->setEigenSOE(*theEigenSOE);
-	}
-
-    } // theEigenSOE != 0
+    //
+    // set the eigen soe in the system if reassigned/created
+    //
+    if (eigenSOEUpdated && theEigenSOE != 0) {
+        if (theStaticAnalysis != 0) {
+            theStaticAnalysis->setEigenSOE(*theEigenSOE);
+        } else if (theTransientAnalysis != 0) {
+            theTransientAnalysis->setEigenSOE(*theEigenSOE);
+        }
+    }
 
 
     // run analysis
@@ -575,6 +601,9 @@ OpenSeesCommands::setStaticAnalysis(bool suppress)
     if (theTest == 0) {
 	theTest = new CTestNormUnbalance(1.0e-6,25,0);
     }
+    if (theAlgorithm != 0) {
+	theAlgorithm->setConvergenceTest(theTest);
+    }
     if (theAlgorithm == 0) {
       if (!suppress) {
 	opserr << "WARNING analysis Static - no Algorithm yet specified, \n";
@@ -681,6 +710,9 @@ OpenSeesCommands::setPFEMAnalysis(bool suppress)
 	//theTest = new CTestNormUnbalance(1e-2,10000,1,2,3);
 	theTest = new CTestPFEM(1e-2,1e-2,1e-2,1e-2,1e-4,1e-3,10000,100,1,2);
     }
+    if (theAlgorithm != 0) {
+	theAlgorithm->setConvergenceTest(theTest);
+    }
     if(theAlgorithm == 0) {
 	theAlgorithm = new NewtonRaphson(*theTest);
     }
@@ -743,6 +775,10 @@ OpenSeesCommands::setVariableAnalysis(bool suppress)
 
     if (theTest == 0) {
 	theTest = new CTestNormUnbalance(1.0e-6,25,0);
+    }
+
+    if (theAlgorithm != 0) {
+	theAlgorithm->setConvergenceTest(theTest);
     }
 
     if (theAlgorithm == 0) {
@@ -827,6 +863,9 @@ OpenSeesCommands::setTransientAnalysis(bool suppress)
     if (theTest == 0) {
 	theTest = new CTestNormUnbalance(1.0e-6,25,0);
     }
+    if (theAlgorithm != 0) {
+	theAlgorithm->setConvergenceTest(theTest);
+    }
     if (theAlgorithm == 0) {
       if (!suppress) {
 	opserr << "WARNING analysis Transient - no Algorithm yet specified, \n";
@@ -908,6 +947,7 @@ void
 OpenSeesCommands::wipeAnalysis()
 {
     if (theStaticAnalysis==0 && theTransientAnalysis==0) {
+	if (theAnalysisModel != 0) delete theAnalysisModel;
 	if (theSOE != 0) delete theSOE;
 	if (theEigenSOE != 0) delete theEigenSOE;
 	if (theNumberer != 0) delete theNumberer;
@@ -1138,6 +1178,13 @@ const char * OPS_GetStringFromAll(char* buffer, int len)
     return res;
 }
 
+void *OPS_GetVoidPtr(void)
+{
+    if (cmds == 0) return nullptr;
+    DL_Interpreter* interp = cmds->getInterpreter();
+    return interp->getVoidPtr();
+}
+
 int OPS_SetString(const char* str)
 {
     if (cmds == 0) return 0;
@@ -1171,6 +1218,13 @@ int OPS_SetStringDictList(std::map<const char*, std::vector<const char*>>& data)
     if (cmds == 0) return 0;
     DL_Interpreter* interp = cmds->getInterpreter();
     return interp->setString(data);
+}
+
+int OPS_SetGenericDict(GenericDict& data)
+{
+    if (cmds == 0) return 0;
+    DL_Interpreter* interp = cmds->getInterpreter();
+    return interp->setGenericDict(data);
 }
 
 Domain* OPS_GetDomain(void)
@@ -1450,6 +1504,15 @@ int OPS_System()
         }
 	}
 
+
+    } else if (strcmp(type,"PythonSparse") == 0) {
+
+        LinearSOE *pythonSOE = static_cast<LinearSOE *>(OPS_SparsePythonSolver());
+        if (pythonSOE == nullptr) {
+            return -1;
+        }
+
+        theSOE = pythonSOE;
 
     } else if ((strcmp(type,"SparseGeneral") == 0) ||
 	       (strcmp(type,"SuperLU") == 0) ||
@@ -1805,6 +1868,9 @@ int OPS_Integrator()
 	} else if (strcmp(type, "ExplicitDifference") == 0) {
     ti = (TransientIntegrator*)OPS_ExplicitDifference();
 
+	} else if (strcmp(type, "ExplicitDifferenceStatic") == 0) {
+    ti = (TransientIntegrator*)OPS_ExplicitDifferenceStatic();
+
     } else {
 	opserr<<"WARNING unknown integrator type "<<type<<"\n";
     }
@@ -1842,6 +1908,10 @@ int OPS_Algorithm()
 
     } else if (strcmp(type, "ModifiedNewton") == 0) {
 	theAlgo = (EquiSolnAlgo*) OPS_ModifiedNewton();
+
+    } else if ((strcmp(type, "NewtonHallM") == 0)
+	       || (strcmp(type, "NewtonHall") == 0)) {
+	theAlgo = (EquiSolnAlgo*) OPS_NewtonHallM();
 
     } else if (strcmp(type, "KrylovNewton") == 0) {
 	theAlgo = (EquiSolnAlgo*) OPS_KrylovNewton();
@@ -2079,6 +2149,9 @@ int OPS_eigenAnalysis()
     bool findSmallest = true;
 
     // Check type of eigenvalue analysis
+    bool pythonSparseEigen = false;
+    EigenSOE *providedEigenSOE = 0;
+
     while (OPS_GetNumRemainingInputArgs() > 1) {
 
 	const char* type = OPS_GetString();
@@ -2108,6 +2181,12 @@ int OPS_eigenAnalysis()
 		 (strcmp(type,"-symmBandLapackEigen") == 0))
 	    typeSolver = EigenSOE_TAGS_SymBandEigenSOE;
 
+	else if ((strcmp(type,"symmGenLapack") == 0) ||
+		 (strcmp(type,"-symmGenLapack") == 0) ||
+		 (strcmp(type,"symmGenLapackEigen") == 0) ||
+		 (strcmp(type,"-symmGenLapackEigen") == 0))
+	    typeSolver = EigenSOE_TAGS_SymmGeneralizedEigenSOE;	
+
     else if ((strcmp(type, "fullGenLapack") == 0) ||
                 (strcmp(type, "-fullGenLapack") == 0) ||
                 (strcmp(type, "fullGenLapackEigen") == 0) ||
@@ -2119,7 +2198,14 @@ int OPS_eigenAnalysis()
         typeSolver = EigenSOE_TAGS_FullGenEigenSOE;
     }
 
-    else {
+    else if (strcmp(type,"PythonSparse") == 0) {
+        pythonSparseEigen = true;
+        typeSolver = EigenSOE_TAGS_SparsePythonCompressedEigenSOE;
+        // will be updated to the actual type of the eigen solver
+        // after the EigenSOE is created
+        break;
+
+    } else {
         opserr << "eigen - unknown option specified " << type
                 << endln;
     }
@@ -2139,8 +2225,17 @@ int OPS_eigenAnalysis()
     }
     cmds->setNumEigen(numEigen);
 
+    if (pythonSparseEigen) {
+        void *eigenSOEPtr = OPS_SparsePythonEigenSolver();
+        if (eigenSOEPtr == 0) {
+            return -1;
+        }
+        providedEigenSOE = static_cast<EigenSOE *>(eigenSOEPtr);
+        typeSolver = providedEigenSOE->getClassTag();
+    }
+
     // set eigen soe
-    if (cmds->eigen(typeSolver,shift,generalizedAlgo,findSmallest) < 0) {
+    if (cmds->eigen(typeSolver,shift,generalizedAlgo,findSmallest, providedEigenSOE) < 0) {
 	opserr<<"WANRING failed to do eigen analysis\n";
 	return -1;
     }
@@ -2196,20 +2291,45 @@ int OPS_printA()
     OPS_Stream *output = &opserr;
 
     bool ret = false;
-    if (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if ((strcmp(flag,"file") == 0) || (strcmp(flag,"-file") == 0)) {
-
-	    const char* filename = OPS_GetString();
-	    if (outputFile.setFile(filename) != 0) {
-		opserr << "printA <filename> .. - failed to open file: " << filename << endln;
-		return -1;
-	    }
-	    output = &outputFile;
-	} else if((strcmp(flag,"ret") == 0) || (strcmp(flag,"-ret") == 0)) {
-	    ret = true;
-	}
+    bool fileSparse = false;
+    int baseIndex = 0;
+    int precision = 6;
+    while (OPS_GetNumRemainingInputArgs() > 0) {
+        const char* flag = OPS_GetString();
+        if ((strcmp(flag,"file") == 0) || (strcmp(flag,"-file") == 0)) {
+            const char* filename = OPS_GetString();
+            if (strcmp(filename, "Invalid String Input!") == 0) {
+                opserr << "WARNING: printA - filename is not a valid string\n";
+                return -1;
+            }
+            if (outputFile.setFile(filename) != 0) {
+                opserr << "printA <filename> .. - failed to open file: " << filename << endln;
+                return -1;
+            }
+            output = &outputFile;
+        } else if((strcmp(flag,"ret") == 0) || (strcmp(flag,"-ret") == 0)) {
+            ret = true;
+        } else if ((strcmp(flag,"sparse") == 0) || (strcmp(flag,"-sparse") == 0)) {
+            fileSparse = true;
+            if (OPS_GetNumRemainingInputArgs() > 0) {
+                int numdata = 1;
+                if (OPS_GetIntInput(&numdata, &baseIndex) < 0) {
+                    opserr << "WARNING: printA - failed to read -sparse <baseIndex>\n";
+                    return -1;
+                }
+            }
+        } else if ((strcmp(flag,"precision") == 0) || (strcmp(flag,"-precision") == 0)) {
+            if (OPS_GetNumRemainingInputArgs() > 0) {
+                int numdata = 1;
+                if ((OPS_GetIntInput(&numdata, &precision) < 0) || (precision < 0) || (precision > 16)) {
+                    opserr << "WARNING: printA - failed to read precision\n";
+                    return -1;
+                }
+            }
+        } else {
+            opserr << "WARNING: printA - unknown flag: " << flag << endln;
+            return -1;
+        }
     }
 
     LinearSOE* theSOE = cmds->getSOE();
@@ -2217,41 +2337,95 @@ int OPS_printA()
     TransientIntegrator* theTransientIntegrator = cmds->getTransientIntegrator();
 
     if (theSOE != 0) {
-	if (theStaticIntegrator != 0) {
-	    theStaticIntegrator->formTangent();
-	} else if (theTransientIntegrator != 0) {
-	    theTransientIntegrator->formTangent(0);
-	}
-
-    PFEMLinSOE* pfemsoe = dynamic_cast<PFEMLinSOE*>(theSOE);
-    if (pfemsoe != 0) {
-        pfemsoe->saveK(*output);
-        outputFile.close();
-        return 0;
-    }
-
-	Matrix *A = const_cast<Matrix*>(theSOE->getA());
-	if (A != 0) {
-	    if (ret) {
-		int size = A->noRows() * A->noCols();
-		if (size >0) {
-		    double& ptr = (*A)(0,0);
-		    if (OPS_SetDoubleOutput(&size, &ptr, false) < 0) {
-			opserr << "WARNING: printA - failed to set output\n";
-			return -1;
-		    }
-		}
-	    } else {
-		*output << *A;
-	    }
-	} else {
-        int size = 0;
-        double *ptr = 0;
-        if (OPS_SetDoubleOutput(&size, ptr, false) < 0) {
-            opserr << "WARNING: printA - failed to set output\n";
-            return -1;
+        output->setPrecision(precision);
+        if (theStaticIntegrator != 0) {
+            theStaticIntegrator->formTangent();
+        } else if (theTransientIntegrator != 0) {
+            theTransientIntegrator->formTangent(0);
         }
-	}
+
+        PFEMLinSOE* pfemsoe = dynamic_cast<PFEMLinSOE*>(theSOE);
+        if (pfemsoe != 0) {
+            pfemsoe->saveK(*output);
+            outputFile.close();
+            return 0;
+        }
+
+        if (fileSparse) {
+            if (!ret) {
+                // Write Matrix Market header
+                const char* mm_comment = (output == &opserr) ? "%%" : "%";
+
+                if (baseIndex == 1) {
+                    *output << mm_comment << mm_comment << "MatrixMarket matrix coordinate real general\n";
+                } else {
+                    *output << mm_comment << mm_comment << "Sparse matrix in COO format\n";
+                }
+                *output << mm_comment << " First non-commented line contains the number of rows, columns, and non-zero elements\n";
+                *output << mm_comment << " The remaining lines contain the indices and values of the non-zero elements\n";
+                *output << mm_comment << " Indices are " << baseIndex << "-based\n";
+                *output << mm_comment << " (i.e. A(" << baseIndex << "," << baseIndex << ") is the first element)\n";
+                int result = theSOE->saveSparseA(*output, baseIndex);
+                outputFile.close();
+                if (result != 0) {
+                    opserr << "WARNING: printA -sparse failed to save sparse matrix" << endln;
+                    opserr << "The selected system type may not support sparse matrix output" << endln;
+                    return -1;
+                }
+                // Return 0 to indicate success
+                int numdata = 1;
+                if (OPS_SetIntOutput(&numdata, &result, true) < 0) {
+                    opserr << "WARNING: printA - failed to set output\n";
+                    return -1;
+                }
+                return result;
+            } else {
+                // Support sparse matrix with -ret flag using GenericDict
+                std::vector<int> rowIndices, colIndices;
+                std::vector<double> values;
+                int result = theSOE->getSparseA(rowIndices, colIndices, values, baseIndex);
+                if (result != 0) {
+                    opserr << "WARNING: printA -sparse -ret failed to get sparse matrix data" << endln;
+                    opserr << "The selected system type may not support sparse matrix output" << endln;
+                    return -1;
+                }
+                
+                // Build generic dictionary and return
+                GenericDict dict;
+                dict["rowIndices"] = rowIndices;
+                dict["colIndices"] = colIndices;
+                dict["values"] = values;
+                
+                if (OPS_SetGenericDict(dict) < 0) {
+                    opserr << "WARNING: printA -sparse -ret failed to set output" << endln;
+                    return -1;
+                }
+                return 0;
+            }
+        }
+
+        Matrix *A = const_cast<Matrix*>(theSOE->getA());
+        if (A != 0) {
+            if (ret) {
+                int size = A->noRows() * A->noCols();
+                if (size >0) {
+                    double& ptr = (*A)(0,0);
+                    if (OPS_SetDoubleOutput(&size, &ptr, false) < 0) {
+                        opserr << "WARNING: printA - failed to set output\n";
+                        return -1;
+                    }
+                }
+            } else {
+                *output << *A;
+            }
+        } else {
+            int size = 0;
+            double *ptr = 0;
+            if (OPS_SetDoubleOutput(&size, ptr, false) < 0) {
+                opserr << "WARNING: printA - failed to set output\n";
+                return -1;
+            }
+        }
     } else {
         int size = 0;
         double *ptr = 0;
@@ -2263,6 +2437,16 @@ int OPS_printA()
 
     // close the output file
     outputFile.close();
+    
+    // Return 0 to indicate success when not using -ret flag
+    if (!ret) {
+        int result = 0;
+        int numdata = 1;
+        if (OPS_SetIntOutput(&numdata, &result, true) < 0) {
+            opserr << "WARNING: printA - failed to set output\n";
+            return -1;
+        }
+    }
 
     return 0;
 }
@@ -2494,395 +2678,6 @@ int OPS_printModel()
     // close the output file
     outputFile.close();
     return res;
-}
-
-void* OPS_KrylovNewton()
-{
-    if (cmds == 0) return 0;
-    int incrementTangent = CURRENT_TANGENT;
-    int iterateTangent = CURRENT_TANGENT;
-    int maxDim = 3;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if (strcmp(flag,"-iterate") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		iterateTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		iterateTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		iterateTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-increment") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		incrementTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		incrementTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		incrementTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-maxDim") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    maxDim = atoi(flag);
-	    int numdata = 1;
-	    if (OPS_GetIntInput(&numdata, &maxDim) < 0) {
-		opserr<< "WARNING KrylovNewton failed to read maxDim\n";
-		return 0;
-	    }
-	}
-    }
-
-    ConvergenceTest* theTest = cmds->getCTest();
-    if (theTest == 0) {
-      opserr << "ERROR: No ConvergenceTest yet specified\n";
-      return 0;
-    }
-
-    Accelerator *theAccel;
-    theAccel = new KrylovAccelerator(maxDim, iterateTangent);
-
-    return new AcceleratedNewton(*theTest, theAccel, incrementTangent);
-}
-
-void* OPS_RaphsonNewton()
-{
-    if (cmds == 0) return 0;
-    int incrementTangent = CURRENT_TANGENT;
-    int iterateTangent = CURRENT_TANGENT;
-
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if (strcmp(flag,"-iterate") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		iterateTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		iterateTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		iterateTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-increment") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		incrementTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		incrementTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		incrementTangent = NO_TANGENT;
-	    }
-	}
-    }
-
-    ConvergenceTest* theTest = cmds->getCTest();
-    if (theTest == 0) {
-      opserr << "ERROR: No ConvergenceTest yet specified\n";
-      return 0;
-    }
-
-    Accelerator *theAccel;
-    theAccel = new RaphsonAccelerator(iterateTangent);
-
-    return new AcceleratedNewton(*theTest, theAccel, incrementTangent);
-}
-
-void* OPS_MillerNewton()
-{
-    if (cmds == 0) return 0;
-    int incrementTangent = CURRENT_TANGENT;
-    int iterateTangent = CURRENT_TANGENT;
-    int maxDim = 3;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if (strcmp(flag,"-iterate") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		iterateTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		iterateTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		iterateTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-increment") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		incrementTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		incrementTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		incrementTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-maxDim") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    maxDim = atoi(flag);
-	    int numdata = 1;
-	    if (OPS_GetIntInput(&numdata, &maxDim) < 0) {
-		opserr<< "WARNING KrylovNewton failed to read maxDim\n";
-		return 0;
-	    }
-	}
-    }
-
-    ConvergenceTest* theTest = cmds->getCTest();
-    if (theTest == 0) {
-      opserr << "ERROR: No ConvergenceTest yet specified\n";
-      return 0;
-    }
-
-    Accelerator *theAccel = 0;
-    return new AcceleratedNewton(*theTest, theAccel, incrementTangent);
-}
-
-void* OPS_SecantNewton()
-{
-    if (cmds == 0) return 0;
-    int incrementTangent = CURRENT_TANGENT;
-    int iterateTangent = CURRENT_TANGENT;
-    int maxDim = 3;
-    int numTerms = 2;
-    bool cutOut = false;
-    double R[2];
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if (strcmp(flag,"-iterate") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		iterateTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		iterateTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		iterateTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-increment") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		incrementTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		incrementTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		incrementTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-maxDim") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    int numdata = 1;
-	    if (OPS_GetIntInput(&numdata, &maxDim) < 0) {
-		opserr<< "WARNING SecantNewton failed to read maxDim\n";
-		return 0;
-	    }
-	} else if (strcmp(flag,"-numTerms") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    int numdata = 1;
-	    if (OPS_GetIntInput(&numdata, &numTerms) < 0) {
-		opserr<< "WARNING SecantNewton failed to read maxDim\n";
-		return 0;
-	    }
-	} else if ((strcmp(flag,"-cutOut") == 0 || strcmp(flag,"-cutout") == 0)
-		   && OPS_GetNumRemainingInputArgs() > 1) {
-	  int numdata = 2;
-	  if (OPS_GetDoubleInput(&numdata, R) < 0) {
-	    opserr << "WARNING SecantNewton failed to read cutOut values R1 and R2" << endln;
-	    return 0;
-	  }
-	  cutOut = true;
-	}
-    }
-
-    ConvergenceTest* theTest = cmds->getCTest();
-    if (theTest == 0) {
-      opserr << "ERROR: No ConvergenceTest yet specified\n";
-      return 0;
-    }
-
-    Accelerator *theAccel = 0;
-    if (numTerms <= 1)
-      if (cutOut)
-	theAccel = new SecantAccelerator1(maxDim, iterateTangent, R[0], R[1]);
-      else
-	theAccel = new SecantAccelerator1(maxDim, iterateTangent);
-    if (numTerms >= 3)
-      if (cutOut)
-	theAccel = new SecantAccelerator3(maxDim, iterateTangent, R[0], R[1]);
-      else
-	theAccel = new SecantAccelerator3(maxDim, iterateTangent);
-    if (numTerms == 2)
-      if (cutOut)
-	theAccel = new SecantAccelerator2(maxDim, iterateTangent, R[0], R[1]);
-      else
-	theAccel = new SecantAccelerator2(maxDim, iterateTangent);            
-
-    return new AcceleratedNewton(*theTest, theAccel, incrementTangent);
-}
-
-void* OPS_PeriodicNewton()
-{
-    if (cmds == 0) return 0;
-    int incrementTangent = CURRENT_TANGENT;
-    int iterateTangent = CURRENT_TANGENT;
-    int maxDim = 3;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if (strcmp(flag,"-iterate") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		iterateTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		iterateTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		iterateTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-increment") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2,"current") == 0) {
-		incrementTangent = CURRENT_TANGENT;
-	    }
-	    if (strcmp(flag2,"initial") == 0) {
-		incrementTangent = INITIAL_TANGENT;
-	    }
-	    if (strcmp(flag2,"noTangent") == 0) {
-		incrementTangent = NO_TANGENT;
-	    }
-	} else if (strcmp(flag,"-maxDim") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    maxDim = atoi(flag);
-	    int numdata = 1;
-	    if (OPS_GetIntInput(&numdata, &maxDim) < 0) {
-		opserr<< "WARNING KrylovNewton failed to read maxDim\n";
-		return 0;
-	    }
-	}
-    }
-
-    ConvergenceTest* theTest = cmds->getCTest();
-    if (theTest == 0) {
-      opserr << "ERROR: No ConvergenceTest yet specified\n";
-      return 0;
-    }
-
-    Accelerator *theAccel;
-    theAccel = new PeriodicAccelerator(maxDim, iterateTangent);
-
-    return new AcceleratedNewton(*theTest, theAccel, incrementTangent);
-}
-
-void* OPS_NewtonLineSearch()
-{
-    if (cmds == 0) return 0;
-    ConvergenceTest* theTest = cmds->getCTest();
-
-    if (theTest == 0) {
-	opserr << "ERROR: No ConvergenceTest yet specified\n";
-	return 0;
-    }
-
-    // set some default variable
-    double tol        = 0.8;
-    int    maxIter    = 10;
-    double maxEta     = 10.0;
-    double minEta     = 0.1;
-    int    pFlag      = 1;
-    int    typeSearch = 0;
-
-    int numdata = 1;
-
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-	const char* flag = OPS_GetString();
-
-	if (strcmp(flag, "-tol") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    if (OPS_GetDoubleInput(&numdata, &tol) < 0) {
-		opserr << "WARNING NewtonLineSearch failed to read tol\n";
-		return 0;
-	    }
-
-	} else if (strcmp(flag, "-maxIter") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    if (OPS_GetIntInput(&numdata, &maxIter) < 0) {
-		opserr << "WARNING NewtonLineSearch failed to read maxIter\n";
-		return 0;
-	    }
-
-	} else if (strcmp(flag, "-pFlag") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    if (OPS_GetIntInput(&numdata, &pFlag) < 0) {
-		opserr << "WARNING NewtonLineSearch failed to read pFlag\n";
-		return 0;
-	    }
-
-	} else if (strcmp(flag, "-minEta") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    if (OPS_GetDoubleInput(&numdata, &minEta) < 0) {
-		opserr << "WARNING NewtonLineSearch failed to read minEta\n";
-		return 0;
-	    }
-
-	} else if (strcmp(flag, "-maxEta") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-
-	    if (OPS_GetDoubleInput(&numdata, &maxEta) < 0) {
-		opserr << "WARNING NewtonLineSearch failed to read maxEta\n";
-		return 0;
-	    }
-
-	} else if (strcmp(flag, "-type") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-	    const char* flag2 = OPS_GetString();
-
-	    if (strcmp(flag2, "Bisection") == 0)
-		typeSearch = 1;
-	    else if (strcmp(flag2, "Secant") == 0)
-		typeSearch = 2;
-	    else if (strcmp(flag2, "RegulaFalsi") == 0)
-		typeSearch = 3;
-	    else if (strcmp(flag2, "LinearInterpolated") == 0)
-		typeSearch = 3;
-	    else if (strcmp(flag2, "InitialInterpolated") == 0)
-		typeSearch = 0;
-	}
-    }
-
-    LineSearch *theLineSearch = 0;
-    if (typeSearch == 0)
-	theLineSearch = new InitialInterpolatedLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-
-    else if (typeSearch == 1)
-	theLineSearch = new BisectionLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-    else if (typeSearch == 2)
-	theLineSearch = new SecantLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-    else if (typeSearch == 3)
-	theLineSearch = new RegulaFalsiLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-
-    return new NewtonLineSearch(*theTest, theLineSearch);
 }
 
 int OPS_getCTestNorms()

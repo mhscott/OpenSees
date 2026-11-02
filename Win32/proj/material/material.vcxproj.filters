@@ -974,6 +974,9 @@
     <ClCompile Include="..\..\..\SRC\material\nD\FSAM.cpp">
       <Filter>nD</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\nD\FAM_CS.cpp">
+      <Filter>nD</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete02.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
@@ -1350,6 +1353,9 @@
       <Filter>nD\UWmaterials</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\PM4Silt.cpp">
+      <Filter>nD\UWmaterials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\nD\UWmaterials\LinearElasticGGmax.cpp">
       <Filter>nD\UWmaterials</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\material\nD\UVCmultiaxial.cpp">
@@ -2204,6 +2210,9 @@
     <ClInclude Include="..\..\..\SRC\material\nD\FSAM.h">
       <Filter>nD</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\nD\FAM_CS.h">
+      <Filter>nD</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\FRPConfinedConcrete02.h">
       <Filter>uniaxial</Filter>
     </ClInclude>
@@ -2574,6 +2583,9 @@
       <Filter>nD\UWmaterials</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\PM4Silt.h">
+      <Filter>nD\UWmaterials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\nD\UWmaterials\LinearElasticGGmax.h">
       <Filter>nD\UWmaterials</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\nD\UVCmultiaxial.h">

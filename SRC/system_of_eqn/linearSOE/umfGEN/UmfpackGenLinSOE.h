@@ -70,10 +70,14 @@ public:
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker); 
 
+    int saveSparseA(OPS_Stream& output, int baseIndex = 0);
+    int getSparseA(ID& rowIndices, ID& colIndices, Vector& values, int baseIndex = 0);
+    int getSparseA(std::vector<int>& rowIndices, std::vector<int>& colIndices, std::vector<double>& values, int baseIndex = 0);
     friend class UmfpackGenLinSolver;
 
 protected:
-    
+    bool factored;
+
 private:
     Vector X,B;
     std::vector<int> Ap, Ai;

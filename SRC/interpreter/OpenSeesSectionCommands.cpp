@@ -103,6 +103,8 @@ void* OPS_RCSection2d();
 void* OPS_WFSection2d();
 void* OPS_RCCircularSection();
 void* OPS_RCTunnelSection();
+void* OPS_MVLEMSection2d();
+void* OPS_SFIMVLEMSection2d();
 void* OPS_UniaxialSection();
 void* OPS_RCTBeamSection2d();
 void* OPS_RCTBeamSectionUniMat2d();
@@ -156,6 +158,9 @@ namespace {
 	    } else if(numData >= 8) {
 		theSec = OPS_ElasticShearSection3d();
 	    }
+	} else {
+		opserr << "ElasticSection not currently compatible with ndm = " << ndm << endln;
+		return 0;
 	}
 
 	return theSec;
@@ -172,6 +177,9 @@ namespace {
 	} else if(ndm == 3) {
 	    theSec = OPS_FiberSection3d();
 	    theActiveFiberSection3d = (FiberSection3d*)theSec;
+	} else {
+		opserr << "FiberSection not currently compatible with ndm = " << ndm << endln;
+		return 0;
 	}
 
 	return theSec;
@@ -182,12 +190,12 @@ namespace {
 	void* theSec = 0;
 	int ndm = OPS_GetNDM();
 	int ndf = OPS_GetNDF();	
-	if(ndm == 2) {
-	  //theSec = OPS_FiberSectionWarping2d();
-	  //theActiveFiberSectionWarping2d = (FiberSectionWarping2d*)theSec;
-	} else if(ndm == 3) {
+	if(ndm == 3) {
 	  theSec = OPS_FiberSectionWarping3d();
 	  theActiveFiberSectionWarping3d = (FiberSectionWarping3d*)theSec;
+	} else {
+		opserr << "FiberSectionWarping not currently compatible with ndm = " << ndm << endln;
+		return 0;
 	}
 
 	return theSec;
@@ -198,13 +206,12 @@ namespace {
 		void* theSec = 0;
 		int ndm = OPS_GetNDM();
 		int ndf = OPS_GetNDF();
-		if (ndm == 2) {
-			//theSec = OPS_FiberSectionAsym2d();
-			//theActiveFiberSectionAsym2d = (FiberSectionAsym2d*)theSec;
-		}
-		else if (ndm == 3) {
+		if (ndm == 3) {
 			theSec = OPS_FiberSectionAsym3d();
 			theActiveFiberSectionAsym3d = (FiberSectionAsym3d*)theSec;
+		} else {
+			opserr << "FiberSectionAsym not currently compatible with ndm = " << ndm << endln;
+			return 0;
 		}
 
 		return theSec;
@@ -220,6 +227,9 @@ namespace {
 	} else if(ndm == 3) {
 	    theSec = OPS_FiberSection3dThermal();
 	    theActiveFiberSection3dThermal = (FiberSection3dThermal*)theSec;
+	} else {
+		opserr << "FiberSectionThermal not currently compatible with ndm = " << ndm << endln;
+		return 0;
 	}
 
 	return theSec;
@@ -235,6 +245,9 @@ namespace {
 	} else if(ndm == 3) {
 	    theSec = OPS_NDFiberSection3d();
 	    theActiveNDFiberSection3d = (NDFiberSection3d*)theSec;
+	} else {
+		opserr << "NDFiberSection not currently compatible with ndm = " << ndm << endln;
+		return 0;
 	}
 
 	return theSec;
@@ -247,9 +260,9 @@ namespace {
 	if(ndm == 2) {
 	  theSec = OPS_NDFiberSectionWarping2d();
 	  theActiveNDFiberSectionWarping2d = (NDFiberSectionWarping2d*)theSec;
-	} else if(ndm == 3) {
-	  //theSec = OPS_NDFiberSection3d();
-	  //theActiveNDFiberSection3d = (NDFiberSection3d*)theSec;
+	} else {
+		opserr << "NDFiberSectionWarping not currently compatible with ndm = " << ndm << endln;
+		return 0;
 	}
 
 	return theSec;
@@ -293,6 +306,9 @@ namespace {
 	functionMap.insert(std::make_pair("Elliptical", &OPS_Elliptical2));	
 	functionMap.insert(std::make_pair("Isolator2spring", &OPS_Isolator2spring));
 	functionMap.insert(std::make_pair("RCCircularSection", &OPS_RCCircularSection));
+	functionMap.insert(std::make_pair("MVLEM", &OPS_MVLEMSection2d));
+	functionMap.insert(std::make_pair("SFIMVLEM", &OPS_SFIMVLEMSection2d));
+	functionMap.insert(std::make_pair("SFI_MVLEM", &OPS_SFIMVLEMSection2d));		
 	functionMap.insert(std::make_pair("RCTunnelSection", &OPS_RCTunnelSection));
 	functionMap.insert(std::make_pair("ReinforcedConcreteLayeredMembraneSection", &OPS_ReinforcedConcreteLayeredMembraneSection));
 	functionMap.insert(std::make_pair("RCLayeredMembraneSection", &OPS_ReinforcedConcreteLayeredMembraneSection));
