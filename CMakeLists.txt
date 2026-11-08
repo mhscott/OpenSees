@@ -398,6 +398,12 @@ else()
    set (PYTHON_FOUND TRUE CACHE BOOL "providing own python lib")
 endif()
 
+# OpenSeesPy reliability: functionEvaluator Python, PythonRV 
+if(Python_FOUND)
+  add_compile_definitions(_PYTHON3)
+  include_directories(${Python_INCLUDE_DIRS})
+endif()
+
 
 find_package(MPI)
 find_package(MKL)
@@ -600,6 +606,11 @@ target_link_libraries(G3
 
 add_library(OpenSeesLIB  EXCLUDE_FROM_ALL)
 
+#
+# For UMFPACK long int DLONG version -- Gustavo, Michael
+#
+target_compile_definitions(OpenSeesLIB PUBLIC _UMFPACK_DLONG)
+
 target_link_libraries(OpenSeesLIB
     ${OPS_Extension_List}
     OPS_Actor
@@ -701,6 +712,12 @@ target_link_libraries(OpenSees
   ZLIB::ZLIB
   Eigen3::Eigen
 )
+
+# OPS_INTERPRETER may reference PythonEvaluator when _PYTHON3 is set; that object
+# is only linked into OpenSeesPy (macOS extension modules resolve at load time).
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND Python_FOUND)
+  set_target_properties(OpenSees PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+endif()
 
 
 #
@@ -864,14 +881,28 @@ target_link_libraries(OpenSeesPy
 #
 
 install (TARGETS OpenSees DESTINATION bin)
+
+#if (TCL_INIT_FILE)
+#   install(FILES "${TCL_INIT_FILE}"
+#       DESTINATION lib/tcl8.6 
+#   )
+#endif()
+
+install (TARGETS OpenSees DESTINATION bin)
 if (TCL_INIT_FILE)
    install(FILES "${TCL_INIT_FILE}"
-       DESTINATION lib/tcl8.6 
+       DESTINATION library 
    )
 endif()
-install(PROGRAMS $<TARGET_FILE:OpenSeesPy> 
-        DESTINATION bin 
+
+install(PROGRAMS $<TARGET_FILE:OpenSeesPy>
+        DESTINATION bin
         RENAME opensees.so)
+
+if (MPI_FOUND)
+    install(TARGETS OpenSeesSP DESTINATION bin OPTIONAL)
+    install(TARGETS OpenSeesMP DESTINATION bin OPTIONAL)
+endif()
 
 
 # Set selected executable to be built by default
@@ -879,6 +910,11 @@ set_target_properties(${OPS_FINAL_TARGET} PROPERTIES EXCLUDE_FROM_ALL OFF)
 
 # Add sources to targets
 add_subdirectory(${OPS_SRC_DIR})
+
+include(CTest)
+if(BUILD_TESTING)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
+endif()
 
 
 
