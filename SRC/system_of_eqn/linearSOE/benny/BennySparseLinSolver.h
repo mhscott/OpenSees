@@ -13,7 +13,7 @@ class BennySparseLinSOE;
 class BennySparseLinSolver : public LinearSOESolver
 {
   public:
-  BennySparseLinSolver(bool piv = false, double tol = 1.0);     
+  BennySparseLinSolver(int order = 0, bool piv = false, double tol = 1.0);     
     ~BennySparseLinSolver();
 
     int solve(void);
@@ -31,6 +31,7 @@ class BennySparseLinSolver : public LinearSOESolver
     BennySparseLinSOE *theSOE;
   benny_symbolic *Asym;
   benny_numeric *Anum;
+  int order;
   bool pivot;
   double pivottol;
 };
