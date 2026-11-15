@@ -102,10 +102,10 @@ public:
 
  benny_numeric *benny_chol(const benny_symbolic *S);
  int benny_cholsol(int order, double *b);
- int benny_cholsol(const benny_symbolic *S, const benny_numeric *N, double *b, double *x);
+ int benny_cholsol(const benny_symbolic *S, const benny_numeric *N, double *b);
  benny_numeric *benny_lu(const benny_symbolic *S, double tol);
  int benny_lusol(int order, double *b, double tol);
- int benny_lusol(const benny_symbolic *S, const benny_numeric *N, double *b, double *x);
+ int benny_lusol(const benny_symbolic *S, const benny_numeric *N, double *b);
  
  static double benny_cumsum(int *p, int *c, int n);
  static int benny_pvec(const int *p, const double *b, double *x, int n); 
