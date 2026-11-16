@@ -77,15 +77,27 @@ void* OPS_NDFiber3d()
 	return 0;
     }
 
-    return new NDFiber3d(numNDFiber3d++,*theMat,data[2],data[0],data[1]);
+    double omega = 0.0;
+    if (OPS_GetNumRemainingInputArgs() > 0) {
+      if(OPS_GetDoubleInput(&numData,&omega) < 0) return 0;
+    }
+    double p[2]; p[0] = p[1] = 0.0;
+    if (OPS_GetNumRemainingInputArgs() > 1) {
+      numData = 2;
+      if(OPS_GetDoubleInput(&numData,p) < 0) return 0;
+    }
+
+    return new NDFiber3d(numNDFiber3d++,*theMat,data[2],data[0],data[1],omega,p[0],p[1]);
 }
 
 
 // constructor:
 NDFiber3d::NDFiber3d(int tag, NDMaterial &theMat,
-		     double Area, double yy, double zz, double d):
+		     double Area, double yy, double zz,
+		     double o, double dody, double dodz):
   Fiber(tag, FIBER_TAG_ND3d),
-  theMaterial(0), area(Area), y(yy), z(zz), dValue(d)
+  theMaterial(0), area(Area), y(yy), z(zz),
+  omega(o), dwarpdy(dody), dwarpdz(dodz)
 {
   theMaterial = theMat.getCopy("BeamFiber");
   
@@ -107,7 +119,8 @@ NDFiber3d::NDFiber3d(int tag, NDMaterial &theMat,
 // constructor for blank object that recvSelf needs to be invoked upon
 NDFiber3d::NDFiber3d(): 
   Fiber(0, FIBER_TAG_ND3d),
-  theMaterial(0), area(0), y(0.0), z(0.0), dValue(0.0)
+  theMaterial(0), area(0), y(0.0), z(0.0),
+  omega(0.0), dwarpdy(0.0), dwarpdz(0.0)
 {
   if (code(0) != SECTION_RESPONSE_P) {
     code(0) = SECTION_RESPONSE_P;
@@ -172,7 +185,8 @@ NDFiber3d::getCopy (void)
 {
    // make a copy of the fiber 
   NDFiber3d *theCopy = new NDFiber3d (this->getTag(), 
-				      *theMaterial, area, y, z, dValue);
+				      *theMaterial, area, y, z,
+				      omega, dwarpdy, dwarpdz);
 
   return theCopy;
 }  
@@ -243,11 +257,14 @@ NDFiber3d::sendSelf(int commitTag, Channel &theChannel)
   // 
   // store area and position data in a vector and send it
   //
-  static Vector dData(3);
+  static Vector dData(6);
   
   dData(0) = area;
   dData(1) = y;
   dData(2) = z;
+  dData(3) = omega;
+  dData(4) = dwarpdy;
+  dData(5) = dwarpdz;
   
   res += theChannel.sendVector(dbTag, commitTag, dData);
   if (res < 0) {
@@ -291,7 +308,7 @@ NDFiber3d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBro
   // get area from a vector received from channel
   //
   
-  static Vector dData(3);
+  static Vector dData(6);
   
   res += theChannel.recvVector(dbTag, commitTag, dData);
   if (res < 0) {
@@ -302,7 +319,10 @@ NDFiber3d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBro
   area = dData(0);
   y = dData(1);
   z = dData(2);
-
+  omega = dData(3);
+  dwarpdy = dData(4);
+  dwarpdz = dData(5);
+  
   //
   // now we do the material stuff
   //

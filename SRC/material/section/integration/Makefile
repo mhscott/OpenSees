@@ -6,7 +6,8 @@ OBJS       = SectionIntegration.o \
 	TubeSectionIntegration.o RCTunnelSectionIntegration.o \
 	HSSSectionIntegration.o \
 	MVLEMSectionIntegration.o \
-	SFIMVLEMSectionIntegration.o
+	SFIMVLEMSectionIntegration.o \
+	SuanPanSectionIntegration.o
 
 # Compilation control
 
