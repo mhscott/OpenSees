@@ -494,7 +494,41 @@ NDFiberSection3d::setTrialSectionDeformation (const Vector &deforms)
     tmp = -yz*d00;
     ksi(1,2) += tmp;
     ksi(2,1) += tmp;
+
+    ksi(0,3) += rootAlpha*d01;
+    ksi(0,4) += rootAlpha*d02;
+    ksi(0,5) += d01*(py[i]+z) + d02*(-pz[i]+y);
+
+    ksi(1,3) += -y*rootAlpha*d01;
+    ksi(1,4) += -y*rootAlpha*d02;
+    ksi(1,5) += -y*(d01*(py[i]+z) + d02*(-pz[i]+y));
+
+    ksi(2,3) += z*rootAlpha*d01;
+    ksi(2,4) += z*rootAlpha*d02;
+    ksi(2,5) += z*(d01*(py[i]+z) + d02*(-pz[i]+y));        
+
+    ksi(3,0) += rootAlpha*d10;
+    ksi(3,1) += -y*rootAlpha*d10;
+    ksi(3,2) += z*rootAlpha*d10;
+    ksi(3,3) += alpha*d11;
+    ksi(3,4) += alpha*d12;
+    ksi(3,5) += rootAlpha*(d11*(py[i]+z) + d12*(-pz[i]+y));
     
+    ksi(4,0) += rootAlpha*d20;
+    ksi(4,1) += -y*rootAlpha*d20;
+    ksi(4,2) += z*rootAlpha*d20;
+    ksi(4,3) += alpha*d21;
+    ksi(4,4) += alpha*d22;
+    ksi(4,5) += rootAlpha*(d21*(py[i]+z) + d22*(-pz[i]+y));    
+
+    ksi(5,0) += (py[i]+z)*d10 + (-pz[i]+y)*d20;
+    ksi(5,1) += -y*((py[i]+z)*d10 + (-pz[i]+y)*d20);
+    ksi(5,2) += z*((py[i]+z)*d10 + (-pz[i]+y)*d20);    
+    ksi(5,3) += rootAlpha*((py[i]+z)*d11 + (-pz[i]+y)*d21);
+    ksi(5,4) += rootAlpha*((py[i]+z)*d12 + (-pz[i]+y)*d22);
+    ksi(5,5) += (py[i]+z)*((py[i]+z)*d11 + (-pz[i]+y)*d12)  +  (-pz[i]+y)*((py[i]+z)*d21 + (-pz[i]+y)*d22);        
+    
+    /*
     // Shear terms
     ksi(3,3) += alpha*d11;
     ksi(3,4) += alpha*d12;
@@ -540,7 +574,8 @@ NDFiberSection3d::setTrialSectionDeformation (const Vector &deforms)
     ksi(5,4) += -z*d12 + y2;
     ksi(3,5) +=  z2 + y*d12;
     ksi(4,5) += -z*d21 + y2;
-
+    */
+    
     double sig0 = stress(0)*A;
     double sig1 = stress(1)*A;
     double sig2 = stress(2)*A;
