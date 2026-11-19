@@ -847,7 +847,7 @@ NDFiberSection3d::getType ()
 int
 NDFiberSection3d::getOrder () const
 {
-  return 6;
+  return 7;
 }
 
 int
@@ -889,7 +889,7 @@ NDFiberSection3d::revertToLastCommit(void)
       fiberArea[i] = matData[6*i+2];
       py[i] = matData[6*i+3];
       pz[i] = matData[6*i+4];
-      pz[i] = matData[6*i+5];            
+      omega[i] = matData[6*i+5];            
     }
   }
 
@@ -1380,9 +1380,9 @@ NDFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
     else {
       double yLoc, zLoc, Area;
       for (i = 0; computeCentroid && i < numFibers; i++) {
-	yLoc = matData[3*i];
-	zLoc = matData[3*i+1];
-	Area = matData[3*i+2];
+	yLoc = matData[6*i];
+	zLoc = matData[6*i+1];
+	Area = matData[6*i+2];
 	Abar  += Area;
 	QzBar += yLoc*Area;
 	QyBar += zLoc*Area;
@@ -1412,8 +1412,8 @@ NDFiberSection3d::Print(OPS_Stream &s, int flag)
 
   if (flag == 1) {
     for (int i = 0; i < numFibers; i++) {
-      s << "\nLocation (y,z) = " << matData[3*i] << ' ' << matData[3*i+1];
-      s << "\nArea = " << matData[3*i+2] << endln;
+      s << "\nLocation (y,z) = " << matData[6*i] << ' ' << matData[6*i+1];
+      s << "\nArea = " << matData[6*i+2] << endln;
       theMaterials[i]->Print(s, flag);
     }
   }
@@ -1926,8 +1926,8 @@ NDFiberSection3d::commitSensitivity(const Vector& defSens,
     sectionIntegr->getFiberLocations(numFibers, yLocs, zLocs);
   else {
     for (int i = 0; i < numFibers; i++) {
-      yLocs[i] = matData[3*i];
-      zLocs[i] = matData[3*i+1];
+      yLocs[i] = matData[6*i];
+      zLocs[i] = matData[6*i+1];
     }
   }
 

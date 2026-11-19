@@ -98,8 +98,8 @@ class NDFiberSection3d : public SectionForceDeformation
     int numFibers, sizeFibers;                   // number of fibers in the section
     NDMaterial **theMaterials; // array of pointers to materials
     double   *matData;               // data for the materials [yloc and area]
-    double   kData[36];               // data for ks matrix 
-    double   sData[6];               // data for s vector 
+    double   kData[49];               // data for ks matrix 
+    double   sData[7];               // data for s vector 
 
     double Abar,QyBar, QzBar;
     double yBar;       // Section centroid
