@@ -132,10 +132,12 @@ class ZeroLengthSection : public Element
     // Class wide matrices for return
     static Matrix K6;
     static Matrix K12;
+    static Matrix K14;  
     
     // Class wide vectors for return
     static Vector P6;
     static Vector P12;
+    static Vector P14;  
 };
 
 #endif

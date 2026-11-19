@@ -46,9 +46,11 @@
 
 Matrix ZeroLengthSection::K6(6,6);
 Matrix ZeroLengthSection::K12(12,12);
+Matrix ZeroLengthSection::K14(14,14);
 
 Vector ZeroLengthSection::P6(6);
 Vector ZeroLengthSection::P12(12);
+Vector ZeroLengthSection::P14(14);
 
 void* OPS_ZeroLengthSection()
 {
@@ -243,13 +245,17 @@ ZeroLengthSection::setDomain(Domain *theDomain)
 
     numDOF = 2*dofNd1;
 
-    if (numDOF != 6 && numDOF != 12)
-      opserr << "ZeroLengthSection::setDomain() -- element only works for 3 (2d) or 6 (3d) dof per node\n";
+    if (numDOF != 6 && numDOF != 12 && numDOF != 14)
+      opserr << "ZeroLengthSection::setDomain() -- element only works for 3 (2d) or 6/7 (3d) dof per node\n";
     
     // Set pointers to class wide objects
     if (numDOF == 6) {
       P = &P6;
       K = &K6;
+    }
+    else if (numDOF == 14) {
+      P = &P14;
+      K = &K14;
     }
     else {
       P = &P12;
@@ -535,6 +541,10 @@ ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 		if (numDOF == 6) {
 			P = &P6;
 			K = &K6;
+		}
+		else if (numDOF == 14) {
+			P = &P14;
+			K = &K14;
 		}
 		else {
 			P = &P12;
@@ -858,6 +868,11 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,10) = transformation(2,1);
 				tran(i,11) = transformation(2,2);
 			}
+			else if (numDOF == 14) {
+				tran(i,10) = transformation(2,0);
+				tran(i,11) = transformation(2,1);
+				tran(i,12) = transformation(2,2);
+			}			
 			break;
 		case SECTION_RESPONSE_P:
 			if (numDOF == 6) {
@@ -870,6 +885,11 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,7) = transformation(0,1);
 				tran(i,8) = transformation(0,2);
 			}
+			else if (numDOF == 14) {
+				tran(i,7) = transformation(0,0);
+				tran(i,8) = transformation(0,1);
+				tran(i,9) = transformation(0,2);
+			}			
 			break;
 		case SECTION_RESPONSE_VY:
 			if (numDOF == 6) {
@@ -882,6 +902,11 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,7) = transformation(1,1);
 				tran(i,8) = transformation(1,2);
 			}
+			else if (numDOF == 14) {
+				tran(i,7) = transformation(1,0);
+				tran(i,8) = transformation(1,1);
+				tran(i,9) = transformation(1,2);
+			}			
 			break;
 
 		// The out-of-plane transformations
@@ -891,6 +916,11 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,10) = transformation(1,1);
 				tran(i,11) = transformation(1,2);
 			}
+			if (numDOF == 14) {
+				tran(i,10) = transformation(1,0);
+				tran(i,11) = transformation(1,1);
+				tran(i,12) = transformation(1,2);
+			}			
 			break;
 		case SECTION_RESPONSE_VZ:
 			if (numDOF == 12) {
@@ -898,12 +928,27 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,7) = transformation(2,1);
 				tran(i,8) = transformation(2,2);
 			}
+			if (numDOF == 14) {
+				tran(i,7) = transformation(2,0);
+				tran(i,8) = transformation(2,1);
+				tran(i,9) = transformation(2,2);
+			}			
 			break;
 		case SECTION_RESPONSE_T:
 			if (numDOF == 12) {
 				tran(i,9) = transformation(0,0);
 				tran(i,10) = transformation(0,1);
 				tran(i,11) = transformation(0,2);
+			}
+			if (numDOF == 14) {
+				tran(i,10) = transformation(0,0);
+				tran(i,11) = transformation(0,1);
+				tran(i,12) = transformation(0,2);
+			}			
+			break;
+		case SECTION_RESPONSE_B:
+			if (numDOF == 14) {
+			  tran(i,13) = 1.0;
 			}
 			break;
 		default:
