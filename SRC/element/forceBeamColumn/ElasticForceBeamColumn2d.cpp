@@ -66,6 +66,7 @@ Journal of Structural Engineering, Approved for publication, February 2007.
 #include <Information.h>
 #include <Parameter.h>
 #include <ElasticForceBeamColumn2d.h>
+#include <ForceBeamColumn2d.h>
 #include <MatrixUtil.h>
 #include <Domain.h>
 #include <Channel.h>
@@ -141,7 +142,7 @@ void* OPS_ElasticForceBeamColumn2d()
 	}
     }
     
-    Element *theEle =  new ElasticForceBeamColumn2d(iData[0],iData[1],iData[2],secTags.Size(),sections,*bi,*theTransf,mass);
+    Element *theEle =  new ForceBeamColumn2d(iData[0],iData[1],iData[2],secTags.Size(),sections,*bi,*theTransf,mass);
     delete [] sections;
     return theEle;
 }
